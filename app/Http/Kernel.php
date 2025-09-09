@@ -112,7 +112,7 @@ class Kernel
                     $this->globalMiddleware,
                     ['OptionsHandler']
                 );
-                return $this->createPipeline($middlewareStack, []);
+                return $this->createPipeline($middlewareStack, [], null);
             }
             
             // 404 Not Found - also goes through global middleware for CORS
@@ -120,7 +120,7 @@ class Kernel
                 $this->globalMiddleware,
                 ['NotFoundHandler']
             );
-            return $this->createPipeline($middlewareStack, []);
+            return $this->createPipeline($middlewareStack, [], null);
         }
 
         [$route, $pathParams] = $routeMatch;
@@ -146,7 +146,7 @@ class Kernel
         
         // error_log("Middleware stack: " . json_encode($middlewareStack));
 
-        return $this->createPipeline($middlewareStack, $pathParams);
+        return $this->createPipeline($middlewareStack, $pathParams, $route);
     }
 
     private function createPipeline(array $middlewareStack, array $pathParams): callable
