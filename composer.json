@@ -1,0 +1,31 @@
+{
+    "name": "baseapi/baseapi",
+    "description": "A tiny, KISS-first PHP 8.4 framework for building JSON-first APIs",
+    "type": "project",
+    "require": {
+        "php": ">=8.4",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BaseApi\\": "app/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BaseApi\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "serve": "php -S 127.0.0.1:8000 -t public public/router.php"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

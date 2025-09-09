@@ -1,0 +1,6 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+BaseApi is a tiny, KISS-first PHP 8.4 framework for building JSON-first APIs with almost no ceremony: explicit routes via a simple $app->get()/post()/delete() array DSL, small homegrown Request/Response, controllers that declare public typed properties (auto-bound from route/query/body/files), optional mini validation, and responses wrapped in a .data envelope. It ships a minimal global pipeline (error handler, request ID, CORS allowlist, JSON parsing, sessions), optional per-route rate limiting, and straightforward file uploads to public/private buckets. Persistence centers on a lean BaseModel (UUIDv7 CHAR(36), created_at/updated_at), a pragmatic PDO-backed QueryBuilder, and model-driven migrations that diff models to MySQL and apply changes. Conveniences include pagination/sort/filter conventions, ETag/cache helpers, a /health endpoint, and a zero-dependency CLI for serving and migrations—while deliberately skipping heavy PSR stacks, DI containers, and magic relations to keep everything readable, explicit, and strong together.
