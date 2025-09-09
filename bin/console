@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use BaseApi\Console\Application;
+use BaseApi\Console\Commands\ServeCommand;
+use BaseApi\Console\Commands\MakeControllerCommand;
+use BaseApi\Console\Commands\MakeModelCommand;
+
+// Load environment
+if (file_exists(__DIR__ . '/../.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+    $dotenv->load();
+}
+
+$app = new Application();
+
+// Register commands
+$app->register('serve', new ServeCommand());
+$app->register('make:controller', new MakeControllerCommand());
+$app->register('make:model', new MakeModelCommand());
+
+// Run the application
+exit($app->run($argv));

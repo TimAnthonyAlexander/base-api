@@ -1,0 +1,94 @@
+<?php
+
+namespace BaseApi\Support;
+
+class RateLimiter
+{
+    private string $dir;
+
+    public function __construct(string $dir)
+    {
+        $this->dir = rtrim($dir, '/');
+        
+        if (!is_dir($this->dir)) {
+            mkdir($this->dir, 0755, true);
+        }
+    }
+
+    public function hit(string $routeId, string $key, int $windowStart, int $limit): array
+    {
+        $routeHash = $this->hashRoute($routeId, '');
+        $keyHash = md5($key);
+        
+        $counterDir = "{$this->dir}/{$routeHash}/{$keyHash}";
+        $counterFile = "{$counterDir}/{$windowStart}.cnt";
+        
+        if (!is_dir($counterDir)) {
+            mkdir($counterDir, 0755, true);
+        }
+        
+        // Clean up old windows (best effort)
+        $this->cleanupOldWindows($counterDir, $windowStart);
+        
+        // Atomic increment with file locking
+        $count = $this->incrementCounter($counterFile);
+        
+        $remaining = max($limit - $count, 0);
+        $reset = $windowStart;
+        
+        return [
+            'count' => $count,
+            'remaining' => $remaining,
+            'reset' => $reset
+        ];
+    }
+
+    public function hashRoute(string $method, string $path): string
+    {
+        return md5("{$method}:{$path}");
+    }
+
+    private function incrementCounter(string $file): int
+    {
+        $handle = fopen($file, 'c+');
+        if (!$handle) {
+            return 1;
+        }
+        
+        if (flock($handle, LOCK_EX)) {
+            $count = (int) fread($handle, 10) ?: 0;
+            $count++;
+            
+            ftruncate($handle, 0);
+            rewind($handle);
+            fwrite($handle, (string) $count);
+            
+            flock($handle, LOCK_UN);
+            fclose($handle);
+            
+            return $count;
+        }
+        
+        fclose($handle);
+        return 1;
+    }
+
+    private function cleanupOldWindows(string $dir, int $currentWindow): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        
+        $files = glob("{$dir}/*.cnt");
+        if (!$files) {
+            return;
+        }
+        
+        foreach ($files as $file) {
+            $basename = basename($file, '.cnt');
+            if (is_numeric($basename) && (int) $basename < $currentWindow - 3600) {
+                @unlink($file);
+            }
+        }
+    }
+}

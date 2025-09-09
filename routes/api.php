@@ -5,11 +5,12 @@ use BaseApi\Controllers\HealthController;
 use BaseApi\Controllers\TestController;
 use BaseApi\Controllers\UserController;
 use BaseApi\Controllers\GetOnlyController;
+use BaseApi\Http\Middleware\RateLimitMiddleware;
 
 $router = App::router();
 
-// Health check endpoint
-$router->get('/health', [HealthController::class]);
+// Health check endpoint with rate limiting (60 requests per minute)
+$router->get('/health', [RateLimitMiddleware::class => ['limit' => '60/1m'], HealthController::class]);
 $router->post('/health', [HealthController::class]);
 
 // Test endpoints for Milestone 2

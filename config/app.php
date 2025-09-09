@@ -30,4 +30,9 @@ return [
         'max_mb' => 25,
         'allowed_mime' => ['image/jpeg', 'image/png', 'application/pdf'],
     ],
+    
+    'rate_limit' => [
+        'dir' => 'storage/ratelimits',
+        'trust_proxy' => false,
+    ],
 ];

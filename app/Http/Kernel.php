@@ -7,6 +7,7 @@ use BaseApi\Config;
 use BaseApi\Logger;
 use BaseApi\Http\Binding\ControllerBinder;
 use BaseApi\Http\Validation\ValidationException;
+use BaseApi\Http\Middleware\OptionedMiddleware;
 
 class Kernel
 {
@@ -125,11 +126,25 @@ class Kernel
         [$route, $pathParams] = $routeMatch;
 
         // Build complete middleware stack: global + route-specific + controller
+        // Convert route middlewares to the format expected by createPipeline
+        $routeMiddlewares = [];
+        foreach ($route->middlewares() as $key => $value) {
+            if (is_string($key) && is_array($value)) {
+                // Optioned middleware: class => options
+                $routeMiddlewares[] = [$key => $value];
+            } else {
+                // Regular middleware
+                $routeMiddlewares[] = $value;
+            }
+        }
+        
         $middlewareStack = array_merge(
             $this->globalMiddleware,
-            $route->middlewares(),
+            $routeMiddlewares,
             [$route->controllerClass()]
         );
+        
+        // error_log("Middleware stack: " . json_encode($middlewareStack));
 
         return $this->createPipeline($middlewareStack, $pathParams);
     }
@@ -148,13 +163,30 @@ class Kernel
             $isController = ($i === count($middlewareStack) - 1);
 
             $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController) {
+                // error_log("Processing middleware: " . json_encode($middlewareClass) . ", isController: " . ($isController ? 'true' : 'false'));
+                
                 // Check if this is the controller (last in pipeline)
                 if ($isController) {
                     return $this->invokeController($middlewareClass, $request, $pathParams);
                 }
 
-                // Create middleware instance and handle
-                $middleware = new $middlewareClass();
+                // Handle optioned middleware (ClassName::class => [options])
+                if (is_string($middlewareClass)) {
+                    // Regular middleware
+                    // error_log("Creating regular middleware: " . $middlewareClass);
+                    $middleware = new $middlewareClass();
+                } else {
+                    // This is an associative array with class => options
+                    $className = key($middlewareClass);
+                    $options = current($middlewareClass);
+                    // error_log("Creating optioned middleware: " . $className . " with options: " . json_encode($options));
+                    $middleware = new $className();
+                    
+                    if ($middleware instanceof OptionedMiddleware) {
+                        $middleware->setOptions($options);
+                    }
+                }
+                
                 return $middleware->handle($request, $next);
             };
         }
