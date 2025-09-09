@@ -24,7 +24,13 @@ class MakeModelCommand implements Command
             return 1;
         }
 
-        $name = $args[0];
+        $name = $this->sanitizeName($args[0]);
+        
+        if (empty($name)) {
+            echo "Error: Invalid model name. Use only letters, numbers, and underscores.\n";
+            return 1;
+        }
+        
         $modelsDir = __DIR__ . '/../../Models';
         $filePath = "{$modelsDir}/{$name}.php";
         
@@ -49,6 +55,19 @@ class MakeModelCommand implements Command
         echo "Note: DB & migrator functionality will be added in a later milestone\n";
         
         return 0;
+    }
+
+    private function sanitizeName(string $name): string
+    {
+        // Remove any characters that aren't letters, numbers, or underscores
+        $sanitized = preg_replace('/[^A-Za-z0-9_]/', '', $name);
+        
+        // Ensure it starts with a letter
+        if (!empty($sanitized) && !preg_match('/^[A-Za-z]/', $sanitized)) {
+            return '';
+        }
+        
+        return $sanitized;
     }
 
     private function getModelTemplate(string $name): string

@@ -149,7 +149,7 @@ class Kernel
         return $this->createPipeline($middlewareStack, $pathParams, $route);
     }
 
-    private function createPipeline(array $middlewareStack, array $pathParams): callable
+    private function createPipeline(array $middlewareStack, array $pathParams, ?\BaseApi\Route $route): callable
     {
         $pipeline = function(Request $request) {
             // This should never be reached
@@ -162,8 +162,14 @@ class Kernel
             $next = $pipeline;
             $isController = ($i === count($middlewareStack) - 1);
 
-            $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController) {
+            $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController, $route) {
                 // error_log("Processing middleware: " . json_encode($middlewareClass) . ", isController: " . ($isController ? 'true' : 'false'));
+                
+                // Add route info to request for middleware use
+                if ($route) {
+                    $request->routePattern = $route->path();
+                    $request->routeMethod = $route->method();
+                }
                 
                 // Check if this is the controller (last in pipeline)
                 if ($isController) {

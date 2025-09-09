@@ -17,6 +17,8 @@ class Request
     public string $requestId;
     public array $pathParams = [];
     public array $allowedMethods = [];
+    public ?string $routePattern = null;
+    public ?string $routeMethod = null;
 
     public function __construct(
         string $method,
