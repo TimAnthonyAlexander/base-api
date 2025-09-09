@@ -11,8 +11,9 @@ class CorsMiddleware implements Middleware
         $config = App::config();
         $allowlist = $config->list('CORS_ALLOWLIST');
         
-        $origin = $req->headers['Origin'] ?? null;
+        $origin = $req->headers['ORIGIN'] ?? $req->headers['Origin'] ?? null;
         $isAllowed = $origin && in_array($origin, $allowlist);
+        
 
         // Handle preflight OPTIONS request
         if ($req->method === 'OPTIONS') {
