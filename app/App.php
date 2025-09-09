@@ -3,6 +3,8 @@
 namespace BaseApi;
 
 use BaseApi\Http\Kernel;
+use BaseApi\Database\Connection;
+use BaseApi\Database\DB;
 
 class App
 {
@@ -10,6 +12,8 @@ class App
     private static ?Logger $logger = null;
     private static ?Router $router = null;
     private static ?Kernel $kernel = null;
+    private static ?Connection $connection = null;
+    private static ?DB $db = null;
     private static bool $booted = false;
 
     public static function boot(): void
@@ -26,6 +30,8 @@ class App
         self::$config = new Config($_ENV);
         self::$logger = new Logger();
         self::$router = new Router();
+        self::$connection = new Connection();
+        self::$db = new DB(self::$connection);
         self::$kernel = new Kernel(self::$router, self::$config, self::$logger);
 
         // Register global middleware in order
@@ -68,5 +74,13 @@ class App
             self::boot();
         }
         return self::$kernel;
+    }
+
+    public static function db(): DB
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+        return self::$db;
     }
 }
