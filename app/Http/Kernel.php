@@ -5,6 +5,8 @@ namespace BaseApi\Http;
 use BaseApi\Router;
 use BaseApi\Config;
 use BaseApi\Logger;
+use BaseApi\Http\Binding\ControllerBinder;
+use BaseApi\Http\Validation\ValidationException;
 
 class Kernel
 {
@@ -12,12 +14,16 @@ class Kernel
     private Config $config;
     private Logger $logger;
     private array $globalMiddleware = [];
+    private ControllerBinder $binder;
+    private ControllerInvoker $invoker;
 
     public function __construct(Router $router, Config $config, Logger $logger)
     {
         $this->router = $router;
         $this->config = $config;
         $this->logger = $logger;
+        $this->binder = new ControllerBinder();
+        $this->invoker = new ControllerInvoker($this->binder);
     }
 
     public function addGlobal(string $middlewareClass): void
@@ -169,28 +175,19 @@ class Kernel
             return JsonResponse::notFound();
         }
 
-        $controller = new $controllerClass();
+        try {
+            // Instantiate controller
+            $controller = new $controllerClass();
 
-        // Add path params to request for controller access
-        $request->pathParams = $pathParams;
+            // Bind request data to controller properties
+            $this->binder->bind($controller, $request, $pathParams);
 
-        // Determine which method to call based on HTTP method
-        $method = match($request->method) {
-            'GET' => 'get',
-            'POST' => 'post',
-            'DELETE' => 'delete',
-            default => 'action'
-        };
-
-        if (!method_exists($controller, $method)) {
-            $method = 'action';
+            // Invoke the controller method
+            return $this->invoker->invoke($controller, $request);
+        } catch (ValidationException $e) {
+            // Return 400 with validation errors
+            return JsonResponse::badRequest('Validation failed.', $e->errors());
         }
-
-        if (!method_exists($controller, $method)) {
-            throw new \BadMethodCallException("Controller {$controllerClass} does not have method {$method}");
-        }
-
-        return $controller->$method();
     }
 
     private function sendResponse(Response $response): void

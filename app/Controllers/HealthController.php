@@ -4,7 +4,7 @@ namespace BaseApi\Controllers;
 
 use BaseApi\Http\JsonResponse;
 
-class HealthController
+class HealthController extends Controller
 {
     public function get(): JsonResponse
     {
