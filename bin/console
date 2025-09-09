@@ -7,6 +7,8 @@ use BaseApi\Console\Application;
 use BaseApi\Console\Commands\ServeCommand;
 use BaseApi\Console\Commands\MakeControllerCommand;
 use BaseApi\Console\Commands\MakeModelCommand;
+use BaseApi\Console\Commands\MigrateGenerateCommand;
+use BaseApi\Console\Commands\MigrateApplyCommand;
 
 // Load environment
 if (file_exists(__DIR__ . '/../.env')) {
@@ -20,6 +22,8 @@ $app = new Application();
 $app->register('serve', new ServeCommand());
 $app->register('make:controller', new MakeControllerCommand());
 $app->register('make:model', new MakeModelCommand());
+$app->register('migrate:generate', new MigrateGenerateCommand());
+$app->register('migrate:apply', new MigrateApplyCommand());
 
 // Run the application
 exit($app->run($argv));

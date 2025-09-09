@@ -22,6 +22,9 @@ class HealthController extends Controller
                 
                 if ($result == 1) {
                     $response['db'] = true;
+                    
+                    // Additional table check to confirm connectivity
+                    App::db()->raw('SHOW TABLES');
                 } else {
                     return JsonResponse::error('Database check failed', 500);
                 }

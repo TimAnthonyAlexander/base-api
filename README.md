@@ -323,6 +323,73 @@ X-RateLimit-Reset: 1640995200
 Retry-After: 15  (on 429 responses)
 ```
 
+## Model-Driven Migrations
+
+BaseAPI features a powerful model-driven migration system that generates database schema changes from your model definitions:
+
+### Basic Migration Workflow
+
+```bash
+# 1. Edit your models (add/remove/modify public typed properties)
+# 2. Generate migration plan
+php bin/console migrate:generate
+
+# 3. Review the generated plan in storage/migrations.json
+# 4. Apply migrations to database
+php bin/console migrate:apply
+
+# Or apply safely (skip destructive changes)
+php bin/console migrate:apply --safe
+```
+
+### Model Schema Inference
+
+BaseAPI automatically infers database schema from your model properties:
+
+```php
+class User extends BaseModel
+{
+    public string $id = '';           // CHAR(36) PRIMARY KEY
+    public string $name = '';         // VARCHAR(255) NOT NULL
+    public ?string $email = null;     // VARCHAR(255) NULL
+    public int $age = 0;              // INT NOT NULL
+    public bool $active = true;       // BOOLEAN NOT NULL
+    public ?string $created_at = null; // DATETIME DEFAULT CURRENT_TIMESTAMP
+    public ?string $updated_at = null; // DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    
+    // Foreign key inference
+    public ?Project $project = null;  // Creates project_id CHAR(36) + FK to projects(id)
+    
+    // Index definitions
+    public static array $indexes = [
+        'email' => 'unique',
+        'created_at' => 'index'
+    ];
+    
+    // Column overrides
+    public static array $columns = [
+        'name' => ['type' => 'VARCHAR(120)', 'null' => false],
+        'description' => ['type' => 'TEXT']
+    ];
+}
+```
+
+### Migration Plan Format
+
+Generated plans are stored as JSON in `storage/migrations.json`:
+
+```json
+{
+  "generated_at": "2025-09-10T15:07:00Z",
+  "plan": [
+    {"op": "create_table", "table": "users", "columns": [...], "destructive": false},
+    {"op": "add_column", "table": "users", "column": {...}, "destructive": false},
+    {"op": "add_unique", "table": "users", "index": {...}, "destructive": false},
+    {"op": "drop_column", "table": "users", "column": "old_field", "destructive": true}
+  ]
+}
+```
+
 ## Health Checks
 
 BaseAPI provides built-in health check endpoints:
@@ -350,6 +417,15 @@ php bin/console make:controller ProductController
 
 # Generate a model  
 php bin/console make:model Product
+
+# Generate migration plan from model changes
+php bin/console migrate:generate
+
+# Apply migration plan to database
+php bin/console migrate:apply
+
+# Apply migration plan (skip destructive changes)
+php bin/console migrate:apply --safe
 
 # Show available commands
 php bin/console
@@ -454,7 +530,7 @@ BaseAPI is built in milestones:
 - ✅ **Milestone 2**: Request/response handling, validation, file uploads  
 - ✅ **Milestone 3**: CLI tools and rate limiting
 - ✅ **Milestone 4**: Database layer with QueryBuilder and BaseModel
-- 🚧 **Milestone 5**: Migrations and schema management
+- ✅ **Milestone 5**: Model-driven migrations and schema management
 - 🚧 **Milestone 6**: Authentication and authorization
 - 🚧 **Milestone 7**: Caching and performance optimizations
 

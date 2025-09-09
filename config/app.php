@@ -45,4 +45,8 @@ return [
         'charset' => 'utf8mb4',
         'persistent' => false,
     ],
+    
+    'migrations' => [
+        'file' => 'storage/migrations.json',
+    ],
 ];
