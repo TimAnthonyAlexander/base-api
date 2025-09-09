@@ -68,7 +68,7 @@ class JsonResponse extends Response
 
     private static function getCurrentRequestId(): ?string
     {
-        // This will be populated by RequestIdMiddleware
-        return $_SERVER['HTTP_X_REQUEST_ID'] ?? null;
+        // Get from Logger's static property set by RequestIdMiddleware
+        return \BaseApi\Logger::getRequestId();
     }
 }

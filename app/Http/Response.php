@@ -6,9 +6,9 @@ class Response
 {
     public int $status;
     public array $headers;
-    public string|resource $body;
+    public mixed $body;
 
-    public function __construct(int $status = 200, array $headers = [], string|resource $body = '')
+    public function __construct(int $status = 200, array $headers = [], mixed $body = '')
     {
         $this->status = $status;
         $this->headers = $headers;

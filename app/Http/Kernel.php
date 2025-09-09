@@ -134,10 +134,11 @@ class Kernel
         for ($i = count($middlewareStack) - 1; $i >= 0; $i--) {
             $middlewareClass = $middlewareStack[$i];
             $next = $pipeline;
+            $isController = ($i === count($middlewareStack) - 1);
 
-            $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams) {
+            $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController) {
                 // Check if this is the controller (last in pipeline)
-                if ($i === count($middlewareStack) - 1) {
+                if ($isController) {
                     return $this->invokeController($middlewareClass, $request, $pathParams);
                 }
 

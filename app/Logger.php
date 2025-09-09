@@ -11,6 +11,11 @@ class Logger
         self::$requestId = $requestId;
     }
 
+    public static function getRequestId(): ?string
+    {
+        return self::$requestId;
+    }
+
     public function debug(string $msg, array $ctx = []): void
     {
         $this->log('DEBUG', $msg, $ctx);

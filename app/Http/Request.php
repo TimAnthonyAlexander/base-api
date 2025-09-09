@@ -12,9 +12,10 @@ class Request
     public ?string $rawBody;
     public array $files;
     public array $cookies;
-    public array &$session;
+    public array $session;
     public ?array $user = null;
     public string $requestId;
+    public array $pathParams = [];
 
     public function __construct(
         string $method,
@@ -25,7 +26,7 @@ class Request
         ?string $rawBody,
         array $files,
         array $cookies,
-        array &$session,
+        array $session,
         string $requestId
     ) {
         $this->method = $method;
@@ -36,7 +37,7 @@ class Request
         $this->rawBody = $rawBody;
         $this->files = $files;
         $this->cookies = $cookies;
-        $this->session = &$session;
+        $this->session = $session;
         $this->requestId = $requestId;
     }
 }
