@@ -35,7 +35,25 @@ class ErrorHandler implements Middleware
                 ];
             }
 
-            return new JsonResponse($data, 500);
+            $response = new JsonResponse($data, 500);
+            
+            // Add CORS headers if Origin is present
+            $origin = $req->headers['ORIGIN'] ?? $req->headers['Origin'] ?? null;
+            if ($origin) {
+                $config = App::config();
+                $allowlist = $config->list('CORS_ALLOWLIST');
+                $isAllowed = in_array($origin, $allowlist);
+                
+                if ($isAllowed) {
+                    $response = $response
+                        ->withHeader('Access-Control-Allow-Origin', $origin)
+                        ->withHeader('Access-Control-Allow-Credentials', 'true')
+                        ->withHeader('Access-Control-Expose-Headers', 'X-Request-Id, ETag');
+                }
+                $response = $response->withHeader('Vary', 'Origin');
+            }
+            
+            return $response;
         }
     }
 }

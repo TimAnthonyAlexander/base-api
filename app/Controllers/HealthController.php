@@ -10,4 +10,9 @@ class HealthController
     {
         return JsonResponse::ok(['ok' => true]);
     }
+
+    public function post(): JsonResponse
+    {
+        return JsonResponse::ok(['ok' => true, 'received' => 'data']);
+    }
 }

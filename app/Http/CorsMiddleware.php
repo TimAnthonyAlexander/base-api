@@ -23,10 +23,12 @@ class CorsMiddleware implements Middleware
                 $response = $response
                     ->withHeader('Access-Control-Allow-Origin', $origin)
                     ->withHeader('Access-Control-Allow-Credentials', 'true')
-                    ->withHeader('Vary', 'Origin')
                     ->withHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
                     ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-Request-Id, Authorization');
             }
+            
+            // Always add Vary: Origin for OPTIONS requests to avoid cache poisoning
+            $response = $response->withHeader('Vary', 'Origin');
             
             return $response;
         }
@@ -39,7 +41,11 @@ class CorsMiddleware implements Middleware
             $response = $response
                 ->withHeader('Access-Control-Allow-Origin', $origin)
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
+                ->withHeader('Access-Control-Expose-Headers', 'X-Request-Id, ETag')
                 ->withHeader('Vary', 'Origin');
+        } elseif ($origin) {
+            // Always add Vary: Origin when Origin header is present to avoid cache poisoning
+            $response = $response->withHeader('Vary', 'Origin');
         }
 
         return $response;

@@ -97,18 +97,23 @@ class Kernel
             $allowedMethods = $this->router->allowedMethodsForPath($request->path);
             
             if ($request->method === 'OPTIONS' && !empty($allowedMethods)) {
-                // Handle OPTIONS automatically
-                return function() use ($allowedMethods) {
-                    return new Response(204, [
-                        'Allow' => implode(', ', array_merge($allowedMethods, ['OPTIONS']))
-                    ]);
-                };
+                // Let OPTIONS go through global middleware (including CORS)
+                // Add allowed methods to request for CORS middleware to use
+                $request->allowedMethods = array_merge($allowedMethods, ['OPTIONS']);
+                
+                $middlewareStack = array_merge(
+                    $this->globalMiddleware,
+                    ['OptionsHandler']
+                );
+                return $this->createPipeline($middlewareStack, []);
             }
             
-            // 404 Not Found
-            return function() use ($request) {
-                return JsonResponse::notFound();
-            };
+            // 404 Not Found - also goes through global middleware for CORS
+            $middlewareStack = array_merge(
+                $this->globalMiddleware,
+                ['NotFoundHandler']
+            );
+            return $this->createPipeline($middlewareStack, []);
         }
 
         [$route, $pathParams] = $routeMatch;
@@ -153,6 +158,17 @@ class Kernel
 
     private function invokeController(string $controllerClass, Request $request, array $pathParams): Response
     {
+        // Handle special internal handlers
+        if ($controllerClass === 'OptionsHandler') {
+            return new Response(204, [
+                'Allow' => implode(', ', $request->allowedMethods)
+            ]);
+        }
+        
+        if ($controllerClass === 'NotFoundHandler') {
+            return JsonResponse::notFound();
+        }
+
         $controller = new $controllerClass();
 
         // Add path params to request for controller access

@@ -11,7 +11,10 @@ class JsonBodyParserMiddleware implements Middleware
         $contentType = $req->headers['Content-Type'] ?? '';
         
         if (str_starts_with($contentType, 'application/json')) {
-            $this->parseJsonBody($req);
+            $result = $this->parseJsonBody($req);
+            if ($result instanceof Response) {
+                return $result; // Size limit exceeded
+            }
         } elseif (str_starts_with($contentType, 'application/x-www-form-urlencoded') || 
                   str_starts_with($contentType, 'multipart/form-data')) {
             $this->parseFormBody($req);
@@ -20,18 +23,22 @@ class JsonBodyParserMiddleware implements Middleware
         return $next($req);
     }
 
-    private function parseJsonBody(Request $req): void
+    private function parseJsonBody(Request $req): ?Response
     {
         $config = App::config();
         $maxMb = $config->int('REQUEST_MAX_JSON_MB', 2);
         $maxBytes = $maxMb * 1024 * 1024;
 
         if ($req->rawBody === null) {
-            return;
+            return null;
         }
 
         if (strlen($req->rawBody) > $maxBytes) {
-            throw new \RuntimeException("Request body too large. Maximum {$maxMb}MB allowed.");
+            // Return 413 Payload Too Large with proper error format
+            return new JsonResponse([
+                'error' => "Request body too large. Maximum {$maxMb}MB allowed.",
+                'requestId' => \BaseApi\Logger::getRequestId()
+            ], 413);
         }
 
         $decoded = json_decode($req->rawBody, true);
@@ -41,6 +48,7 @@ class JsonBodyParserMiddleware implements Middleware
         }
 
         $req->body = $decoded ?? [];
+        return null;
     }
 
     private function parseFormBody(Request $req): void
