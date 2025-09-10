@@ -1,0 +1,25 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:11:45+00:00"
+    },
+    "errors.account_locked": "您的账户已被锁定。",
+    "errors.bad_request": "请求无效。",
+    "errors.email_invalid": "请输入有效的电子邮件地址。",
+    "errors.email_required": "必须填写电子邮件地址。",
+    "errors.field_required": "该字段为必填字段。",
+    "errors.file_too_large": "文件大小超过 {max_size} 的最大限制。",
+    "errors.forbidden": "禁止访问该资源。",
+    "errors.invalid_credentials": "用户名或密码无效。",
+    "errors.invalid_file_type": "文件类型无效。允许类型：{allowed_types}。",
+    "errors.invalid_token": "令牌无效或过期。",
+    "errors.name_required": "姓名为必填项。",
+    "errors.not_found": "未找到所请求的资源。",
+    "errors.password_required": "需要输入密码。",
+    "errors.password_too_short": "密码长度必须至少为 {min_length} 字符。",
+    "errors.rate_limit_exceeded": "请求太多。请稍后再试。",
+    "errors.server_error": "服务器出现内部错误。",
+    "errors.token_expired": "您的会话已过期。请重新登录。",
+    "errors.unauthorized": "您无权访问此资源。",
+    "errors.validation_failed": "验证失败。"
+}

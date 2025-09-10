@@ -9,6 +9,9 @@ class DeepLProvider implements TranslationProvider
     private string $apiKey;
     private string $formality;
     private string $baseUrl = 'https://api-free.deepl.com/v2'; // Use https://api.deepl.com/v2 for pro
+    private int $maxRetries = 6;
+    private int $maxDelay = 30; // seconds
+    private static $curlHandle = null;
     
     // Supported languages (DeepL language codes)
     private array $supportedLanguages = [
@@ -53,36 +56,39 @@ class DeepLProvider implements TranslationProvider
             throw new TranslationException("Unsupported language pair: {$from} -> {$to}");
         }
         
-        // Prepare request data
-        $data = [
-            'text' => $texts,
-            'target_lang' => strtoupper($targetLanguage),
-        ];
-        
-        // Only add source language if specified (DeepL can auto-detect)
-        if ($sourceLanguage !== 'auto') {
-            $data['source_lang'] = strtoupper($sourceLanguage);
-        }
-        
-        // Add formality if target language supports it
-        if (in_array($targetLanguage, ['de', 'fr', 'it', 'es', 'nl', 'pl', 'pt', 'ru'])) {
-            $data['formality'] = $this->formality;
-        }
-        
-        // Make API request
-        $response = $this->makeRequest('/translate', $data);
-        
-        if (!isset($response['translations'])) {
-            throw new TranslationException('Invalid response from DeepL API');
-        }
-        
-        // Extract translated texts
-        $results = [];
-        foreach ($response['translations'] as $translation) {
-            $results[] = $translation['text'];
-        }
-        
-        return $results;
+        // Use concurrency control to prevent API bursts
+        return $this->withConcurrencyControl(function() use ($texts, $sourceLanguage, $targetLanguage) {
+            // Prepare request data
+            $data = [
+                'text' => $texts,
+                'target_lang' => strtoupper($targetLanguage),
+            ];
+            
+            // Only add source language if specified (DeepL can auto-detect)
+            if ($sourceLanguage !== 'auto') {
+                $data['source_lang'] = strtoupper($sourceLanguage);
+            }
+            
+            // Add formality if target language supports it
+            if (in_array($targetLanguage, ['de', 'fr', 'it', 'es', 'nl', 'pl', 'pt', 'ru'])) {
+                $data['formality'] = $this->formality;
+            }
+            
+            // Make API request
+            $response = $this->makeRequest('/translate', $data);
+            
+            if (!isset($response['translations'])) {
+                throw new TranslationException('Invalid response from DeepL API');
+            }
+            
+            // Extract translated texts
+            $results = [];
+            foreach ($response['translations'] as $translation) {
+                $results[] = $translation['text'];
+            }
+            
+            return $results;
+        });
     }
     
     public function supportsLanguagePair(string $from, string $to): bool
@@ -129,49 +135,169 @@ class DeepLProvider implements TranslationProvider
     }
     
     /**
-     * Make HTTP request to DeepL API
+     * Make HTTP request to DeepL API with retry logic and connection reuse
      */
     private function makeRequest(string $endpoint, array $data): array
     {
         $url = $this->baseUrl . $endpoint;
+        $jsonData = json_encode($data);
         
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => [
+        // Check payload size (DeepL limit is ~128KB)
+        if (strlen($jsonData) > 128 * 1024) {
+            throw new TranslationException('Request payload exceeds DeepL 128KB limit');
+        }
+        
+        $attempt = 0;
+        
+        while ($attempt <= $this->maxRetries) {
+            $curl = $this->getCurlHandle();
+            
+            // Configure request
+            curl_setopt_array($curl, [
+                CURLOPT_URL => $url,
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $jsonData,
+                CURLOPT_HTTPHEADER => [
                     'Authorization: DeepL-Auth-Key ' . $this->apiKey,
                     'Content-Type: application/json',
                     'User-Agent: BaseAPI/1.0',
+                    'Connection: keep-alive',
                 ],
-                'content' => json_encode($data),
-                'timeout' => 30,
-            ],
-        ]);
-        
-        $response = file_get_contents($url, false, $context);
-        
-        if ($response === false) {
-            throw new TranslationException('Failed to connect to DeepL API');
-        }
-        
-        // Check HTTP response code
-        $statusLine = $http_response_header[0] ?? '';
-        if (!preg_match('/HTTP\/\d\.\d\s+(\d+)/', $statusLine, $matches)) {
-            throw new TranslationException('Invalid HTTP response from DeepL API');
-        }
-        
-        $statusCode = (int)$matches[1];
-        if ($statusCode !== 200) {
-            $error = json_decode($response, true);
-            $message = $error['message'] ?? "DeepL API error (HTTP {$statusCode})";
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_HEADER => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            ]);
+            
+            $response = curl_exec($curl);
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+            
+            if ($response === false) {
+                $error = curl_error($curl);
+                if ($attempt >= $this->maxRetries) {
+                    throw new TranslationException("cURL error: {$error}");
+                }
+                $attempt++;
+                continue;
+            }
+            
+            $headers = substr($response, 0, $headerSize);
+            $body = substr($response, $headerSize);
+            
+            // Success case
+            if ($httpCode === 200) {
+                $decoded = json_decode($body, true);
+                if (!is_array($decoded)) {
+                    throw new TranslationException('Invalid JSON response from DeepL API');
+                }
+                return $decoded;
+            }
+            
+            // Don't retry client errors (except 429)
+            if ($httpCode >= 400 && $httpCode < 500 && $httpCode !== 429) {
+                $error = json_decode($body, true);
+                $message = $error['message'] ?? "DeepL API error (HTTP {$httpCode})";
+                throw new TranslationException($message);
+            }
+            
+            // Retry for 429 and 5xx errors
+            if ($httpCode === 429 || $httpCode >= 500) {
+                if ($attempt >= $this->maxRetries) {
+                    $error = json_decode($body, true);
+                    $message = $error['message'] ?? "DeepL API error (HTTP {$httpCode})";
+                    throw new TranslationException($message);
+                }
+                
+                // Calculate delay with exponential backoff and jitter
+                $retryAfter = $this->extractRetryAfter($headers);
+                $baseDelay = max($retryAfter, 1);
+                $exponentialDelay = min($this->maxDelay, $baseDelay * (2 ** $attempt));
+                $jitter = mt_rand(0, 1000) / 1000; // 0-1 second jitter
+                $delay = $exponentialDelay + $jitter;
+                
+                usleep((int)($delay * 1_000_000));
+                $attempt++;
+                continue;
+            }
+            
+            // Unexpected status code
+            $error = json_decode($body, true);
+            $message = $error['message'] ?? "Unexpected DeepL API response (HTTP {$httpCode})";
             throw new TranslationException($message);
         }
         
-        $decoded = json_decode($response, true);
-        if (!is_array($decoded)) {
-            throw new TranslationException('Invalid JSON response from DeepL API');
+        throw new TranslationException('Max retries exceeded');
+    }
+    
+    /**
+     * Get or create persistent cURL handle with keep-alive
+     */
+    private function getCurlHandle()
+    {
+        if (self::$curlHandle === null) {
+            self::$curlHandle = curl_init();
+            
+            // Set persistent connection options
+            curl_setopt_array(self::$curlHandle, [
+                CURLOPT_TCP_KEEPALIVE => 1,
+                CURLOPT_TCP_KEEPIDLE => 120,
+                CURLOPT_TCP_KEEPINTVL => 60,
+                CURLOPT_FORBID_REUSE => false,
+                CURLOPT_FRESH_CONNECT => false,
+            ]);
         }
         
-        return $decoded;
+        return self::$curlHandle;
+    }
+    
+    /**
+     * Extract Retry-After header value
+     */
+    private function extractRetryAfter(string $headers): int
+    {
+        if (preg_match('/retry-after:\s*(\d+)/i', $headers, $matches)) {
+            return (int)$matches[1];
+        }
+        return 0;
+    }
+    
+    /**
+     * Execute callback with concurrency control to prevent API bursts
+     */
+    private function withConcurrencyControl(callable $callback)
+    {
+        $lockFile = sys_get_temp_dir() . '/deepl_api.lock';
+        $handle = fopen($lockFile, 'c+');
+        
+        if (!$handle) {
+            throw new TranslationException('Failed to create concurrency lock file');
+        }
+        
+        try {
+            // Acquire exclusive lock
+            if (!flock($handle, LOCK_EX)) {
+                throw new TranslationException('Failed to acquire concurrency lock');
+            }
+            
+            // Execute the callback
+            return $callback();
+        } finally {
+            // Always release the lock
+            flock($handle, LOCK_UN);
+            fclose($handle);
+        }
+    }
+    
+    /**
+     * Clean up cURL handle on destruction
+     */
+    public function __destruct()
+    {
+        if (self::$curlHandle !== null) {
+            curl_close(self::$curlHandle);
+            self::$curlHandle = null;
+        }
     }
 }

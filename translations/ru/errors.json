@@ -1,0 +1,25 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:11:02+00:00"
+    },
+    "errors.account_locked": "Ваша учетная запись была заблокирована.",
+    "errors.bad_request": "Запрос был недействительным.",
+    "errors.email_invalid": "Пожалуйста, введите действительный адрес электронной почты.",
+    "errors.email_required": "Адрес электронной почты обязателен.",
+    "errors.field_required": "Это поле обязательно для заполнения.",
+    "errors.file_too_large": "Размер файла превышает максимальное ограничение {max_size}.",
+    "errors.forbidden": "Доступ к этому ресурсу запрещен.",
+    "errors.invalid_credentials": "Неверное имя пользователя или пароль.",
+    "errors.invalid_file_type": "Недопустимый тип файла. Разрешенные типы: {разрешенные_типы}.",
+    "errors.invalid_token": "Недействительный или истекший токен.",
+    "errors.name_required": "Имя обязательно.",
+    "errors.not_found": "Запрашиваемый ресурс не найден.",
+    "errors.password_required": "Требуется пароль.",
+    "errors.password_too_short": "Пароль должен содержать не менее {min_length} символов.",
+    "errors.rate_limit_exceeded": "Слишком много запросов. Пожалуйста, повторите попытку позже.",
+    "errors.server_error": "Произошла внутренняя ошибка сервера.",
+    "errors.token_expired": "Срок действия вашей сессии истек. Пожалуйста, войдите в систему снова.",
+    "errors.unauthorized": "Вы не авторизованы для доступа к этому ресурсу.",
+    "errors.validation_failed": "Валидация не удалась."
+}

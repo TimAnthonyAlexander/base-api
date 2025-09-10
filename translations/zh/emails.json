@@ -1,0 +1,17 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:11:44+00:00"
+    },
+    "emails.invoice_body": "随信附上您的发票 #{invoice_id}，金额为 {amount}。",
+    "emails.invoice_subject": "发票 #{invoice_id}",
+    "emails.order_confirmation_body": "感谢您的订单！您的订单 #{order_id} 已被确认。",
+    "emails.order_confirmation_subject": "订单确认 #{order_id}",
+    "emails.password_reset_body": "点击以下链接重置密码：\n{reset_url} 重置密码",
+    "emails.password_reset_subject": "重置密码",
+    "emails.signature": "致以最崇高的敬意\n{app_name}团队",
+    "emails.verification_body": "请点击以下链接验证您的电子邮件地址：\n{verification_url}",
+    "emails.verification_subject": "请验证您的电子邮件地址",
+    "emails.welcome_body": "感谢您加入 {app_name}。我们很高兴您能加入！",
+    "emails.welcome_subject": "欢迎使用 {app_name}，{name}！"
+}

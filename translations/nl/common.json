@@ -1,0 +1,31 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:10:14+00:00"
+    },
+    "common.back": "Terug",
+    "common.cancel": "Annuleren",
+    "common.close": "Sluit",
+    "common.create": "Maak",
+    "common.delete": "Verwijder",
+    "common.edit": "Bewerk",
+    "common.error": "Fout",
+    "common.export": "Exporteer",
+    "common.filter": "Filter",
+    "common.import": "Importeren",
+    "common.info": "Informatie",
+    "common.items_count": "{telling, meervoud, een {# item} andere {# items}}",
+    "common.loading": "Aan het laden...",
+    "common.next": "Volgende",
+    "common.no": "Geen",
+    "common.ok": "OK",
+    "common.previous": "Vorige",
+    "common.save": "Sla",
+    "common.search": "Zoek op",
+    "common.sort": "Sorteer",
+    "common.success": "Succes",
+    "common.user_status": "{status, select, online {Online} offline {Offline} overig {Onbekend}}",
+    "common.warning": "Waarschuwing",
+    "common.welcome_message": "Welkom terug, {naam}! Je hebt {telling, meervoud, een {# nieuw bericht}} andere {# nieuwe berichten}}.",
+    "common.yes": "Ja"
+}

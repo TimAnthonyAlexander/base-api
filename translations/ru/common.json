@@ -1,0 +1,31 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:10:59+00:00"
+    },
+    "common.back": "Назад",
+    "common.cancel": "Отмена",
+    "common.close": "Закрыть",
+    "common.create": "Создать",
+    "common.delete": "Удалить",
+    "common.edit": "Редактировать",
+    "common.error": "Ошибка",
+    "common.export": "Экспорт",
+    "common.filter": "Фильтр",
+    "common.import": "Импорт",
+    "common.info": "Информация",
+    "common.items_count": "{счет, множественное число, один {# предмет} другие {# предметы}}",
+    "common.loading": "Загрузка...",
+    "common.next": "Следующий",
+    "common.no": "Нет",
+    "common.ok": "OK",
+    "common.previous": "Предыдущий",
+    "common.save": "Сохранить",
+    "common.search": "Поиск",
+    "common.sort": "Сортировать",
+    "common.success": "Успех",
+    "common.user_status": "{статус, выбрать, онлайн {Онлайн} оффлайн {Оффлайн} другие {Неизвестно}}",
+    "common.warning": "Внимание",
+    "common.welcome_message": "С возвращением, {имя}! У вас {счет, множественное число, одно {# новое сообщение} другие {# новые сообщения}}.",
+    "common.yes": "Да"
+}

@@ -1,0 +1,25 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:10:16+00:00"
+    },
+    "errors.account_locked": "Je account is vergrendeld.",
+    "errors.bad_request": "Het verzoek was ongeldig.",
+    "errors.email_invalid": "Voer een geldig e-mailadres in.",
+    "errors.email_required": "E-mailadres is vereist.",
+    "errors.field_required": "Dit veld is verplicht.",
+    "errors.file_too_large": "De bestandsgrootte overschrijdt de maximumlimiet van {max_size}.",
+    "errors.forbidden": "Toegang tot deze bron is verboden.",
+    "errors.invalid_credentials": "Ongeldige gebruikersnaam of wachtwoord.",
+    "errors.invalid_file_type": "Ongeldig bestandstype. Toegestane types: {allowed_types}.",
+    "errors.invalid_token": "Ongeldig of verlopen token.",
+    "errors.name_required": "Naam is vereist.",
+    "errors.not_found": "De opgevraagde bron is niet gevonden.",
+    "errors.password_required": "Wachtwoord is vereist.",
+    "errors.password_too_short": "Het wachtwoord moet minstens {min_lengte} tekens lang zijn.",
+    "errors.rate_limit_exceeded": "Te veel aanvragen. Probeer het later nog eens.",
+    "errors.server_error": "Er is een interne serverfout opgetreden.",
+    "errors.token_expired": "Uw sessie is verlopen. Log opnieuw in.",
+    "errors.unauthorized": "Je hebt geen toegang tot deze bron.",
+    "errors.validation_failed": "Validatie mislukt."
+}

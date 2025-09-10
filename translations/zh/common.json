@@ -1,0 +1,31 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:11:43+00:00"
+    },
+    "common.back": "返回",
+    "common.cancel": "取消",
+    "common.close": "关闭",
+    "common.create": "创建",
+    "common.delete": "删除",
+    "common.edit": "编辑",
+    "common.error": "错误",
+    "common.export": "出口",
+    "common.filter": "过滤器",
+    "common.import": "进口",
+    "common.info": "信息",
+    "common.items_count": "{计数，复数，一个{#项}其他{#项}}}",
+    "common.loading": "正在加载...",
+    "common.next": "下一页",
+    "common.no": "没有",
+    "common.ok": "好的",
+    "common.previous": "上一页",
+    "common.save": "节省",
+    "common.search": "搜索",
+    "common.sort": "分类",
+    "common.success": "成功",
+    "common.user_status": "{状态、选择、联机 {联机} 离线 {离线} 其他 {未知}} {状态、选择、联机 {联机} 离线 {离线} 其他 {未知",
+    "common.warning": "警告",
+    "common.welcome_message": "欢迎回来，{姓名}！您有{计数，复数，一条{#新留言}其他{#新留言}}。",
+    "common.yes": "是"
+}
