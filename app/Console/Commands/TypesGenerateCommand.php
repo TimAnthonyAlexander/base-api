@@ -128,11 +128,11 @@ HELP;
             throw new \Exception("Routes file not found: {$routesFile}");
         }
 
-        // Capture routes by temporarily overriding the global $app
-        $originalApp = $GLOBALS['app'] ?? null;
+        // Create a mock App class to capture router calls
         $routes = [];
-
-        $GLOBALS['app'] = new class($routes) {
+        
+        // Mock the App::router() method by creating a temporary class
+        $mockRouter = new class($routes) {
             private array $routes;
 
             public function __construct(array &$routes)
@@ -156,17 +156,87 @@ HELP;
             }
         };
 
+        // Create a mock App class
+        $originalAppExists = class_exists('BaseApi\\App', false);
+        if (!$originalAppExists) {
+            // If App isn't loaded yet, we need to ensure we can mock it
+            eval('
+            namespace BaseApi {
+                class App {
+                    private static $mockRouter;
+                    public static function setMockRouter($router) { self::$mockRouter = $router; }
+                    public static function router() { return self::$mockRouter; }
+                }
+            }
+            ');
+            \BaseApi\App::setMockRouter($mockRouter);
+        } else {
+            // If App is already loaded, we need to work around it
+            // Store original router method (this is tricky with static methods)
+            // For now, let's use a different approach - parse the file manually
+            $this->parseRoutesFile($routesFile);
+            return;
+        }
+
         require $routesFile;
         $this->routes = $routes;
 
-        // Restore original app
-        if ($originalApp !== null) {
-            $GLOBALS['app'] = $originalApp;
-        } else {
-            unset($GLOBALS['app']);
-        }
-
         echo "   Found " . count($this->routes) . " routes\n";
+    }
+
+    private function parseRoutesFile(string $routesFile): void
+    {
+        $content = file_get_contents($routesFile);
+        $routes = [];
+        
+        // Simple regex parsing of router calls
+        // Match $router->get('/path', [...]);
+        $pattern = '/\$router->(get|post|delete)\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*\[(.*?)\]\s*,?\s*\);/s';
+        
+        if (preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $method = strtoupper($match[1]);
+                $path = $match[2];
+                $pipelineContent = $match[3];
+                
+                // Extract pipeline classes
+                $pipeline = [];
+                $classPattern = '/([A-Za-z\\\\]+::class)/';
+                if (preg_match_all($classPattern, $pipelineContent, $classMatches)) {
+                    foreach ($classMatches[1] as $classRef) {
+                        $className = str_replace('::class', '', $classRef);
+                        // Convert short class names to full names by checking imports
+                        $pipeline[] = $this->resolveClassName($className, $content);
+                    }
+                }
+                
+                $routes[] = [
+                    'method' => $method,
+                    'path' => $path,
+                    'pipeline' => $pipeline
+                ];
+            }
+        }
+        
+        $this->routes = $routes;
+        echo "   Found " . count($this->routes) . " routes\n";
+    }
+
+    private function resolveClassName(string $shortName, string $content): string
+    {
+        // Extract use statements to resolve class names
+        $usePattern = '/use\s+([^;]+);/';
+        if (preg_match_all($usePattern, $content, $matches)) {
+            foreach ($matches[1] as $useStatement) {
+                $parts = explode('\\', trim($useStatement));
+                $className = end($parts);
+                if ($className === $shortName) {
+                    return trim($useStatement);
+                }
+            }
+        }
+        
+        return $shortName; // Fallback to short name if not found
     }
 
     private function analyzeControllers(): void
@@ -767,7 +837,7 @@ HELP;
             $interfaceType = $route['method'] === 'GET' ? 'Query' : 'Body';
             $lines[] = "export interface {$operationName}Request{$interfaceType} {";
             foreach ($bodyParams as $param) {
-                $tsType = $this->phpTypeToTsType($param);
+                $tsType = $this->phpTypeToTsType($param['type']);
                 $optional = $param['nullable'] ? '?' : '';
                 $lines[] = "  {$param['name']}{$optional}: {$tsType};";
             }

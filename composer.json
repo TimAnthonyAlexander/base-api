@@ -1,6 +1,7 @@
 {
     "name": "baseapi/baseapi",
     "description": "A tiny, KISS-first PHP 8.4 framework for building JSON-first APIs",
+    "author": "Tim Anthony Alexander",
     "type": "project",
     "require": {
         "php": ">=8.4",
