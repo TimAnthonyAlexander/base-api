@@ -18,16 +18,13 @@ class LoginController extends Controller
             'userId' => 'required|string'
         ]);
 
-        // Start session if not already started
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        // Set user ID in session
+        // Set user ID in session (SessionStartMiddleware handles session initialization)
         $_SESSION['user_id'] = $this->userId;
+
 
         // Regenerate session ID to mitigate fixation attacks
         session_regenerate_id(true);
+
 
         return JsonResponse::ok([
             'userId' => $this->userId

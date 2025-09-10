@@ -13,6 +13,7 @@ class SessionStartMiddleware implements Middleware
             session_start();
         }
 
+
         // Attach session to request (will be updated by reference in controller if needed)
         $req->session = $_SESSION;
 

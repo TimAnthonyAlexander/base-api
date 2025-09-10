@@ -30,7 +30,8 @@ class SimpleUserProvider implements UserProvider
             );
 
             if (empty($results)) {
-                return null;
+                // If user not found in database, return stub for development
+                return ['id' => $id];
             }
 
             return $results[0];

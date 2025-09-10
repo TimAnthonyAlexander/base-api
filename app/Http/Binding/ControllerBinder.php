@@ -9,11 +9,21 @@ class ControllerBinder
 {
     public function bind(object $controller, Request $req, array $routeParams): void
     {
+        // First, set the request object if the controller has a request property
+        if (property_exists($controller, 'request')) {
+            $controller->request = $req;
+        }
+
         $reflection = new \ReflectionClass($controller);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         foreach ($properties as $property) {
             $propertyName = $property->getName();
+            
+            // Skip the request property as it's already set above
+            if ($propertyName === 'request') {
+                continue;
+            }
             
             // Get value with precedence: route params → query → body → files
             $value = $this->getValueWithPrecedence($propertyName, $routeParams, $req);
