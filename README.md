@@ -24,11 +24,13 @@ BaseAPI embraces **Keep It Simple, Stupid (KISS)** principles:
 - Request/Response handling with automatic property binding
 - Built-in validation with clear error messages
 
-### 🛡️ **Security & Rate Limiting**
+### 🛡️ **Security & Authentication**
+- Session-based authentication with user providers
 - Per-route rate limiting with file-based counters
 - CORS allowlist with proper headers
 - Session management with secure defaults
 - Client IP detection with proxy support
+- Route protection with AuthMiddleware
 
 ### 🗄️ **Database Layer**
 - Single PDO MySQL connection with UTC timezone
@@ -41,6 +43,8 @@ BaseAPI embraces **Keep It Simple, Stupid (KISS)** principles:
 - File upload handling (public/private buckets)
 - Health endpoint with optional database checks
 - Comprehensive error handling with request IDs
+- ETag generation and 304 Not Modified responses
+- Cache-Control helpers for response optimization
 
 ## Quick Start
 
@@ -93,6 +97,17 @@ php -S localhost:8000 -t public public/router.php
 ```
 
 Visit `http://localhost:8000/health` to verify everything is working.
+
+### Authentication Setup
+
+BaseApi includes built-in session authentication:
+
+```env
+# Session Configuration
+SESSION_SECURE=false  # Set to true in production with HTTPS
+SESSION_HTTPONLY=true
+SESSION_SAMESITE=Lax  # Use 'None' for cross-site requests with HTTPS
+```
 
 ## Usage Examples
 
@@ -161,6 +176,16 @@ $router->get('/api/data', [
     RateLimitMiddleware::class => ['limit' => '100/1h'],
     DataController::class
 ]);
+
+// Protected routes requiring authentication
+$router->get('/me', [
+    AuthMiddleware::class,
+    UserController::class
+]);
+
+// Authentication endpoints
+$router->post('/auth/login', [LoginController::class]);
+$router->post('/auth/logout', [LogoutController::class]);
 ```
 
 ### Working with Models
@@ -221,6 +246,53 @@ $count = App::db()->scalar('SELECT COUNT(*) FROM users WHERE active = ?', [1]);
 $affected = App::db()->exec('UPDATE users SET last_login = NOW() WHERE id = ?', [$userId]);
 ```
 
+### Session Authentication
+
+BaseApi provides simple session-based authentication:
+
+```php
+use BaseApi\Controllers\LoginController;
+use BaseApi\Http\Middleware\AuthMiddleware;
+
+class LoginController extends Controller
+{
+    public string $userId = '';
+    
+    public function post(): JsonResponse
+    {
+        // Set user session (stub - add your credential validation)
+        $_SESSION['user_id'] = $this->userId;
+        session_regenerate_id(true);
+        
+        return JsonResponse::ok(['userId' => $this->userId]);
+    }
+}
+
+// Protected controller
+class UserController extends Controller
+{
+    public function get(): JsonResponse
+    {
+        // $this->request->user populated by AuthMiddleware
+        $user = $this->request->user;
+        return JsonResponse::ok($user);
+    }
+}
+```
+
+### User Providers
+
+Resolve authenticated users through pluggable providers:
+
+```php
+use BaseApi\Auth\UserProvider;
+use BaseApi\Auth\SimpleUserProvider;
+
+// Default provider resolves from database or returns stub
+$userProvider = App::userProvider();
+$user = $userProvider->byId($userId); // Returns ['id' => '...', 'email' => '...']
+```
+
 ### Request Validation
 
 ```php
@@ -269,6 +341,35 @@ class UploadController extends Controller
 }
 ```
 
+### Caching Helpers
+
+BaseApi includes utilities for ETag and Cache-Control optimization:
+
+```php
+use BaseApi\Http\Caching\CacheHelper;
+
+class ApiController extends Controller
+{
+    public function get(): JsonResponse
+    {
+        $data = ['users' => User::all()];
+        $response = JsonResponse::ok($data);
+        
+        // Generate ETag for content
+        $etag = CacheHelper::strongEtag(json_encode($data));
+        
+        // Return 304 if client has current version
+        $cached = CacheHelper::notModifiedIfMatches($this->request, $response, $etag);
+        if ($cached) {
+            return $cached; // 304 Not Modified
+        }
+        
+        // Set cache headers for future requests
+        return CacheHelper::cacheControl($response, 300); // 5 minutes
+    }
+}
+```
+
 ## API Response Format
 
 All API responses are wrapped in a consistent format:
@@ -296,6 +397,68 @@ All API responses are wrapped in a consistent format:
         "email": ["The email field is required."]
     }
 }
+```
+
+## Authentication Flow
+
+BaseApi uses session-based authentication with these endpoints:
+
+### Login Endpoint
+```bash
+# Set user session
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"userId": "user123"}'
+```
+
+### Protected Routes
+```bash
+# Access protected endpoint (requires session cookie)
+curl -X GET http://localhost:8000/me \
+  -H "Cookie: PHPSESSID=your_session_id"
+```
+
+### Logout Endpoint
+```bash
+# Clear user session
+curl -X POST http://localhost:8000/auth/logout \
+  -H "Cookie: PHPSESSID=your_session_id"
+```
+
+### Response Format
+```json
+// Success with user data
+{
+    "data": {
+        "id": "user123",
+        "email": "user@example.com",
+        "name": "John Doe"
+    }
+}
+
+// Unauthorized access
+{
+    "error": "Unauthorized",
+    "requestId": "0199308f-d328-7902-b4ed-73ee4d0fc11d"
+}
+```
+
+## Caching & Performance
+
+BaseApi includes built-in caching helpers for optimal performance:
+
+### ETag Support
+```php
+// Automatic 304 responses for unchanged content
+$etag = CacheHelper::strongEtag($content);
+$response = CacheHelper::notModifiedIfMatches($request, $response, $etag);
+```
+
+### Cache Control
+```php
+// Set cache headers
+CacheHelper::cacheControl($response, 3600); // 1 hour
+CacheHelper::cacheControl($response, 300, false); // 5 minutes, private
 ```
 
 ## Rate Limiting
@@ -436,10 +599,22 @@ php bin/console
 ```
 baseapi/
 ├── app/
-│   ├── Console/           # CLI commands
-│   ├── Controllers/       # HTTP controllers
+│   ├── Auth/             # Authentication system
+│   │   ├── UserProvider.php        # User resolution contract
+│   │   └── SimpleUserProvider.php  # Default DB-backed provider
+│   ├── Console/          # CLI commands
+│   ├── Controllers/      # HTTP controllers
+│   │   ├── LoginController.php     # Authentication login
+│   │   ├── LogoutController.php    # Authentication logout
+│   │   └── MeController.php        # Protected user endpoint
 │   ├── Database/         # Database layer
-│   ├── Http/             # HTTP layer (middleware, requests, responses)
+│   ├── Http/             # HTTP layer
+│   │   ├── Caching/      # Response caching utilities
+│   │   │   └── CacheHelper.php     # ETag and Cache-Control helpers
+│   │   ├── Middleware/   # HTTP middleware
+│   │   │   ├── AuthMiddleware.php  # Route authentication
+│   │   │   └── RateLimitMiddleware.php
+│   │   └── ...           # Requests, responses, validation
 │   ├── Models/           # Data models
 │   └── Support/          # Utilities (UUID, ClientIP, etc.)
 ├── bin/
@@ -532,6 +707,7 @@ BaseAPI is built in milestones:
 - ✅ **Milestone 4**: Database layer with QueryBuilder and BaseModel
 - ✅ **Milestone 5**: Model-driven migrations and schema management
 - ✅ **Milestone 6**: Relations + Eager Helpers + Pagination/Sort/Filter
+- ✅ **Milestone 7**: Session Auth + UserProvider + Login/Logout + Caching Helpers
 
 ---
 
