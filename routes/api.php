@@ -73,11 +73,10 @@ $router->get(
     ],
 );
 
-// Translation update endpoint - admin only (uncomment when authentication is setup)
-// $router->post(
-//     '/i18n',
-//     [
-//         AuthMiddleware::class,
-//         I18nController::class,
-//     ],
-// );
+$router->post(
+    '/i18n',
+    [
+        AuthMiddleware::class,
+        I18nController::class,
+    ],
+);
