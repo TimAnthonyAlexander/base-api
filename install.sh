@@ -71,7 +71,7 @@ check_php_version() {
     fi
 
     local current_version=$(php -r "echo PHP_VERSION;" 2>/dev/null)
-    if [[ $(version_compare "$current_version" "$MIN_PHP_VERSION") != "$current_version" ]]; then
+    if [[ $(version_compare "$current_version" "$MIN_PHP_VERSION") != "$MIN_PHP_VERSION" ]]; then
         print_error "PHP ${MIN_PHP_VERSION} or higher is required. Current version: ${current_version}"
         return 1
     fi
