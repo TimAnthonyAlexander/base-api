@@ -15,9 +15,6 @@ class JsonBodyParserMiddleware implements Middleware
             if ($result instanceof Response) {
                 return $result; // Size limit exceeded
             }
-        } elseif (str_starts_with($contentType, 'application/x-www-form-urlencoded') || 
-                  str_starts_with($contentType, 'multipart/form-data')) {
-            $this->parseFormBody($req);
         }
 
         return $next($req);
@@ -51,38 +48,4 @@ class JsonBodyParserMiddleware implements Middleware
         return null;
     }
 
-    private function parseFormBody(Request $req): void
-    {
-        // Form data is already parsed by PHP into $_POST
-        $req->body = $_POST;
-        
-        // Normalize file uploads
-        $req->files = $this->normalizeFiles($_FILES);
-    }
-
-    private function normalizeFiles(array $files): array
-    {
-        $normalized = [];
-        
-        foreach ($files as $key => $file) {
-            if (is_array($file['name'])) {
-                // Multiple files
-                $normalized[$key] = [];
-                for ($i = 0; $i < count($file['name']); $i++) {
-                    $normalized[$key][] = [
-                        'name' => $file['name'][$i],
-                        'type' => $file['type'][$i],
-                        'tmp_name' => $file['tmp_name'][$i],
-                        'error' => $file['error'][$i],
-                        'size' => $file['size'][$i]
-                    ];
-                }
-            } else {
-                // Single file
-                $normalized[$key] = $file;
-            }
-        }
-        
-        return $normalized;
-    }
 }

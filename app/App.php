@@ -43,6 +43,7 @@ class App
         self::$kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
+        self::$kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
 
         self::$booted = true;
