@@ -291,6 +291,7 @@ abstract class BaseModel implements \JsonSerializable
 
     public static function fromRow(array $row): static
     {
+        /** @phpstan-ignore-next-line */
         $instance = new static();
         
         // Store original row data for relation loading and change detection
