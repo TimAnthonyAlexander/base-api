@@ -2,15 +2,10 @@
 
 namespace BaseApi\Http;
 
-use BaseApi\Http\Binding\ControllerBinder;
-
 class ControllerInvoker
 {
-    private ControllerBinder $binder;
-
-    public function __construct(ControllerBinder $binder)
+    public function __construct()
     {
-        $this->binder = $binder;
     }
 
     public function invoke(object $controller, Request $req): Response

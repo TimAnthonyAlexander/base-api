@@ -32,7 +32,7 @@ class App
         self::$router = new Router();
         self::$connection = new Connection();
         self::$db = new DB(self::$connection);
-        self::$kernel = new Kernel(self::$router, self::$config, self::$logger);
+        self::$kernel = new Kernel(self::$router);
 
         // Register global middleware in order
         self::$kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);

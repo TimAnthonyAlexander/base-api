@@ -26,8 +26,6 @@ class QueryBuilder
 
     public function select(string|array $columns = '*'): self
     {
-        $this->type = 'select';
-        
         if (is_string($columns)) {
             $this->columns = $columns === '*' ? ['*'] : [$this->sanitizeColumnName($columns)];
         } else {

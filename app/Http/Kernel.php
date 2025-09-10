@@ -3,8 +3,6 @@
 namespace BaseApi\Http;
 
 use BaseApi\Router;
-use BaseApi\Config;
-use BaseApi\Logger;
 use BaseApi\Http\Binding\ControllerBinder;
 use BaseApi\Http\Validation\ValidationException;
 use BaseApi\Http\Middleware\OptionedMiddleware;
@@ -12,19 +10,15 @@ use BaseApi\Http\Middleware\OptionedMiddleware;
 class Kernel
 {
     private Router $router;
-    private Config $config;
-    private Logger $logger;
     private array $globalMiddleware = [];
     private ControllerBinder $binder;
     private ControllerInvoker $invoker;
 
-    public function __construct(Router $router, Config $config, Logger $logger)
+    public function __construct(Router $router)
     {
         $this->router = $router;
-        $this->config = $config;
-        $this->logger = $logger;
         $this->binder = new ControllerBinder();
-        $this->invoker = new ControllerInvoker($this->binder);
+        $this->invoker = new ControllerInvoker();
     }
 
     public function addGlobal(string $middlewareClass): void

@@ -29,9 +29,7 @@ class ModelScanner
             }
             
             $table = $this->scanModel($reflection);
-            if ($table) {
-                $schema->tables[$table->name] = $table;
-            }
+            $schema->tables[$table->name] = $table;
         }
         
         return $schema;
