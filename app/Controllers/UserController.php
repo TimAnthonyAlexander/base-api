@@ -13,9 +13,11 @@ class UserController extends Controller
     public function get(): JsonResponse
     {
         if ($this->id) {
+            $user = User::firstWhere('id', '=', $this->id);
+
             return JsonResponse::ok([
-                'user' => User::firstWhere('id', '=', $this->id),
-            ]);
+                'user' => $user,
+            ], $user instanceof User ? 200 : 404);
         }
 
         return JsonResponse::ok([
