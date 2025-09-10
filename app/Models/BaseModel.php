@@ -62,6 +62,17 @@ abstract class BaseModel implements \JsonSerializable
             ->where($column, $operator, $value);
     }
 
+    public static function whereConditions(array $conditions): QueryBuilder
+    {
+        $qb = App::db()->qb()->table(static::table());
+
+        foreach ($conditions as $condition) {
+            $qb->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
+        }
+
+        return $qb;
+    }
+
     public static function whereIn(string $column, array $values): QueryBuilder
     {
         return App::db()->qb()
@@ -85,6 +96,13 @@ abstract class BaseModel implements \JsonSerializable
     public static function firstWhere(string $column, string $operator, mixed $value): ?static
     {
         $row = static::where($column, $operator, $value)->first();
+
+        return $row ? static::fromRow($row) : null;
+    }
+
+    public static function firstWhereConditions(array $conditions): ?static
+    {
+        $row = static::whereConditions($conditions)->first();
 
         return $row ? static::fromRow($row) : null;
     }

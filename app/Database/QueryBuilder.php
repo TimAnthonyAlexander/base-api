@@ -31,23 +31,40 @@ class QueryBuilder
         } else {
             $this->columns = array_map([$this, 'sanitizeColumnName'], $columns);
         }
-        
+
         return $this;
     }
 
     public function where(string $column, string $operator, mixed $value): self
     {
         $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'IN'];
-        
+
         if (!in_array(strtoupper($operator), array_map('strtoupper', $allowedOperators))) {
             throw new DbException("Invalid operator: {$operator}");
         }
 
         $column = $this->sanitizeColumnName($column);
         $placeholder = $this->addBinding($value);
-        
+
         $this->wheres[] = "{$column} {$operator} {$placeholder}";
-        
+
+        return $this;
+    }
+
+    public function whereConditions(array $conditions): self
+    {
+        foreach ($conditions as $condition) {
+            $column = $condition['column'] ?? null;
+            $operator = $condition['operator'] ?? '=';
+            $value = $condition['value'] ?? null;
+
+            if ($column === null || $value === null) {
+                throw new DbException("Invalid where condition: " . json_encode($condition));
+            }
+
+            $this->where($column, $operator, $value);
+        }
+
         return $this;
     }
 
@@ -61,13 +78,13 @@ class QueryBuilder
 
         $column = $this->sanitizeColumnName($column);
         $placeholders = [];
-        
+
         foreach ($values as $value) {
             $placeholders[] = $this->addBinding($value);
         }
-        
+
         $this->wheres[] = "{$column} IN (" . implode(', ', $placeholders) . ")";
-        
+
         return $this;
     }
 
@@ -75,9 +92,9 @@ class QueryBuilder
     {
         $column = $this->sanitizeColumnName($column);
         $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
-        
+
         $this->orders[] = "{$column} {$direction}";
-        
+
         return $this;
     }
 
@@ -103,11 +120,11 @@ class QueryBuilder
     {
         $originalLimit = $this->limitCount;
         $this->limit(1);
-        
+
         $results = $this->get();
-        
+
         $this->limitCount = $originalLimit;
-        
+
         return $results[0] ?? null;
     }
 
@@ -118,16 +135,16 @@ class QueryBuilder
         }
 
         $this->validateTable();
-        
+
         $columns = array_map([$this, 'sanitizeColumnName'], array_keys($data));
         $placeholders = [];
-        
+
         foreach ($data as $value) {
             $placeholders[] = $this->addBinding($value);
         }
-        
+
         $sql = "INSERT INTO {$this->table} (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
-        
+
         $this->execute($sql);
         return true;
     }
@@ -139,33 +156,33 @@ class QueryBuilder
         }
 
         $this->validateTable();
-        
+
         $sets = [];
         foreach ($data as $column => $value) {
             $column = $this->sanitizeColumnName($column);
             $placeholder = $this->addBinding($value);
             $sets[] = "{$column} = {$placeholder}";
         }
-        
+
         $sql = "UPDATE {$this->table} SET " . implode(', ', $sets);
-        
+
         if (!empty($this->wheres)) {
             $sql .= ' WHERE ' . implode(' AND ', $this->wheres);
         }
-        
+
         return $this->executeUpdate($sql);
     }
 
     public function delete(): int
     {
         $this->validateTable();
-        
+
         $sql = "DELETE FROM {$this->table}";
-        
+
         if (!empty($this->wheres)) {
             $sql .= ' WHERE ' . implode(' AND ', $this->wheres);
         }
-        
+
         return $this->executeUpdate($sql);
     }
 
@@ -194,7 +211,7 @@ class QueryBuilder
             $countBuilder->limitCount = null;
             $countBuilder->offsetCount = null;
             $countBuilder->columns = ['COUNT(*) as count'];
-            
+
             $countResult = $countBuilder->get();
             $total = (int) $countResult[0]['count'];
         }
@@ -257,25 +274,25 @@ class QueryBuilder
     private function buildSelectSql(): string
     {
         $this->validateTable();
-        
+
         $sql = 'SELECT ' . implode(', ', $this->columns) . " FROM {$this->table}";
-        
+
         if (!empty($this->wheres)) {
             $sql .= ' WHERE ' . implode(' AND ', $this->wheres);
         }
-        
+
         if (!empty($this->orders)) {
             $sql .= ' ORDER BY ' . implode(', ', $this->orders);
         }
-        
+
         if ($this->limitCount !== null) {
             $sql .= " LIMIT {$this->limitCount}";
         }
-        
+
         if ($this->offsetCount !== null) {
             $sql .= " OFFSET {$this->offsetCount}";
         }
-        
+
         return $sql;
     }
 
@@ -285,7 +302,7 @@ class QueryBuilder
             $pdo = $this->connection->pdo();
             $stmt = $pdo->prepare($sql);
             $stmt->execute($this->bindings);
-            
+
             return $stmt->fetchAll();
         } catch (\PDOException $e) {
             throw new DbException("Query execution failed: " . $e->getMessage(), $e);
@@ -298,7 +315,7 @@ class QueryBuilder
             $pdo = $this->connection->pdo();
             $stmt = $pdo->prepare($sql);
             $stmt->execute($this->bindings);
-            
+
             return $stmt->rowCount();
         } catch (\PDOException $e) {
             throw new DbException("Update execution failed: " . $e->getMessage(), $e);
@@ -316,7 +333,7 @@ class QueryBuilder
         if (!preg_match('/^[a-zA-Z0-9_\.]+$/', $name)) {
             throw new DbException("Invalid column name: {$name}");
         }
-        
+
         return $name;
     }
 
