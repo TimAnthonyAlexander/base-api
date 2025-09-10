@@ -117,7 +117,7 @@ class RateLimitMiddleware implements Middleware, OptionedMiddleware
             'd' => 86400
         ];
         
-        $seconds = $time * ($multipliers[$unit] ?? 1);
+        $seconds = $time * $multipliers[$unit];
         
         return [$requests, $seconds];
     }

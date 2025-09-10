@@ -57,7 +57,7 @@ class ModelScanner
         return null;
     }
 
-    private function scanModel(ReflectionClass $reflection): ?TableDef
+    private function scanModel(ReflectionClass $reflection): TableDef
     {
         $className = $reflection->getName();
         
@@ -169,6 +169,10 @@ class ModelScanner
         $type = $property->getType();
         
         if (!$this->isModelType($type)) {
+            return null;
+        }
+        
+        if (!$type instanceof \ReflectionNamedType) {
             return null;
         }
         

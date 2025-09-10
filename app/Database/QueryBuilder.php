@@ -12,7 +12,6 @@ class QueryBuilder
     private array $orders = [];
     private ?int $limitCount = null;
     private ?int $offsetCount = null;
-    private string $type = 'select';
 
     public function __construct(Connection $connection)
     {

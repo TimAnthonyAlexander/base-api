@@ -27,6 +27,10 @@ class TypeCoercion
 
     private static function coerceToSingleType(mixed $value, \ReflectionType $target): mixed
     {
+        if (!$target instanceof \ReflectionNamedType) {
+            return $value; // Return as-is for complex types
+        }
+        
         $typeName = $target->getName();
 
         return match ($typeName) {

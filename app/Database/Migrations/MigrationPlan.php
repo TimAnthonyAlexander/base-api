@@ -34,11 +34,11 @@ class MigrationPlan
 
     public function getDestructiveCount(): int
     {
-        return count(array_filter($this->operations, fn($op) => $op['destructive'] ?? false));
+        return count(array_filter($this->operations, fn($op) => $op['destructive']));
     }
 
     public function getNonDestructiveOperations(): array
     {
-        return array_filter($this->operations, fn($op) => !($op['destructive'] ?? false));
+        return array_filter($this->operations, fn($op) => !$op['destructive']);
     }
 }
