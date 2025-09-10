@@ -12,6 +12,7 @@ class QueryBuilder
     private array $orders = [];
     private ?int $limitCount = null;
     private ?int $offsetCount = null;
+    private array $joins = [];
 
     public function __construct(Connection $connection)
     {
@@ -20,7 +21,15 @@ class QueryBuilder
 
     public function table(string $name): self
     {
-        $this->table = $this->sanitizeColumnName($name);
+        $this->table = $this->sanitizeTableName($name);
+        // Reset query state when setting new table
+        $this->columns = ['*'];
+        $this->wheres = [];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+        $this->joins = [];
+        $this->bindings = [];
         return $this;
     }
 
@@ -37,17 +46,181 @@ class QueryBuilder
 
     public function where(string $column, string $operator, mixed $value): self
     {
+        $op = strtoupper(trim($operator));
         $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'IN'];
 
-        if (!in_array(strtoupper($operator), array_map('strtoupper', $allowedOperators))) {
+        if (!in_array($op, $allowedOperators, true)) {
             throw new DbException("Invalid operator: {$operator}");
         }
 
         $column = $this->sanitizeColumnName($column);
+
+        if ($op === 'IN') {
+            if (!is_array($value) || $value === []) {
+                throw new DbException('IN requires a non-empty array');
+            }
+            $placeholders = implode(', ', array_map(fn($v) => $this->addBinding($v), $value));
+            $this->wheres[] = "{$column} IN ({$placeholders})";
+            return $this;
+        }
+
         $placeholder = $this->addBinding($value);
+        $this->wheres[] = "{$column} {$op} {$placeholder}";
 
-        $this->wheres[] = "{$column} {$operator} {$placeholder}";
+        return $this;
+    }
 
+    public function orWhere(string $column, string $operator, mixed $value): self
+    {
+        $op = strtoupper(trim($operator));
+        $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'IN'];
+
+        if (!in_array($op, $allowedOperators, true)) {
+            throw new DbException("Invalid operator: {$operator}");
+        }
+
+        $column = $this->sanitizeColumnName($column);
+        $connector = empty($this->wheres) ? '' : 'OR ';
+
+        if ($op === 'IN') {
+            if (!is_array($value) || $value === []) {
+                throw new DbException('IN requires a non-empty array');
+            }
+            $placeholders = implode(', ', array_map(fn($v) => $this->addBinding($v), $value));
+            $this->wheres[] = $connector . "{$column} IN ({$placeholders})";
+            return $this;
+        }
+
+        $placeholder = $this->addBinding($value);
+        $this->wheres[] = $connector . "{$column} {$op} {$placeholder}";
+
+        return $this;
+    }
+
+    public function whereNull(string $column): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $this->wheres[] = "{$column} IS NULL";
+        return $this;
+    }
+
+    public function whereNotNull(string $column): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $this->wheres[] = "{$column} IS NOT NULL";
+        return $this;
+    }
+
+    public function whereBetween(string $column, mixed $min, mixed $max): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $minPlaceholder = $this->addBinding($min);
+        $maxPlaceholder = $this->addBinding($max);
+        $this->wheres[] = "{$column} BETWEEN {$minPlaceholder} AND {$maxPlaceholder}";
+        return $this;
+    }
+
+    public function whereNotIn(string $column, array $values): self
+    {
+        if (empty($values)) {
+            throw new DbException('NOT IN requires a non-empty array');
+        }
+
+        $column = $this->sanitizeColumnName($column);
+        $placeholders = [];
+
+        foreach ($values as $value) {
+            $placeholders[] = $this->addBinding($value);
+        }
+
+        $this->wheres[] = "{$column} NOT IN (" . implode(', ', $placeholders) . ")";
+
+        return $this;
+    }
+
+    public function orWhereNull(string $column): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $connector = empty($this->wheres) ? '' : 'OR ';
+        $this->wheres[] = $connector . "{$column} IS NULL";
+        return $this;
+    }
+
+    public function orWhereNotNull(string $column): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $connector = empty($this->wheres) ? '' : 'OR ';
+        $this->wheres[] = $connector . "{$column} IS NOT NULL";
+        return $this;
+    }
+
+    public function orWhereBetween(string $column, mixed $min, mixed $max): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $minPlaceholder = $this->addBinding($min);
+        $maxPlaceholder = $this->addBinding($max);
+        $connector = empty($this->wheres) ? '' : 'OR ';
+        $this->wheres[] = $connector . "{$column} BETWEEN {$minPlaceholder} AND {$maxPlaceholder}";
+        return $this;
+    }
+
+    public function orWhereNotIn(string $column, array $values): self
+    {
+        if (empty($values)) {
+            throw new DbException('NOT IN requires a non-empty array');
+        }
+
+        $column = $this->sanitizeColumnName($column);
+        $placeholders = [];
+
+        foreach ($values as $value) {
+            $placeholders[] = $this->addBinding($value);
+        }
+
+        $connector = empty($this->wheres) ? '' : 'OR ';
+        $this->wheres[] = $connector . "{$column} NOT IN (" . implode(', ', $placeholders) . ")";
+
+        return $this;
+    }
+
+    /**
+     * Add a grouped WHERE clause: WHERE (callback conditions)
+     */
+    public function whereGroup(callable $callback): self
+    {
+        $subBuilder = new self($this->connection);
+        $subBuilder->table = $this->table;
+        $callback($subBuilder);
+        
+        if (!empty($subBuilder->wheres)) {
+            $expr = $subBuilder->buildWhereClause();
+            $this->wheres[] = "({$expr})";
+            foreach ($subBuilder->bindings as $binding) {
+                $this->bindings[] = $binding;
+            }
+        }
+        
+        return $this;
+    }
+
+    /**
+     * Add a grouped OR WHERE clause: OR (callback conditions)
+     */
+    public function orWhereGroup(callable $callback): self
+    {
+        $subBuilder = new self($this->connection);
+        $subBuilder->table = $this->table;
+        $callback($subBuilder);
+        
+        if (!empty($subBuilder->wheres)) {
+            $expr = $subBuilder->buildWhereClause();
+            $connector = empty($this->wheres) ? '' : 'OR ';
+            $this->wheres[] = $connector . "({$expr})";
+            foreach ($subBuilder->bindings as $binding) {
+                $this->bindings[] = $binding;
+            }
+        }
+        
         return $this;
     }
 
@@ -96,6 +269,50 @@ class QueryBuilder
         $this->orders[] = "{$column} {$direction}";
 
         return $this;
+    }
+
+    public function join(string $table, string $firstColumn, string $operator, string $secondColumn, string $type = 'INNER'): self
+    {
+        $table = $this->sanitizeTableName($table);
+        $type = strtoupper(trim($type));
+
+        $allowedTypes = ['INNER', 'LEFT', 'RIGHT', 'CROSS'];
+        if (!in_array($type, $allowedTypes)) {
+            throw new DbException("Invalid join type: {$type}");
+        }
+
+        if ($type === 'CROSS') {
+            $this->joins[] = "CROSS JOIN {$table}";
+            return $this;
+        }
+
+        $firstColumn = $this->sanitizeColumnName($firstColumn);
+        $secondColumn = $this->sanitizeColumnName($secondColumn);
+        $operator = strtoupper(trim($operator));
+
+        $allowedOperators = ['=', '!=', '<>', '<', '<=', '>', '>='];
+        if (!in_array($operator, $allowedOperators, true)) {
+            throw new DbException("Invalid join operator: {$operator}");
+        }
+
+        $this->joins[] = "{$type} JOIN {$table} ON {$firstColumn} {$operator} {$secondColumn}";
+
+        return $this;
+    }
+
+    public function leftJoin(string $table, string $firstColumn, string $operator, string $secondColumn): self
+    {
+        return $this->join($table, $firstColumn, $operator, $secondColumn, 'LEFT');
+    }
+
+    public function rightJoin(string $table, string $firstColumn, string $operator, string $secondColumn): self
+    {
+        return $this->join($table, $firstColumn, $operator, $secondColumn, 'RIGHT');
+    }
+
+    public function crossJoin(string $table): self
+    {
+        return $this->join($table, '', '=', '', 'CROSS');
     }
 
     public function limit(int $count): self
@@ -195,6 +412,186 @@ class QueryBuilder
     }
 
     /**
+     * Count records
+     */
+    public function count(string $column = '*'): int
+    {
+        $column = $column === '*' ? '*' : $this->sanitizeColumnName($column);
+        
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for aggregation
+        $this->columns = ["COUNT({$column}) as count"];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+
+        $result = $this->first();
+        
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+        
+        return (int) ($result['count'] ?? 0);
+    }
+
+    /**
+     * Count distinct records (useful for joins that might produce duplicates)
+     */
+    public function countDistinct(string $column): int
+    {
+        $column = $this->sanitizeColumnName($column);
+        
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for aggregation
+        $this->columns = ["COUNT(DISTINCT {$column}) as count"];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+
+        $result = $this->first();
+        
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+        
+        return (int) ($result['count'] ?? 0);
+    }
+
+    /**
+     * Sum values
+     */
+    public function sum(string $column): float
+    {
+        $column = $this->sanitizeColumnName($column);
+        
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for aggregation
+        $this->columns = ["SUM({$column}) as sum"];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+
+        $result = $this->first();
+        
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+        
+        return (float) ($result['sum'] ?? 0.0);
+    }
+
+    /**
+     * Average values
+     */
+    public function avg(string $column): float
+    {
+        $column = $this->sanitizeColumnName($column);
+        
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for aggregation
+        $this->columns = ["AVG({$column}) as avg"];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+
+        $result = $this->first();
+        
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+        
+        return (float) ($result['avg'] ?? 0.0);
+    }
+
+    /**
+     * Minimum value
+     */
+    public function min(string $column): mixed
+    {
+        $column = $this->sanitizeColumnName($column);
+        
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for aggregation
+        $this->columns = ["MIN({$column}) as min"];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+
+        $result = $this->first();
+        
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+        
+        return $result['min'] ?? null;
+    }
+
+    /**
+     * Maximum value
+     */
+    public function max(string $column): mixed
+    {
+        $column = $this->sanitizeColumnName($column);
+        
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for aggregation
+        $this->columns = ["MAX({$column}) as max"];
+        $this->orders = [];
+        $this->limitCount = null;
+        $this->offsetCount = null;
+
+        $result = $this->first();
+        
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+        
+        return $result['max'] ?? null;
+    }
+
+    /**
      * Paginate results and optionally include total count
      */
     public function paginate(int $page, int $perPage, bool $withTotal = false): PaginatedResult
@@ -277,8 +674,12 @@ class QueryBuilder
 
         $sql = 'SELECT ' . implode(', ', $this->columns) . " FROM {$this->table}";
 
+        if (!empty($this->joins)) {
+            $sql .= ' ' . implode(' ', $this->joins);
+        }
+
         if (!empty($this->wheres)) {
-            $sql .= ' WHERE ' . implode(' AND ', $this->wheres);
+            $sql .= ' WHERE ' . $this->buildWhereClause();
         }
 
         if (!empty($this->orders)) {
@@ -294,6 +695,25 @@ class QueryBuilder
         }
 
         return $sql;
+    }
+
+    private function buildWhereClause(): string
+    {
+        if (empty($this->wheres)) {
+            return '';
+        }
+
+        $exprs = [];
+        foreach ($this->wheres as $i => $where) {
+            if ($i === 0) {
+                // Remove OR prefix from first clause if present
+                $exprs[] = preg_replace('/^OR\s+/i', '', $where, 1);
+            } else {
+                $exprs[] = str_starts_with($where, 'OR ') ? $where : 'AND ' . $where;
+            }
+        }
+        
+        return implode(' ', $exprs);
     }
 
     private function execute(string $sql): array
@@ -330,11 +750,45 @@ class QueryBuilder
 
     private function sanitizeColumnName(string $name): string
     {
-        if (!preg_match('/^[a-zA-Z0-9_\.]+$/', $name)) {
-            throw new DbException("Invalid column name: {$name}");
+        // Handle wildcard
+        if ($name === '*') {
+            return '*';
         }
 
-        return $name;
+        $parts = explode('.', $name);
+        $out = [];
+        $lastIdx = count($parts) - 1;
+
+        foreach ($parts as $i => $segment) {
+            // Handle table.* pattern
+            if ($i === $lastIdx && $segment === '*') {
+                // Previous parts are table identifiers, last is wildcard
+                $tableParts = array_slice($parts, 0, $lastIdx);
+                foreach ($tableParts as $tableSeg) {
+                    if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $tableSeg)) {
+                        throw new DbException("Invalid identifier segment: {$tableSeg}");
+                    }
+                }
+                return implode('.', array_map(fn($s) => "`{$s}`", $tableParts)) . '.*';
+            }
+            
+            // Regular identifier validation
+            if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $segment)) {
+                throw new DbException("Invalid identifier segment: {$segment}");
+            }
+            $out[] = "`{$segment}`";
+        }
+
+        return implode('.', $out);
+    }
+
+    private function sanitizeTableName(string $name): string
+    {
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name)) {
+            throw new DbException("Invalid table name: {$name}");
+        }
+
+        return "`{$name}`";
     }
 
     private function validateTable(): void

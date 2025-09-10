@@ -41,6 +41,33 @@ class ModelQuery
     }
 
     /**
+     * Add OR WHERE clause
+     */
+    public function orWhere(string $column, string $operator, mixed $value): self
+    {
+        $this->qb->orWhere($column, $operator, $value);
+        return $this;
+    }
+
+    /**
+     * Add WHERE IS NULL clause
+     */
+    public function whereNull(string $column): self
+    {
+        $this->qb->whereNull($column);
+        return $this;
+    }
+
+    /**
+     * Add WHERE IS NOT NULL clause
+     */
+    public function whereNotNull(string $column): self
+    {
+        $this->qb->whereNotNull($column);
+        return $this;
+    }
+
+    /**
      * Add ORDER BY clause
      */
     public function orderBy(string $column, string $direction = 'asc'): self

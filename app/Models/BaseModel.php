@@ -6,6 +6,8 @@ use BaseApi\App;
 use BaseApi\Support\Uuid;
 use BaseApi\Database\QueryBuilder;
 use BaseApi\Database\ModelQuery;
+use BaseApi\Database\Relations\BelongsTo;
+use BaseApi\Database\Relations\HasMany;
 
 abstract class BaseModel implements \JsonSerializable
 {
@@ -172,6 +174,34 @@ abstract class BaseModel implements \JsonSerializable
         return array_map([static::class, 'fromRow'], $rows);
     }
 
+    /**
+     * Create an API query from request parameters (pagination, sorting, filtering, eager loading)
+     */
+    public static function apiQuery(\BaseApi\Http\Request $request, int $maxPerPage = 50): \BaseApi\Database\PaginatedResult
+    {
+        // Start with base query
+        $query = static::with([]);
+        
+        // Parse eager loading from 'with' parameter
+        $withParam = $request->query['with'] ?? '';
+        if (!empty($withParam)) {
+            $relations = array_filter(array_map('trim', explode(',', $withParam)));
+            if (!empty($relations)) {
+                $query = static::with($relations);
+            }
+        }
+        
+        // Apply pagination, sorting, and filtering
+        [$query, $page, $perPage, $withTotal] = \BaseApi\Http\ControllerListHelpers::applyListParams(
+            $query, 
+            $request, 
+            $maxPerPage
+        );
+        
+        // Always include total count for API responses
+        return $query->paginate($page, $perPage, $maxPerPage, true);
+    }
+
     public function save(): bool
     {
         if (empty($this->id)) {
@@ -196,9 +226,25 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /**
-     * Load a belongsTo relation (many-to-one)
+     * Define a belongsTo relationship (many-to-one)
      */
-    public function belongsTo(string $related, ?string $fk = null): ?BaseModel
+    public function belongsTo(string $relatedClass, ?string $foreignKey = null, ?string $localKey = null): BelongsTo
+    {
+        return new BelongsTo($this, $relatedClass, $foreignKey, $localKey);
+    }
+
+    /**
+     * Define a hasMany relationship (one-to-many)
+     */
+    public function hasMany(string $relatedClass, ?string $foreignKey = null, ?string $localKey = null): HasMany
+    {
+        return new HasMany($this, $relatedClass, $foreignKey, $localKey);
+    }
+
+    /**
+     * Load a belongsTo relation (backward compatible - loads data directly)
+     */
+    public function loadBelongsTo(string $related, ?string $fk = null): ?BaseModel
     {
         // Check cache first
         if (isset($this->__relationCache[$related])) {
@@ -227,9 +273,9 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /**
-     * Load a hasMany relation (one-to-many)
+     * Load a hasMany relation (backward compatible - loads data directly)
      */
-    public function hasMany(string $related, ?string $fk = null): array
+    public function loadHasMany(string $related, ?string $fk = null): array
     {
         // Check cache first
         if (isset($this->__relationCache[$related])) {
@@ -338,10 +384,49 @@ abstract class BaseModel implements \JsonSerializable
 
         // Generate FK column: singular of current table + _id
         $currentTable = static::table();
-        $singularTable = rtrim($currentTable, 's'); // Simple singularization
+        $singularTable = static::singularize($currentTable);
         $fkColumn = $singularTable . '_id';
 
         return [$fkColumn, $relatedClass];
+    }
+
+    /**
+     * Simple singularization with common irregular cases
+     */
+    public static function singularize(string $plural): string
+    {
+        // Handle common irregular cases
+        $irregulars = [
+            'categories' => 'category',
+            'companies' => 'company',
+            'countries' => 'country',
+            'cities' => 'city',
+            'people' => 'person',
+            'children' => 'child',
+        ];
+        
+        if (isset($irregulars[$plural])) {
+            return $irregulars[$plural];
+        }
+        
+        // Handle regular patterns
+        if (str_ends_with($plural, 'ies')) {
+            return substr($plural, 0, -3) . 'y';
+        }
+        
+        if (str_ends_with($plural, 'ves')) {
+            return substr($plural, 0, -3) . 'f';
+        }
+        
+        if (str_ends_with($plural, 'ses') || str_ends_with($plural, 'shes') || str_ends_with($plural, 'ches')) {
+            return substr($plural, 0, -2);
+        }
+        
+        if (str_ends_with($plural, 's') && !str_ends_with($plural, 'ss')) {
+            return substr($plural, 0, -1);
+        }
+        
+        return $plural; // No change if can't singularize
     }
 
     public function toArray(): array
