@@ -1,0 +1,21 @@
+{
+  "errors.not_found": "The requested resource was not found.",
+  "errors.unauthorized": "You are not authorized to access this resource.",
+  "errors.forbidden": "Access to this resource is forbidden.",
+  "errors.validation_failed": "Validation failed.",
+  "errors.server_error": "An internal server error occurred.",
+  "errors.bad_request": "The request was invalid.",
+  "errors.rate_limit_exceeded": "Too many requests. Please try again later.",
+  "errors.invalid_credentials": "Invalid username or password.",
+  "errors.account_locked": "Your account has been locked.",
+  "errors.token_expired": "Your session has expired. Please log in again.",
+  "errors.invalid_token": "Invalid or expired token.",
+  "errors.email_required": "Email address is required.",
+  "errors.email_invalid": "Please enter a valid email address.",
+  "errors.password_required": "Password is required.",
+  "errors.password_too_short": "Password must be at least {min_length} characters long.",
+  "errors.name_required": "Name is required.",
+  "errors.field_required": "This field is required.",
+  "errors.file_too_large": "File size exceeds the maximum limit of {max_size}.",
+  "errors.invalid_file_type": "Invalid file type. Allowed types: {allowed_types}."
+}

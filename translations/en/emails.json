@@ -1,0 +1,13 @@
+{
+  "emails.welcome_subject": "Welcome to {app_name}, {name}!",
+  "emails.welcome_body": "Thank you for joining {app_name}. We're excited to have you on board!",
+  "emails.password_reset_subject": "Reset your password",
+  "emails.password_reset_body": "Click the link below to reset your password:\n{reset_url}",
+  "emails.verification_subject": "Please verify your email address",
+  "emails.verification_body": "Please click the following link to verify your email address:\n{verification_url}",
+  "emails.order_confirmation_subject": "Order confirmation #{order_id}",
+  "emails.order_confirmation_body": "Thank you for your order! Your order #{order_id} has been confirmed.",
+  "emails.invoice_subject": "Invoice #{invoice_id}",
+  "emails.invoice_body": "Please find attached your invoice #{invoice_id} for {amount}.",
+  "emails.signature": "Best regards,\nThe {app_name} Team"
+}

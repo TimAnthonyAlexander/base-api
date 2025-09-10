@@ -1,0 +1,31 @@
+{
+  "__meta": {
+    "needs_review": false,
+    "last_sync": "2025-09-10T15:30:00Z"
+  },
+  "common.ok": "OK",
+  "common.cancel": "Abbrechen",
+  "common.save": "Speichern",
+  "common.delete": "Löschen",
+  "common.edit": "Bearbeiten",
+  "common.create": "Erstellen",
+  "common.loading": "Laden...",
+  "common.success": "Erfolg",
+  "common.error": "Fehler",
+  "common.warning": "Warnung",
+  "common.info": "Information",
+  "common.yes": "Ja",
+  "common.no": "Nein",
+  "common.close": "Schließen",
+  "common.back": "Zurück",
+  "common.next": "Weiter",
+  "common.previous": "Zurück",
+  "common.search": "Suchen",
+  "common.filter": "Filtern",
+  "common.sort": "Sortieren",
+  "common.export": "Exportieren",
+  "common.import": "Importieren",
+  "common.items_count": "{count, plural, one {# Element} other {# Elemente}}",
+  "common.user_status": "{status, select, online {Online} offline {Offline} other {Unbekannt}}",
+  "common.welcome_message": "Willkommen zurück, {name}! Sie haben {count, plural, one {# neue Nachricht} other {# neue Nachrichten}}."
+}

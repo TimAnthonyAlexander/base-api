@@ -10,6 +10,11 @@ use BaseApi\Console\Commands\MakeModelCommand;
 use BaseApi\Console\Commands\MigrateGenerateCommand;
 use BaseApi\Console\Commands\MigrateApplyCommand;
 use BaseApi\Console\Commands\TypesGenerateCommand;
+use BaseApi\Console\Commands\I18nScanCommand;
+use BaseApi\Console\Commands\I18nAddLangCommand;
+use BaseApi\Console\Commands\I18nFillCommand;
+use BaseApi\Console\Commands\I18nLintCommand;
+use BaseApi\Console\Commands\I18nHashCommand;
 
 // Load environment
 if (file_exists(__DIR__ . '/../.env')) {
@@ -26,6 +31,13 @@ $app->register('make:model', new MakeModelCommand());
 $app->register('migrate:generate', new MigrateGenerateCommand());
 $app->register('migrate:apply', new MigrateApplyCommand());
 $app->register('types:generate', new TypesGenerateCommand());
+
+// i18n commands
+$app->register('i18n:scan', new I18nScanCommand());
+$app->register('i18n:add-lang', new I18nAddLangCommand());
+$app->register('i18n:fill', new I18nFillCommand());
+$app->register('i18n:lint', new I18nLintCommand());
+$app->register('i18n:hash', new I18nHashCommand());
 
 // Run the application
 exit($app->run($argv));

@@ -6,6 +6,7 @@ use BaseApi\Controllers\UserController;
 use BaseApi\Controllers\LoginController;
 use BaseApi\Controllers\LogoutController;
 use BaseApi\Controllers\MeController;
+use BaseApi\Controllers\I18nController;
 use BaseApi\Http\Middleware\RateLimitMiddleware;
 use BaseApi\Http\Middleware\AuthMiddleware;
 
@@ -62,3 +63,21 @@ $router->get(
         MeController::class,
     ],
 );
+
+// Translation endpoint - public read access with rate limiting
+$router->get(
+    '/i18n',
+    [
+        RateLimitMiddleware::class => ['limit' => '100/1m'],
+        I18nController::class,
+    ],
+);
+
+// Translation update endpoint - admin only (uncomment when authentication is setup)
+// $router->post(
+//     '/i18n',
+//     [
+//         AuthMiddleware::class,
+//         I18nController::class,
+//     ],
+// );

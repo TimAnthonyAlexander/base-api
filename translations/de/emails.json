@@ -1,0 +1,17 @@
+{
+  "__meta": {
+    "needs_review": true,
+    "last_sync": "2025-09-10T15:30:00Z"
+  },
+  "emails.welcome_subject": "Willkommen bei {app_name}, {name}!",
+  "emails.welcome_body": "Vielen Dank, dass Sie sich bei {app_name} angemeldet haben. Wir freuen uns, Sie an Bord zu haben!",
+  "emails.password_reset_subject": "Passwort zurücksetzen",
+  "emails.password_reset_body": "Klicken Sie auf den untenstehenden Link, um Ihr Passwort zurückzusetzen:\n{reset_url}",
+  "emails.verification_subject": "Bitte bestätigen Sie Ihre E-Mail-Adresse",
+  "emails.verification_body": "Bitte klicken Sie auf den folgenden Link, um Ihre E-Mail-Adresse zu bestätigen:\n{verification_url}",
+  "emails.order_confirmation_subject": "Bestellbestätigung #{order_id}",
+  "emails.order_confirmation_body": "Vielen Dank für Ihre Bestellung! Ihre Bestellung #{order_id} wurde bestätigt.",
+  "emails.invoice_subject": "Rechnung #{invoice_id}",
+  "emails.invoice_body": "Anbei finden Sie Ihre Rechnung #{invoice_id} über {amount}.",
+  "emails.signature": "Mit freundlichen Grüßen,\nDas {app_name} Team"
+}

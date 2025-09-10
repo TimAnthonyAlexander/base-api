@@ -1,0 +1,25 @@
+{
+  "__meta": {
+    "needs_review": true,
+    "last_sync": "2025-09-10T15:30:00Z"
+  },
+  "errors.not_found": "Die angeforderte Ressource wurde nicht gefunden.",
+  "errors.unauthorized": "Sie sind nicht berechtigt, auf diese Ressource zuzugreifen.",
+  "errors.forbidden": "Der Zugriff auf diese Ressource ist verboten.",
+  "errors.validation_failed": "Validierung fehlgeschlagen.",
+  "errors.server_error": "Ein interner Serverfehler ist aufgetreten.",
+  "errors.bad_request": "Die Anfrage war ungültig.",
+  "errors.rate_limit_exceeded": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+  "errors.invalid_credentials": "Ungültiger Benutzername oder Passwort.",
+  "errors.account_locked": "Ihr Konto wurde gesperrt.",
+  "errors.token_expired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+  "errors.invalid_token": "Ungültiger oder abgelaufener Token.",
+  "errors.email_required": "E-Mail-Adresse ist erforderlich.",
+  "errors.email_invalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+  "errors.password_required": "Passwort ist erforderlich.",
+  "errors.password_too_short": "Das Passwort muss mindestens {min_length} Zeichen lang sein.",
+  "errors.name_required": "Name ist erforderlich.",
+  "errors.field_required": "Dieses Feld ist erforderlich.",
+  "errors.file_too_large": "Die Dateigröße überschreitet das maximale Limit von {max_size}.",
+  "errors.invalid_file_type": "Ungültiger Dateityp. Erlaubte Typen: {allowed_types}."
+}

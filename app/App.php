@@ -49,12 +49,17 @@ class App
         self::$booted = true;
     }
 
-    public static function config(): Config
+    public static function config(string $key = '', mixed $default = null): mixed
     {
         if (!self::$booted) {
             self::boot();
         }
-        return self::$config;
+        
+        if (empty($key)) {
+            return self::$config;
+        }
+        
+        return self::$config->get($key, $default);
     }
 
     public static function logger(): Logger
@@ -96,4 +101,11 @@ class App
         }
         return self::$userProvider;
     }
+
+    public static function basePath(string $path = ''): string
+    {
+        $basePath = dirname(__DIR__);
+        return $path ? $basePath . '/' . ltrim($path, '/') : $basePath;
+    }
+
 }
