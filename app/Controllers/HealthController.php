@@ -19,16 +19,16 @@ class HealthController extends Controller
             try {
                 // Perform simple DB check
                 $result = App::db()->scalar('SELECT 1');
-                
+
                 if ($result == 1) {
                     $response['db'] = true;
-                    
+
                     // Additional table check to confirm connectivity
                     App::db()->raw('SHOW TABLES');
                 } else {
                     return JsonResponse::error('Database check failed', 500);
                 }
-            } catch (DbException $e) {
+            } catch (DbException) {
                 return JsonResponse::error('Database connection failed', 500);
             }
         }
