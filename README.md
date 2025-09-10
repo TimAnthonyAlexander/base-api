@@ -14,13 +14,13 @@ Build JSON-first APIs with almost no ceremony. No heavy PSR stacks, no DI contai
 **Install BaseAPI in seconds with our one-liner:**
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/master/install.sh | bash
 ```
 
 **Or install to a custom directory:**
 
 ```bash
-bash <(curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/main/install.sh) my-project
+bash <(curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/master/install.sh) my-project
 ```
 
 **Then start building:**

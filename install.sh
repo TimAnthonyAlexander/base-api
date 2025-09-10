@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # BaseAPI One-Line Installer
-# Usage: curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/main/install.sh | bash
-# Or: bash <(curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/main/install.sh) [directory]
+# Usage: curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/master/install.sh | bash
+# Or: bash <(curl -sSL https://raw.githubusercontent.com/timanthonyalexander/base-api/master/install.sh) [directory]
 
 set -e
 
