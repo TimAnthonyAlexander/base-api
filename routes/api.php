@@ -19,7 +19,6 @@ $router->post('/test', [TestController::class]);
 
 // User endpoints with route parameters
 $router->get('/users', [UserController::class]);
-$router->post('/users', [UserController::class]);
 $router->get('/users/{id}', [UserController::class]);
 $router->delete('/users/{id}', [UserController::class]);
 

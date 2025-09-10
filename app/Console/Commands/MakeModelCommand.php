@@ -52,7 +52,6 @@ class MakeModelCommand implements Command
         }
 
         echo "Model created: app/Models/{$name}.php\n";
-        echo "Note: DB & migrator functionality will be added in a later milestone\n";
         
         return 0;
     }
@@ -79,20 +78,29 @@ namespace BaseApi\Models;
 
 /**
  * {$name} Model
- * 
- * Note: DB & migrator functionality will be added in a later milestone.
- * For now, this is a simple class with typed properties.
  */
-class {$name}
+class {$name} extends BaseModel
 {
-    public string \$id;
-    public string \$created_at;
-    public string \$updated_at;
-    
     // Add your model properties here
     // Example:
-    // public string \$name;
+    // public string \$name = '';
     // public ?string \$email = null;
+    // public bool \$active = true;
+    
+    // Optional: Define custom table name
+    // protected static ?string \$table = '{$name}_table';
+    
+    // Optional: Define indexes
+    // public static array \$indexes = [
+    //     'email' => 'unique',
+    //     'created_at' => 'index'
+    // ];
+    
+    // Optional: Define column overrides
+    // public static array \$columns = [
+    //     'name' => ['type' => 'VARCHAR(120)', 'null' => false],
+    //     'description' => ['type' => 'TEXT']
+    // ];
 }
 PHP;
     }

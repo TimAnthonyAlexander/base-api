@@ -531,8 +531,7 @@ BaseAPI is built in milestones:
 - ✅ **Milestone 3**: CLI tools and rate limiting
 - ✅ **Milestone 4**: Database layer with QueryBuilder and BaseModel
 - ✅ **Milestone 5**: Model-driven migrations and schema management
-- 🚧 **Milestone 6**: Authentication and authorization
-- 🚧 **Milestone 7**: Caching and performance optimizations
+- ✅ **Milestone 6**: Relations + Eager Helpers + Pagination/Sort/Filter
 
 ---
 

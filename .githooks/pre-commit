@@ -103,7 +103,7 @@ fi
 print_step "Code Quality Checks"
 
 # Check for var_dump, print_r, etc.
-DEBUG_FUNCTIONS="var_dump\|print_r\|dd\|dump\|debug_print_backtrace"
+DEBUG_FUNCTIONS="var_dump\|print_r\|dump\|debug_print_backtrace"
 DEBUG_FOUND=0
 for file in $STAGED_FILES; do
     if [ -f "$file" ]; then

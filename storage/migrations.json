@@ -1,4 +1,81 @@
 {
-    "generated_at": "2025-09-10T08:18:12+00:00",
-    "plan": []
+    "generated_at": "2025-09-10T08:50:24+00:00",
+    "plan": [
+        {
+            "op": "create_table",
+            "table": "users",
+            "columns": {
+                "name": {
+                    "name": "name",
+                    "type": "VARCHAR(255)",
+                    "nullable": false,
+                    "default": null,
+                    "is_pk": false
+                },
+                "email": {
+                    "name": "email",
+                    "type": "VARCHAR(255)",
+                    "nullable": false,
+                    "default": null,
+                    "is_pk": false
+                },
+                "active": {
+                    "name": "active",
+                    "type": "BOOLEAN",
+                    "nullable": false,
+                    "default": null,
+                    "is_pk": false
+                },
+                "indexes": {
+                    "name": "indexes",
+                    "type": "VARCHAR(255)",
+                    "nullable": false,
+                    "default": null,
+                    "is_pk": false
+                },
+                "id": {
+                    "name": "id",
+                    "type": "CHAR(36)",
+                    "nullable": false,
+                    "default": null,
+                    "is_pk": true
+                },
+                "created_at": {
+                    "name": "created_at",
+                    "type": "DATETIME",
+                    "nullable": true,
+                    "default": "CURRENT_TIMESTAMP",
+                    "is_pk": false
+                },
+                "updated_at": {
+                    "name": "updated_at",
+                    "type": "DATETIME",
+                    "nullable": true,
+                    "default": "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+                    "is_pk": false
+                }
+            },
+            "destructive": false
+        },
+        {
+            "op": "add_index",
+            "table": "users",
+            "index": {
+                "name": "uniq_users_email",
+                "column": "email",
+                "type": "unique"
+            },
+            "destructive": false
+        },
+        {
+            "op": "add_index",
+            "table": "users",
+            "index": {
+                "name": "idx_users_created_at",
+                "column": "created_at",
+                "type": "index"
+            },
+            "destructive": false
+        }
+    ]
 }
