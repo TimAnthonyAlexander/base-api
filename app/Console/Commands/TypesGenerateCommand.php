@@ -14,7 +14,6 @@ class TypesGenerateCommand implements Command
 {
     private array $routes = [];
     private array $dtoSchemas = [];
-    private array $components = [];
 
     public function name(): string
     {
@@ -133,6 +132,7 @@ HELP;
         
         // Mock the App::router() method by creating a temporary class
         $mockRouter = new class($routes) {
+            /** @phpstan-ignore-next-line */
             private array $routes;
 
             public function __construct(array &$routes)
@@ -160,6 +160,7 @@ HELP;
         $originalAppExists = class_exists('BaseApi\\App', false);
         if (!$originalAppExists) {
             // If App isn't loaded yet, we need to ensure we can mock it
+            $mockRouterRef = &$mockRouter; // Create reference for closure
             eval('
             namespace BaseApi {
                 class App {
@@ -169,7 +170,9 @@ HELP;
                 }
             }
             ');
-            \BaseApi\App::setMockRouter($mockRouter);
+            // Now the mock App class exists, we can call setMockRouter
+            /** @phpstan-ignore-next-line */
+            \BaseApi\App::setMockRouter($mockRouterRef);
         } else {
             // If App is already loaded, we need to work around it
             // Store original router method (this is tricky with static methods)
@@ -610,10 +613,10 @@ HELP;
         if ($method === 'get') {
             $operation['parameters'] = array_merge(
                 $operation['parameters'], 
-                $this->generateQueryParameters($controller['properties'], $matches[1] ?? [])
+                $this->generateQueryParameters($controller['properties'], $matches[1])
             );
         } elseif ($method === 'post') {
-            $bodySchema = $this->generateRequestBodySchema($controller['properties'], $matches[1] ?? []);
+            $bodySchema = $this->generateRequestBodySchema($controller['properties'], $matches[1]);
             if (!empty($bodySchema['properties'])) {
                 $operation['requestBody'] = [
                     'required' => true,

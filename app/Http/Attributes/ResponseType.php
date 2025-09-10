@@ -47,15 +47,12 @@ class ResponseType
             ];
         }
 
-        if (is_array($this->shape)) {
-            // Inline object shape like ['message' => 'string', 'count' => 'int']
-            return [
-                'type' => 'object',
-                'properties' => $this->shape
-            ];
-        }
-
-        return ['type' => 'unknown'];
+        // Must be array since we've checked null and string above
+        // Inline object shape like ['message' => 'string', 'count' => 'int']
+        return [
+            'type' => 'object',
+            'properties' => $this->shape
+        ];
     }
 
     /**
