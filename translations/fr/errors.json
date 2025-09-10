@@ -1,0 +1,25 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:04:08+00:00"
+    },
+    "errors.account_locked": "Votre compte a été bloqué.",
+    "errors.bad_request": "La demande n'est pas valide.",
+    "errors.email_invalid": "Veuillez saisir une adresse électronique valide.",
+    "errors.email_required": "L'adresse électronique est requise.",
+    "errors.field_required": "Ce champ est obligatoire.",
+    "errors.file_too_large": "La taille du fichier dépasse la limite maximale de {max_size}.",
+    "errors.forbidden": "L'accès à cette ressource est interdit.",
+    "errors.invalid_credentials": "Nom d'utilisateur ou mot de passe invalide.",
+    "errors.invalid_file_type": "Type de fichier non valide. Types autorisés : {allowed_types}.",
+    "errors.invalid_token": "Jeton invalide ou expiré.",
+    "errors.name_required": "Le nom est obligatoire.",
+    "errors.not_found": "La ressource demandée n'a pas été trouvée.",
+    "errors.password_required": "Le mot de passe est requis.",
+    "errors.password_too_short": "Le mot de passe doit comporter au moins {min_length} caractères.",
+    "errors.rate_limit_exceeded": "Trop de demandes. Veuillez réessayer plus tard.",
+    "errors.server_error": "Une erreur interne du serveur s'est produite.",
+    "errors.token_expired": "Votre session a expiré. Veuillez vous reconnecter.",
+    "errors.unauthorized": "Vous n'êtes pas autorisé à accéder à cette ressource.",
+    "errors.validation_failed": "La validation a échoué."
+}

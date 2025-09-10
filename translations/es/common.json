@@ -1,0 +1,31 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:03:44+00:00"
+    },
+    "common.back": "Volver",
+    "common.cancel": "Cancelar",
+    "common.close": "Cerrar",
+    "common.create": "Cree",
+    "common.delete": "Borrar",
+    "common.edit": "Editar",
+    "common.error": "Error",
+    "common.export": "Exportar",
+    "common.filter": "Filtro",
+    "common.import": "Importar",
+    "common.info": "Información",
+    "common.items_count": "{contar, plural, un {# artículo} otros {# artículos}}",
+    "common.loading": "Cargando...",
+    "common.next": "Siguiente",
+    "common.no": "No",
+    "common.ok": "OK",
+    "common.previous": "Anterior",
+    "common.save": "Guardar",
+    "common.search": "Buscar en",
+    "common.sort": "Ordenar",
+    "common.success": "Éxito",
+    "common.user_status": "{status, select, online {Online} offline {Offline} other {Unknown}}",
+    "common.warning": "Advertencia",
+    "common.welcome_message": "¡Bienvenido de nuevo, {nombre}! Tienes {cuenta, en plural, un {# mensaje nuevo} otro {# mensajes nuevos}}.",
+    "common.yes": "Sí"
+}

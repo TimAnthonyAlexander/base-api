@@ -1,0 +1,25 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:03:52+00:00"
+    },
+    "errors.account_locked": "Su cuenta ha sido bloqueada.",
+    "errors.bad_request": "La solicitud no era válida.",
+    "errors.email_invalid": "Introduzca una dirección de correo electrónico válida.",
+    "errors.email_required": "La dirección de correo electrónico es obligatoria.",
+    "errors.field_required": "Este campo es obligatorio.",
+    "errors.file_too_large": "El tamaño del archivo supera el límite máximo de {tamaño_máx}.",
+    "errors.forbidden": "El acceso a este recurso está prohibido.",
+    "errors.invalid_credentials": "Nombre de usuario o contraseña no válidos.",
+    "errors.invalid_file_type": "Tipo de archivo no válido. Tipos permitidos: {tipos_permitidos}.",
+    "errors.invalid_token": "Token no válido o caducado.",
+    "errors.name_required": "El nombre es obligatorio.",
+    "errors.not_found": "No se ha encontrado el recurso solicitado.",
+    "errors.password_required": "Se requiere contraseña.",
+    "errors.password_too_short": "La contraseña debe tener al menos {min_length} caracteres.",
+    "errors.rate_limit_exceeded": "Demasiadas solicitudes. Vuelva a intentarlo más tarde.",
+    "errors.server_error": "Se ha producido un error interno del servidor.",
+    "errors.token_expired": "Su sesión ha expirado. Por favor, conéctese de nuevo.",
+    "errors.unauthorized": "No está autorizado a acceder a este recurso.",
+    "errors.validation_failed": "Validación fallida."
+}

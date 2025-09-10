@@ -1,0 +1,17 @@
+{
+    "__meta": {
+        "needs_review": true,
+        "last_sync": "2025-09-10T21:03:47+00:00"
+    },
+    "emails.invoice_body": "Adjuntamos su factura #{invoice_id} por importe de {amount}.",
+    "emails.invoice_subject": "Factura #{invoice_id}",
+    "emails.order_confirmation_body": "Gracias por su pedido. Su pedido #{order_id} ha sido confirmado.",
+    "emails.order_confirmation_subject": "Confirmación de pedido #{order_id}",
+    "emails.password_reset_body": "Haga clic en el siguiente enlace para restablecer su contraseña:\n{reset_url}",
+    "emails.password_reset_subject": "Restablecer contraseña",
+    "emails.signature": "Saludos cordiales,\nEl equipo de {app_name}",
+    "emails.verification_body": "Haga clic en el siguiente enlace para verificar su dirección de correo electrónico:\n{verification_url}",
+    "emails.verification_subject": "Verifique su dirección de correo electrónico",
+    "emails.welcome_body": "Gracias por unirte a {app_name}. Estamos encantados de tenerte a bordo.",
+    "emails.welcome_subject": "¡Bienvenido a {app_name}, {name}!"
+}

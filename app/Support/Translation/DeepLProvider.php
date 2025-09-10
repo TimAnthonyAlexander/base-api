@@ -8,7 +8,7 @@ class DeepLProvider implements TranslationProvider
 {
     private string $apiKey;
     private string $formality;
-    private string $baseUrl = 'https://api-free.deepl.com/v2'; // Use api.deepl.com for pro
+    private string $baseUrl = 'https://api-free.deepl.com/v2'; // Use https://api.deepl.com/v2 for pro
     
     // Supported languages (DeepL language codes)
     private array $supportedLanguages = [
@@ -55,13 +55,14 @@ class DeepLProvider implements TranslationProvider
         
         // Prepare request data
         $data = [
-            'auth_key' => $this->apiKey,
             'text' => $texts,
-            'source_lang' => strtoupper($sourceLanguage),
             'target_lang' => strtoupper($targetLanguage),
-            'preserve_formatting' => '1',
-            'tag_handling' => 'html', // Preserve placeholders like {name}
         ];
+        
+        // Only add source language if specified (DeepL can auto-detect)
+        if ($sourceLanguage !== 'auto') {
+            $data['source_lang'] = strtoupper($sourceLanguage);
+        }
         
         // Add formality if target language supports it
         if (in_array($targetLanguage, ['de', 'fr', 'it', 'es', 'nl', 'pl', 'pt', 'ru'])) {
@@ -89,6 +90,11 @@ class DeepLProvider implements TranslationProvider
         $from = $this->normalizeLanguageCode($from);
         $to = $this->normalizeLanguageCode($to);
         
+        // 'auto' means DeepL will auto-detect source language
+        if ($from === 'auto') {
+            return in_array($to, $this->supportedLanguages);
+        }
+        
         return in_array($from, $this->supportedLanguages) && 
                in_array($to, $this->supportedLanguages) &&
                $from !== $to;
@@ -104,6 +110,11 @@ class DeepLProvider implements TranslationProvider
      */
     private function normalizeLanguageCode(string $code): string
     {
+        // Handle special cases
+        if ($code === 'auto') {
+            return 'auto';
+        }
+        
         // Handle common variations
         $mapping = [
             'en-US' => 'en',
@@ -128,10 +139,11 @@ class DeepLProvider implements TranslationProvider
             'http' => [
                 'method' => 'POST',
                 'header' => [
-                    'Content-Type: application/x-www-form-urlencoded',
+                    'Authorization: DeepL-Auth-Key ' . $this->apiKey,
+                    'Content-Type: application/json',
                     'User-Agent: BaseAPI/1.0',
                 ],
-                'content' => http_build_query($data),
+                'content' => json_encode($data),
                 'timeout' => 30,
             ],
         ]);
