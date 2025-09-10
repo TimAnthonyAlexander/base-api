@@ -12,8 +12,7 @@ class ResponseTimeMiddleware implements Middleware
         // Call next middleware/controller
         $response = $next($request);
 
-        // Calculate response time in milliseconds
-        $responseTime = round((microtime(true) - $request->startTime), 0);
+        $responseTime = round((microtime(true) - $request->startTime), 2);
 
         // Add response time to JSON responses only
         if ($response instanceof JsonResponse) {
