@@ -16,7 +16,7 @@
     "errors.name_required": "Naam is vereist.",
     "errors.not_found": "De opgevraagde bron is niet gevonden.",
     "errors.password_required": "Wachtwoord is vereist.",
-    "errors.password_too_short": "Het wachtwoord moet minstens {min_lengte} tekens lang zijn.",
+    "errors.password_too_short": "Het wachtwoord moet minstens {min_length} tekens lang zijn.",
     "errors.rate_limit_exceeded": "Te veel aanvragen. Probeer het later nog eens.",
     "errors.server_error": "Er is een interne serverfout opgetreden.",
     "errors.token_expired": "Uw sessie is verlopen. Log opnieuw in.",

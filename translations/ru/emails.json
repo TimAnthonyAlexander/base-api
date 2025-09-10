@@ -3,7 +3,7 @@
         "needs_review": true,
         "last_sync": "2025-09-10T21:11:00+00:00"
     },
-    "emails.invoice_body": "Прилагаем ваш счет #{invoice_id} на {сумму}.",
+    "emails.invoice_body": "Прилагаем ваш счет #{invoice_id} на {amount}.",
     "emails.invoice_subject": "Счет-фактура #{invoice_id}",
     "emails.order_confirmation_body": "Спасибо за ваш заказ! Ваш заказ #{order_id} был подтвержден.",
     "emails.order_confirmation_subject": "Подтверждение заказа #{order_id}",
@@ -13,5 +13,5 @@
     "emails.verification_body": "Пожалуйста, перейдите по следующей ссылке, чтобы проверить свой адрес электронной почты:\n{verification_url}",
     "emails.verification_subject": "Пожалуйста, проверьте свой адрес электронной почты",
     "emails.welcome_body": "Спасибо, что присоединились к {app_name}. Мы рады видеть вас на борту!",
-    "emails.welcome_subject": "Добро пожаловать в {app_name}, {имя}!"
+    "emails.welcome_subject": "Добро пожаловать в {app_name}, {name}!"
 }

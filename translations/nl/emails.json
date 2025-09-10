@@ -3,15 +3,15 @@
         "needs_review": true,
         "last_sync": "2025-09-10T21:10:15+00:00"
     },
-    "emails.invoice_body": "Bijgevoegd vindt u uw factuur #{factuur_id} voor {bedrag}.",
-    "emails.invoice_subject": "Factuur #{factuur_id}",
+    "emails.invoice_body": "Bijgevoegd vindt u uw factuur #{invoice_id} voor {amount}.",
+    "emails.invoice_subject": "Factuur #{invoice_id}",
     "emails.order_confirmation_body": "Bedankt voor uw bestelling! Uw bestelling #{order_id} is bevestigd.",
     "emails.order_confirmation_subject": "Orderbevestiging #{order_id}",
     "emails.password_reset_body": "Klik op de onderstaande link om je wachtwoord opnieuw in te stellen:\n{reset_url}",
     "emails.password_reset_subject": "Wachtwoord opnieuw instellen",
-    "emails.signature": "Vriendelijke groeten,\nHet {app_naam} team",
-    "emails.verification_body": "Klik op de volgende link om uw e-mailadres te verifiëren:\n{verificatie_url}",
+    "emails.signature": "Vriendelijke groeten,\nHet {app_name} team",
+    "emails.verification_body": "Klik op de volgende link om uw e-mailadres te verifiëren:\n{verification_url}",
     "emails.verification_subject": "Controleer uw e-mailadres",
     "emails.welcome_body": "Bedankt voor je deelname aan {app_name}. We zijn blij je aan boord te hebben!",
-    "emails.welcome_subject": "Welkom bij {app_naam}, {naam}!"
+    "emails.welcome_subject": "Welkom bij {app_name}, {name}!"
 }

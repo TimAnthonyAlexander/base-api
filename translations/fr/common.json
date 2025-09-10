@@ -14,7 +14,7 @@
     "common.filter": "Filtre",
     "common.import": "Importation",
     "common.info": "Informations",
-    "common.items_count": "{compte, pluriel, un {# article} d'autres {# articles}}",
+    "common.items_count": "{count, plural, one {# article} other {# articles}}",
     "common.loading": "Chargement...",
     "common.next": "Suivant",
     "common.no": "Non",
@@ -24,8 +24,8 @@
     "common.search": "Recherche",
     "common.sort": "Trier",
     "common.success": "Succès",
-    "common.user_status": "{Statut, sélectionner, en ligne {En ligne} hors ligne {Hors ligne} autre {Inconnu}}}",
+    "common.user_status": "{status, select, online {En ligne} offline {Hors ligne} other {Inconnu}}",
     "common.warning": "Avertissement",
-    "common.welcome_message": "Bienvenue, {nom} ! Vous avez {compte, pluriel, un {# nouveau message} d'autres {# nouveaux messages}}.",
+    "common.welcome_message": "Bienvenue, {name} ! Vous avez {count, plural, one {# nouveau message} other {# nouveaux messages}}.",
     "common.yes": "Oui"
 }

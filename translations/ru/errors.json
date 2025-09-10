@@ -11,7 +11,7 @@
     "errors.file_too_large": "Размер файла превышает максимальное ограничение {max_size}.",
     "errors.forbidden": "Доступ к этому ресурсу запрещен.",
     "errors.invalid_credentials": "Неверное имя пользователя или пароль.",
-    "errors.invalid_file_type": "Недопустимый тип файла. Разрешенные типы: {разрешенные_типы}.",
+    "errors.invalid_file_type": "Недопустимый тип файла. Разрешенные типы: {allowed_types}.",
     "errors.invalid_token": "Недействительный или истекший токен.",
     "errors.name_required": "Имя обязательно.",
     "errors.not_found": "Запрашиваемый ресурс не найден.",

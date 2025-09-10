@@ -14,7 +14,7 @@
     "common.filter": "Filtro",
     "common.import": "Importar",
     "common.info": "Información",
-    "common.items_count": "{contar, plural, un {# artículo} otros {# artículos}}",
+    "common.items_count": "{count, plural, one {# artículo} other {# artículos}}",
     "common.loading": "Cargando...",
     "common.next": "Siguiente",
     "common.no": "No",
@@ -26,6 +26,6 @@
     "common.success": "Éxito",
     "common.user_status": "{status, select, online {Online} offline {Offline} other {Unknown}}",
     "common.warning": "Advertencia",
-    "common.welcome_message": "¡Bienvenido de nuevo, {nombre}! Tienes {cuenta, en plural, un {# mensaje nuevo} otro {# mensajes nuevos}}.",
+    "common.welcome_message": "¡Bienvenido de nuevo, {name}! Tienes {count, plural, one {# mensaje nuevo} other {# mensajes nuevos}}.",
     "common.yes": "Sí"
 }

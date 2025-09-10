@@ -3,15 +3,15 @@
         "needs_review": true,
         "last_sync": "2025-09-10T21:04:05+00:00"
     },
-    "emails.invoice_body": "Veuillez trouver ci-joint votre facture #{invoice_id} pour {montant}.",
+    "emails.invoice_body": "Veuillez trouver ci-joint votre facture #{invoice_id} pour {amount}.",
     "emails.invoice_subject": "Facture #{invoice_id}",
     "emails.order_confirmation_body": "Merci pour votre commande ! Votre commande #{order_id} a été confirmée.",
     "emails.order_confirmation_subject": "Confirmation de commande #{order_id}",
     "emails.password_reset_body": "Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe :\n{reset_url}",
     "emails.password_reset_subject": "Réinitialiser votre mot de passe",
-    "emails.signature": "Meilleures salutations,\nL'équipe de {nom_app}",
+    "emails.signature": "Meilleures salutations,\nL'équipe de {app_name}",
     "emails.verification_body": "Veuillez cliquer sur le lien suivant pour vérifier votre adresse électronique :\n{verification_url}",
     "emails.verification_subject": "Veuillez vérifier votre adresse électronique",
-    "emails.welcome_body": "Merci d'avoir rejoint {nom_de_l'application}. Nous sommes ravis de vous compter parmi nous !",
-    "emails.welcome_subject": "Bienvenue sur {nom_app}, {nom} !"
+    "emails.welcome_body": "Merci d'avoir rejoint {app_name}. Nous sommes ravis de vous compter parmi nous !",
+    "emails.welcome_subject": "Bienvenue sur {app_name}, {name} !"
 }

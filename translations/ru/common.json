@@ -14,7 +14,7 @@
     "common.filter": "Фильтр",
     "common.import": "Импорт",
     "common.info": "Информация",
-    "common.items_count": "{счет, множественное число, один {# предмет} другие {# предметы}}",
+    "common.items_count": "{count, plural, one {# предмет} other {# предметы}}",
     "common.loading": "Загрузка...",
     "common.next": "Следующий",
     "common.no": "Нет",
@@ -24,8 +24,8 @@
     "common.search": "Поиск",
     "common.sort": "Сортировать",
     "common.success": "Успех",
-    "common.user_status": "{статус, выбрать, онлайн {Онлайн} оффлайн {Оффлайн} другие {Неизвестно}}",
+    "common.user_status": "{status, select, online {Онлайн} offline {Оффлайн} other {Неизвестно}}",
     "common.warning": "Внимание",
-    "common.welcome_message": "С возвращением, {имя}! У вас {счет, множественное число, одно {# новое сообщение} другие {# новые сообщения}}.",
+    "common.welcome_message": "С возвращением, {name}! У вас {count, plural, one {# новое сообщение} other {# новые сообщения}}.",
     "common.yes": "Да"
 }

@@ -135,10 +135,23 @@ class I18nFillCommand implements Command
                     $texts = array_values($batch);
                     $tokens = array_keys($batch);
 
-                    $results = $provider->translateBatch($texts, $defaultLocale, $locale);
+                    // Protect placeholders before translation
+                    $protectedTexts = [];
+                    $placeholderMaps = [];
+                    
+                    foreach ($texts as $idx => $text) {
+                        $protected = $this->protectPlaceholders($text);
+                        $protectedTexts[$idx] = $protected['text'];
+                        $placeholderMaps[$idx] = $protected['map'];
+                    }
+
+                    $results = $provider->translateBatch($protectedTexts, $defaultLocale, $locale);
 
                     foreach ($tokens as $index => $token) {
-                        $translated[$token] = $results[$index] ?? '';
+                        $translatedText = $results[$index] ?? '';
+                        // Restore placeholders after translation
+                        $restoredText = $this->restorePlaceholders($translatedText, $placeholderMaps[$index]);
+                        $translated[$token] = $restoredText;
                         echo "    ✨ Translated: {$token}\n";
                     }
                 } catch (TranslationException $e) {
@@ -147,7 +160,11 @@ class I18nFillCommand implements Command
                     // Fall back to individual translations
                     foreach ($batch as $token => $text) {
                         try {
-                            $result = $provider->translate($text, $defaultLocale, $locale);
+                            // Protect placeholders before translation
+                            $protected = $this->protectPlaceholders($text);
+                            $result = $provider->translate($protected['text'], $defaultLocale, $locale);
+                            // Restore placeholders after translation
+                            $result = $this->restorePlaceholders($result, $protected['map']);
                             $translated[$token] = $result;
                             echo "    ✨ Translated: {$token}\n";
                         } catch (TranslationException $e2) {
@@ -177,5 +194,45 @@ class I18nFillCommand implements Command
 
         echo "  Total filled for {$locale}: {$filledCount}\n\n";
         return $filledCount;
+    }
+
+    /**
+     * Protect placeholders by replacing them with safe tokens before translation
+     */
+    private function protectPlaceholders(string $text): array
+    {
+        $placeholders = [];
+        $placeholderMap = [];
+        $counter = 0;
+
+        // Find all placeholders (including nested ICU format)
+        $pattern = '/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/';
+        
+        $protectedText = preg_replace_callback($pattern, function ($matches) use (&$placeholderMap, &$counter) {
+            $placeholder = $matches[0];
+            $token = "PLACEHOLDER_TOKEN_{$counter}";
+            $placeholderMap[$token] = $placeholder;
+            $counter++;
+            return $token;
+        }, $text);
+
+        return [
+            'text' => $protectedText,
+            'map' => $placeholderMap
+        ];
+    }
+
+    /**
+     * Restore original placeholders after translation
+     */
+    private function restorePlaceholders(string $text, array $placeholderMap): string
+    {
+        $restoredText = $text;
+        
+        foreach ($placeholderMap as $token => $placeholder) {
+            $restoredText = str_replace($token, $placeholder, $restoredText);
+        }
+        
+        return $restoredText;
     }
 }
