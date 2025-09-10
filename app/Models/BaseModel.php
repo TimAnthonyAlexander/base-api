@@ -107,6 +107,60 @@ abstract class BaseModel implements \JsonSerializable
         return $row ? static::fromRow($row) : null;
     }
 
+    public static function countWhere(string $column, string $operator, mixed $value): int
+    {
+        $result = App::db()->qb()
+            ->table(static::table())
+            ->select('COUNT(*) as count')
+            ->where($column, $operator, $value)
+            ->first();
+
+        return (int) ($result['count'] ?? 0);
+    }
+
+    public static function countWhereConditions(array $conditions): int
+    {
+        $qb = App::db()->qb()
+            ->table(static::table())
+            ->select('COUNT(*) as count');
+
+        foreach ($conditions as $condition) {
+            $qb->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
+        }
+
+        $result = $qb->first();
+
+        return (int) ($result['count'] ?? 0);
+    }
+
+    public static function exists(string $column, string $operator, mixed $value): bool
+    {
+        $result = App::db()->qb()
+            ->table(static::table())
+            ->select('1')
+            ->where($column, $operator, $value)
+            ->limit(1)
+            ->first();
+
+        return $result !== null;
+    }
+
+    public static function existsConditions(array $conditions): bool
+    {
+        $qb = App::db()->qb()
+            ->table(static::table())
+            ->select('1')
+            ->limit(1);
+
+        foreach ($conditions as $condition) {
+            $qb->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
+        }
+
+        $result = $qb->first();
+
+        return $result !== null;
+    }
+
     public static function all(int $limit = 1000, int $offset = 0): array
     {
         $rows = App::db()->qb()
