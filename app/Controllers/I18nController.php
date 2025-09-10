@@ -71,7 +71,6 @@ class I18nController extends Controller
 
     /**
      * Update translations (admin only)
-     * TODO: Add authentication and CSRF protection
      */
     public function post(): JsonResponse
     {
@@ -133,7 +132,7 @@ class I18nController extends Controller
         ];
 
         foreach ($bundle['tokens'] as $token => $translation) {
-            $namespace = explode('.', $token, 2)[0] ?? 'common';
+            $namespace = explode('.', $token, 2)[0];
 
             if (!isset($nested['tokens'][$namespace])) {
                 $nested['tokens'][$namespace] = [];
