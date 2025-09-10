@@ -45,6 +45,7 @@ BaseAPI embraces **Keep It Simple, Stupid (KISS)** principles:
 - Comprehensive error handling with request IDs
 - ETag generation and 304 Not Modified responses
 - Cache-Control helpers for response optimization
+- **TypeScript & OpenAPI generation** from controller annotations
 
 ## Quick Start
 
@@ -341,6 +342,104 @@ class UploadController extends Controller
 }
 ```
 
+### Type Generation & OpenAPI
+
+BaseAPI automatically generates TypeScript definitions and OpenAPI specifications from your controller annotations:
+
+```php
+use BaseApi\Http\Attributes\ResponseType;
+use BaseApi\Http\Attributes\Tag;
+
+#[Tag('Users')]
+class UserController extends Controller
+{
+    public ?int $id = null;
+    public ?int $perPage = 10;
+    
+    #[ResponseType(['user' => User::class], when: 'single')]
+    #[ResponseType(['users' => 'User[]', 'perPage' => 'int'], when: 'list')]
+    public function get(): JsonResponse
+    {
+        if ($this->id) {
+            return JsonResponse::ok(['user' => User::find($this->id)]);
+        }
+        return JsonResponse::ok(['users' => User::all($this->perPage), 'perPage' => $this->perPage]);
+    }
+    
+    #[ResponseType(['message' => 'string'])]
+    public function delete(): JsonResponse
+    {
+        // Delete logic
+        return JsonResponse::ok(['message' => 'User deleted']);
+    }
+}
+```
+
+#### Generate Types
+
+```bash
+# Generate TypeScript definitions and OpenAPI spec
+php bin/console types:generate --out-ts=types.d.ts --out-openapi=api.json
+
+# Generate TypeScript only
+php bin/console types:generate --out-ts=frontend/src/api/types.d.ts
+
+# Generate OpenAPI only (supports YAML format)
+php bin/console types:generate --out-openapi=docs/api.yaml --format=yaml
+```
+
+#### Generated TypeScript
+
+```typescript
+// Generated from controller properties → request interfaces
+export interface GetUserRequestQuery {
+  id?: number;
+  perPage?: number;
+}
+
+export interface GetUserRequestPath {
+  id: number;
+}
+
+// Generated from ResponseType attributes → response types
+export type GetUserResponse = Envelope<{user: User}> | Envelope<{users: User[], perPage: number}>;
+export type DeleteUserResponse = Envelope<{message: string}>;
+
+// All responses wrapped in data envelope
+export type Envelope<T> = { data: T };
+```
+
+#### ResponseType Attribute Options
+
+```php
+// Simple class reference
+#[ResponseType(User::class)]
+
+// Array of objects
+#[ResponseType('User[]')]
+
+// Inline object shape
+#[ResponseType(['message' => 'string', 'count' => 'int'])]
+
+// Multiple response variants
+#[ResponseType(User::class, when: 'found')]
+#[ResponseType(['error' => 'string'], status: 404, when: 'not_found')]
+
+// Different status codes  
+#[ResponseType(['user' => User::class], status: 201)]
+```
+
+#### Tag Organization
+
+```php
+#[Tag('Authentication', 'Users')]  // Multiple tags
+class AuthController extends Controller { /* ... */ }
+
+#[Tag('Admin')]  // Method-level override
+#[ResponseType(['users' => 'User[]'])]
+public function adminUsers(): JsonResponse { /* ... */ }
+```
+
 ### Caching Helpers
 
 BaseApi includes utilities for ETag and Cache-Control optimization:
@@ -581,6 +680,9 @@ php bin/console make:controller ProductController
 # Generate a model  
 php bin/console make:model Product
 
+# Generate TypeScript definitions and OpenAPI spec
+php bin/console types:generate --out-ts=types.d.ts --out-openapi=api.json
+
 # Generate migration plan from model changes
 php bin/console migrate:generate
 
@@ -609,6 +711,9 @@ baseapi/
 │   │   └── MeController.php        # Protected user endpoint
 │   ├── Database/         # Database layer
 │   ├── Http/             # HTTP layer
+│   │   ├── Attributes/   # Controller annotations
+│   │   │   ├── ResponseType.php    # Response type definitions
+│   │   │   └── Tag.php             # OpenAPI tag grouping
 │   │   ├── Caching/      # Response caching utilities
 │   │   │   └── CacheHelper.php     # ETag and Cache-Control helpers
 │   │   ├── Middleware/   # HTTP middleware
@@ -616,6 +721,7 @@ baseapi/
 │   │   │   └── RateLimitMiddleware.php
 │   │   └── ...           # Requests, responses, validation
 │   ├── Models/           # Data models
+│   ├── Dto/              # Data Transfer Objects for API responses
 │   └── Support/          # Utilities (UUID, ClientIP, etc.)
 ├── bin/
 │   └── console           # CLI entry point
@@ -708,6 +814,7 @@ BaseAPI is built in milestones:
 - ✅ **Milestone 5**: Model-driven migrations and schema management
 - ✅ **Milestone 6**: Relations + Eager Helpers + Pagination/Sort/Filter
 - ✅ **Milestone 7**: Session Auth + UserProvider + Login/Logout + Caching Helpers
+- ✅ **Milestone 7.5**: ResponseType Attributes + TypeScript & OpenAPI Generation
 
 ---
 
