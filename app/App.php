@@ -5,6 +5,8 @@ namespace BaseApi;
 use BaseApi\Http\Kernel;
 use BaseApi\Database\Connection;
 use BaseApi\Database\DB;
+use BaseApi\Auth\UserProvider;
+use BaseApi\Auth\SimpleUserProvider;
 
 class App
 {
@@ -14,6 +16,7 @@ class App
     private static ?Kernel $kernel = null;
     private static ?Connection $connection = null;
     private static ?DB $db = null;
+    private static ?UserProvider $userProvider = null;
     private static bool $booted = false;
 
     public static function boot(): void
@@ -32,6 +35,7 @@ class App
         self::$router = new Router();
         self::$connection = new Connection();
         self::$db = new DB(self::$connection);
+        self::$userProvider = new SimpleUserProvider(self::$db);
         self::$kernel = new Kernel(self::$router);
 
         // Register global middleware in order
@@ -82,5 +86,13 @@ class App
             self::boot();
         }
         return self::$db;
+    }
+
+    public static function userProvider(): UserProvider
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+        return self::$userProvider;
     }
 }
