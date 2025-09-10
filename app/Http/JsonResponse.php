@@ -58,12 +58,12 @@ class JsonResponse extends Response
         ], 404);
     }
 
-    public static function error(string $message = 'Server Error'): self
+    public static function error(string $message = 'Server Error', int $status = 500): self
     {
         return new self([
             'error' => $message,
             'requestId' => self::getCurrentRequestId()
-        ], 500);
+        ], $status);
     }
 
     private static function getCurrentRequestId(): ?string

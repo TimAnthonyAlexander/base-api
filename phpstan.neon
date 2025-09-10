@@ -1,0 +1,12 @@
+parameters:
+    level: 1
+    paths:
+        - app
+        - routes
+        - public
+        - bin
+    excludePaths:
+        - vendor
+        - tests
+    tmpDir: storage/.phpstan
+    polluteScopeWithLoopInitialAssignments: true
