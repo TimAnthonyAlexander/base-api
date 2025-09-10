@@ -137,8 +137,6 @@ class Kernel
             $routeMiddlewares,
             [$route->controllerClass()]
         );
-        
-        // error_log("Middleware stack: " . json_encode($middlewareStack));
 
         return $this->createPipeline($middlewareStack, $pathParams, $route);
     }
@@ -157,8 +155,6 @@ class Kernel
             $isController = ($i === count($middlewareStack) - 1);
 
             $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController, $route) {
-                // error_log("Processing middleware: " . json_encode($middlewareClass) . ", isController: " . ($isController ? 'true' : 'false'));
-                
                 // Add route info to request for middleware use
                 if ($route) {
                     $request->routePattern = $route->path();
@@ -173,13 +169,11 @@ class Kernel
                 // Handle optioned middleware (ClassName::class => [options])
                 if (is_string($middlewareClass)) {
                     // Regular middleware
-                    // error_log("Creating regular middleware: " . $middlewareClass);
                     $middleware = new $middlewareClass();
                 } else {
                     // This is an associative array with class => options
                     $className = key($middlewareClass);
                     $options = current($middlewareClass);
-                    // error_log("Creating optioned middleware: " . $className . " with options: " . json_encode($options));
                     $middleware = new $className();
                     
                     if ($middleware instanceof OptionedMiddleware) {
