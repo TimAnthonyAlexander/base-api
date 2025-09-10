@@ -4,3 +4,161 @@ globs:
 alwaysApply: true
 ---
 BaseApi is a tiny, KISS-first PHP 8.4 framework for building JSON-first APIs with almost no ceremony: explicit routes via a simple $app->get()/post()/delete() array DSL, small homegrown Request/Response, controllers that declare public typed properties (auto-bound from route/query/body/files), optional mini validation, and responses wrapped in a .data envelope. It ships a minimal global pipeline (error handler, request ID, CORS allowlist, JSON parsing, sessions), optional per-route rate limiting, and straightforward file uploads to public/private buckets. Persistence centers on a lean BaseModel (UUIDv7 CHAR(36), created_at/updated_at), a pragmatic PDO-backed QueryBuilder, and model-driven migrations that diff models to MySQL and apply changes. Conveniences include pagination/sort/filter conventions, ETag/cache helpers, a /health endpoint, and a zero-dependency CLI for serving and migrations—while deliberately skipping heavy PSR stacks, DI containers, and magic relations to keep everything readable, explicit, and strong together.
+
+# BaseApi Project Structure
+
+```
+baseapi/
+├── 📁 app/                           # Core application code
+│   ├── App.php                       # Main application class
+│   ├── Config.php                    # Configuration management
+│   ├── Logger.php                    # Logging functionality
+│   ├── Route.php                     # Route definition
+│   ├── Router.php                    # Request routing
+│   │
+│   ├── 📁 Console/                   # CLI commands and console application
+│   │   ├── Application.php           # Console application entry point
+│   │   ├── Command.php               # Base command class
+│   │   └── 📁 Commands/              # Individual CLI commands
+│   │       ├── MakeControllerCommand.php  # Generate controllers
+│   │       ├── MakeModelCommand.php       # Generate models
+│   │       ├── MigrateApplyCommand.php    # Apply migrations
+│   │       ├── MigrateGenerateCommand.php # Generate migrations
+│   │       └── ServeCommand.php           # Development server
+│   │
+│   ├── 📁 Controllers/               # HTTP request handlers
+│   │   ├── Controller.php            # Base controller class
+│   │   ├── GetOnlyController.php     # Read-only controller base
+│   │   ├── HealthController.php      # Health check endpoint
+│   │   ├── TestController.php        # Testing controller
+│   │   └── UserController.php        # User management
+│   │
+│   ├── 📁 Database/                  # Database layer and migrations
+│   │   ├── Connection.php            # Database connection management
+│   │   ├── DB.php                    # Database utilities
+│   │   ├── DbException.php           # Database-specific exceptions
+│   │   ├── QueryBuilder.php          # SQL query builder
+│   │   └── 📁 Migrations/            # Database migration system
+│   │       ├── ColumnDef.php         # Column definition
+│   │       ├── DatabaseIntrospector.php # Database schema inspection
+│   │       ├── DatabaseSchema.php    # Schema representation
+│   │       ├── DiffEngine.php        # Schema comparison
+│   │       ├── ForeignKeyDef.php     # Foreign key definition
+│   │       ├── IndexDef.php          # Index definition
+│   │       ├── MigrationPlan.php     # Migration execution plan
+│   │       ├── MigrationsFile.php    # Migration file handling
+│   │       ├── ModelScanner.php      # Model introspection
+│   │       ├── ModelSchema.php       # Model schema definition
+│   │       ├── SqlGenerator.php      # SQL generation
+│   │       └── TableDef.php          # Table definition
+│   │
+│   ├── 📁 Http/                      # HTTP handling and middleware
+│   │   ├── BinaryResponse.php        # Binary file responses
+│   │   ├── ControllerInvoker.php     # Controller execution
+│   │   ├── CorsMiddleware.php        # CORS handling
+│   │   ├── ErrorHandler.php          # Global error handling
+│   │   ├── JsonBodyParserMiddleware.php # JSON request parsing
+│   │   ├── JsonResponse.php          # JSON response formatting
+│   │   ├── Kernel.php                # HTTP kernel
+│   │   ├── Middleware.php            # Base middleware
+│   │   ├── Request.php               # HTTP request wrapper
+│   │   ├── RequestIdMiddleware.php   # Request ID generation
+│   │   ├── Response.php              # HTTP response wrapper
+│   │   ├── SessionStartMiddleware.php # Session management
+│   │   ├── UploadedFile.php          # File upload handling
+│   │   │
+│   │   ├── 📁 Binding/               # Request binding system
+│   │   │   ├── ControllerBinder.php  # Controller parameter binding
+│   │   │   └── TypeCoercion.php      # Type conversion utilities
+│   │   │
+│   │   ├── 📁 Middleware/            # Additional middleware
+│   │   │   ├── OptionedMiddleware.php # Configurable middleware base
+│   │   │   └── RateLimitMiddleware.php # Rate limiting
+│   │   │
+│   │   └── 📁 Validation/            # Request validation
+│   │       ├── ValidationException.php # Validation errors
+│   │       └── Validator.php         # Validation logic
+│   │
+│   ├── 📁 Models/                    # Data models
+│   │   └── BaseModel.php             # Base model with UUIDv7, timestamps
+│   │
+│   └── 📁 Support/                   # Utility classes
+│       ├── ClientIp.php              # Client IP detection
+│       ├── RateLimiter.php           # Rate limiting utilities
+│       └── Uuid.php                  # UUID generation
+│
+├── 📁 bin/                           # Executable scripts
+│   └── console                       # CLI entry point
+│
+├── 📁 config/                        # Configuration files
+│   └── app.php                       # Application configuration
+│
+├── 📁 public/                        # Web-accessible files
+│   ├── index.php                     # Web entry point
+│   └── router.php                    # Development server router
+│
+├── 📁 routes/                        # Route definitions
+│   └── api.php                       # API routes
+│
+├── 📁 storage/                       # File storage (uploads, logs, cache)
+│
+├── 📁 tests/                         # Test suite
+│   └── ExampleTest.php               # Example test
+│
+├── 📁 vendor/                        # Composer dependencies
+│   ├── autoload.php                  # Composer autoloader
+│   └── [various packages...]         # Third-party libraries
+│
+├── composer.json                     # Composer configuration
+├── composer.lock                     # Dependency lock file
+├── phpunit.xml.dist                  # PHPUnit configuration
+└── README.md                         # Project documentation
+```
+
+## Key Architecture Components
+
+### 🏗️ **Core Framework** (`app/`)
+- **App.php**: Main application bootstrap and configuration
+- **Router.php**: Request routing and middleware pipeline
+- **Kernel.php**: HTTP request/response lifecycle management
+
+### 🎮 **Controllers** (`app/Controllers/`)
+- Auto-binding of route/query/body parameters to public typed properties
+- Extends base `Controller` or `GetOnlyController` for read-only operations
+- Built-in validation and response formatting
+
+### 🗄️ **Database** (`app/Database/`)
+- **BaseModel**: UUIDv7 primary keys, created_at/updated_at timestamps
+- **QueryBuilder**: Fluent SQL query construction
+- **Migrations**: Model-driven schema diffing and application
+
+### 🌐 **HTTP Layer** (`app/Http/`)
+- **Request/Response**: Lightweight HTTP abstractions
+- **Middleware**: CORS, rate limiting, JSON parsing, sessions
+- **Binding**: Automatic parameter binding with type coercion
+- **Validation**: Built-in request validation system
+
+### 🛠️ **CLI Tools** (`app/Console/`)
+- **serve**: Development server
+- **make:controller**: Generate controllers
+- **make:model**: Generate models
+- **migrate:generate**: Create migrations from model changes
+- **migrate:apply**: Apply pending migrations
+
+### 📂 **Entry Points**
+- **public/index.php**: Web application entry
+- **bin/console**: CLI commands entry
+- **routes/api.php**: Route definitions
+
+## Framework Philosophy
+
+BaseApi follows a **KISS-first** approach:
+- ✅ Explicit over implicit (no magic)
+- ✅ Minimal ceremony and boilerplate
+- ✅ JSON-first API design
+- ✅ Type-safe parameter binding
+- ✅ Pragmatic database layer
+- ✅ Zero-dependency core (except dev tools)
+- ❌ No heavy PSR stacks
+- ❌ No DI containers
+- ❌ No complex ORM relations

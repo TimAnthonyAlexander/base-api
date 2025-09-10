@@ -180,6 +180,83 @@ class QueryBuilder
         ];
     }
 
+    /**
+     * Paginate results and optionally include total count
+     */
+    public function paginate(int $page, int $perPage, bool $withTotal = false): PaginatedResult
+    {
+        $page = max(1, $page);
+        $perPage = max(1, $perPage);
+        $offset = ($page - 1) * $perPage;
+
+        $total = null;
+        if ($withTotal) {
+            // Clone the builder state but remove order/limit for count
+            $countBuilder = clone $this;
+            $countBuilder->orders = [];
+            $countBuilder->limitCount = null;
+            $countBuilder->offsetCount = null;
+            $countBuilder->columns = ['COUNT(*) as count'];
+            
+            $countResult = $countBuilder->get();
+            $total = (int) $countResult[0]['count'];
+        }
+
+        // Apply pagination to current builder
+        $this->limit($perPage)->offset($offset);
+        $data = $this->get();
+
+        return new PaginatedResult($data, $page, $perPage, $total);
+    }
+
+    /**
+     * Parse sort string like "name,-createdAt" into orderBy calls
+     */
+    public function applySortString(string $sort): self
+    {
+        if (empty($sort)) {
+            return $this;
+        }
+
+        $sorts = explode(',', $sort);
+        foreach ($sorts as $field) {
+            $field = trim($field);
+            if (empty($field)) {
+                continue;
+            }
+
+            $direction = 'asc';
+            if (str_starts_with($field, '-')) {
+                $direction = 'desc';
+                $field = substr($field, 1);
+            }
+
+            // Convert camelCase to snake_case
+            $column = $this->camelToSnake($field);
+            $this->orderBy($column, $direction);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Apply filters as exact matches
+     */
+    public function applyFilters(array $filters): self
+    {
+        foreach ($filters as $field => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            // Convert camelCase to snake_case
+            $column = $this->camelToSnake($field);
+            $this->where($column, '=', $value);
+        }
+
+        return $this;
+    }
+
     private function buildSelectSql(): string
     {
         $this->validateTable();
@@ -251,5 +328,13 @@ class QueryBuilder
         if ($this->table === null) {
             throw new DbException("Table not specified");
         }
+    }
+
+    /**
+     * Convert camelCase to snake_case for database column names
+     */
+    private function camelToSnake(string $input): string
+    {
+        return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
     }
 }

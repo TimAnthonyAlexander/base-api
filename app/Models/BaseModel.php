@@ -5,6 +5,7 @@ namespace BaseApi\Models;
 use BaseApi\App;
 use BaseApi\Support\Uuid;
 use BaseApi\Database\QueryBuilder;
+use BaseApi\Database\ModelQuery;
 
 abstract class BaseModel implements \JsonSerializable
 {
@@ -13,6 +14,12 @@ abstract class BaseModel implements \JsonSerializable
     public ?string $updated_at = null;
 
     protected static ?string $table = null;
+    
+    /** @var array Original row data for change detection and FK extraction */
+    protected array $__row = [];
+    
+    /** @var array Cached loaded relations */
+    protected array $__relationCache = [];
 
     public static function table(): string
     {
@@ -55,6 +62,26 @@ abstract class BaseModel implements \JsonSerializable
             ->where($column, $operator, $value);
     }
 
+    public static function whereIn(string $column, array $values): QueryBuilder
+    {
+        return App::db()->qb()
+            ->table(static::table())
+            ->whereIn($column, $values);
+    }
+
+    /**
+     * Start a query with eager loading relations
+     * 
+     * @param array $relations
+     * @return ModelQuery<static>
+     */
+    public static function with(array $relations): ModelQuery
+    {
+        $qb = App::db()->qb()->table(static::table());
+        $modelQuery = new ModelQuery($qb, static::class);
+        return $modelQuery->with($relations);
+    }
+
     public static function firstWhere(string $column, string $operator, mixed $value): ?static
     {
         $row = static::where($column, $operator, $value)->first();
@@ -95,6 +122,155 @@ abstract class BaseModel implements \JsonSerializable
         return $affected > 0;
     }
 
+    /**
+     * Load a belongsTo relation (many-to-one)
+     */
+    public function belongsTo(string $related, ?string $fk = null): ?BaseModel
+    {
+        // Check cache first
+        if (isset($this->__relationCache[$related])) {
+            return $this->__relationCache[$related];
+        }
+
+        [$fkColumn, $relatedTable, $relatedClass] = static::inferForeignKeyFromTypedProperty($related);
+        
+        if ($fk) {
+            $fkColumn = $fk;
+        }
+
+        // Get FK value from current instance
+        $fkValue = $this->__row[$fkColumn] ?? $this->$fkColumn ?? null;
+        
+        if (!$fkValue) {
+            $this->__relationCache[$related] = null;
+            return null;
+        }
+
+        // Load related model
+        $relatedModel = $relatedClass::find($fkValue);
+        $this->__relationCache[$related] = $relatedModel;
+        
+        return $relatedModel;
+    }
+
+    /**
+     * Load a hasMany relation (one-to-many)
+     */
+    public function hasMany(string $related, ?string $fk = null): array
+    {
+        // Check cache first
+        if (isset($this->__relationCache[$related])) {
+            return $this->__relationCache[$related];
+        }
+
+        [$fkColumn, $relatedClass] = static::inferHasMany($related);
+        
+        if ($fk) {
+            $fkColumn = $fk;
+        }
+
+        // Load related models where FK equals this model's ID
+        $relatedModels = $relatedClass::where($fkColumn, '=', $this->id)->get();
+        $this->__relationCache[$related] = $relatedModels;
+        
+        return $relatedModels;
+    }
+
+    /**
+     * Get the type of relation for a given property name
+     */
+    public static function getRelationType(string $property): string
+    {
+        $reflection = new \ReflectionClass(static::class);
+        
+        if (!$reflection->hasProperty($property)) {
+            throw new \InvalidArgumentException("Property {$property} not found on " . static::class);
+        }
+
+        $prop = $reflection->getProperty($property);
+        $type = $prop->getType();
+        
+        if ($type instanceof \ReflectionNamedType) {
+            $typeName = $type->getName();
+            if (is_subclass_of($typeName, BaseModel::class)) {
+                return 'belongsTo';
+            }
+        }
+
+        // Check for array type hint in docblock
+        $docComment = $prop->getDocComment();
+        if ($docComment && preg_match('/@var\s+([^\s]+)\[\]/', $docComment, $matches)) {
+            $elementType = $matches[1];
+            if (class_exists($elementType) && is_subclass_of($elementType, BaseModel::class)) {
+                return 'hasMany';
+            }
+        }
+
+        throw new \InvalidArgumentException("Cannot determine relation type for property {$property}");
+    }
+
+    /**
+     * Infer foreign key info from typed property for belongsTo relations
+     * Returns [fkColumn, relatedTable, relatedClass]
+     */
+    public static function inferForeignKeyFromTypedProperty(string $prop): array
+    {
+        $reflection = new \ReflectionClass(static::class);
+        
+        if (!$reflection->hasProperty($prop)) {
+            throw new \InvalidArgumentException("Property {$prop} not found on " . static::class);
+        }
+
+        $property = $reflection->getProperty($prop);
+        $type = $property->getType();
+        
+        if (!$type instanceof \ReflectionNamedType) {
+            throw new \InvalidArgumentException("Property {$prop} must have a typed hint");
+        }
+        
+        $relatedClass = $type->getName();
+        if (!is_subclass_of($relatedClass, BaseModel::class)) {
+            throw new \InvalidArgumentException("Property {$prop} must be a BaseModel subclass");
+        }
+
+        $fkColumn = $prop . '_id';
+        $relatedTable = $relatedClass::table();
+        
+        return [$fkColumn, $relatedTable, $relatedClass];
+    }
+
+    /**
+     * Infer hasMany relation info from property name and docblock
+     * Returns [fkColumn, relatedClass]
+     */
+    public static function inferHasMany(string $prop): array
+    {
+        $reflection = new \ReflectionClass(static::class);
+        
+        if (!$reflection->hasProperty($prop)) {
+            throw new \InvalidArgumentException("Property {$prop} not found on " . static::class);
+        }
+
+        $property = $reflection->getProperty($prop);
+        $docComment = $property->getDocComment();
+        
+        if (!$docComment || !preg_match('/@var\s+([^\s]+)\[\]/', $docComment, $matches)) {
+            throw new \InvalidArgumentException("Property {$prop} must have @var ClassName[] docblock for hasMany");
+        }
+
+        $relatedClass = $matches[1];
+        if (!class_exists($relatedClass) || !is_subclass_of($relatedClass, BaseModel::class)) {
+            throw new \InvalidArgumentException("Related class {$relatedClass} must be a BaseModel subclass");
+        }
+
+        // Generate FK column: singular of current table + _id
+        $currentTable = static::table();
+        $singularTable = rtrim($currentTable, 's'); // Simple singularization
+        $fkColumn = $singularTable . '_id';
+        
+        return [$fkColumn, $relatedClass];
+    }
+
     public function toArray(): array
     {
         $reflection = new \ReflectionClass($this);
@@ -113,9 +289,12 @@ abstract class BaseModel implements \JsonSerializable
         return $this->toArray();
     }
 
-    protected static function fromRow(array $row): static
+    public static function fromRow(array $row): static
     {
         $instance = new static();
+        
+        // Store original row data for relation loading and change detection
+        $instance->__row = $row;
         
         $reflection = new \ReflectionClass($instance);
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
