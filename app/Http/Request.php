@@ -19,6 +19,7 @@ class Request
     public array $allowedMethods = [];
     public ?string $routePattern = null;
     public ?string $routeMethod = null;
+    public ?float $startTime = null;
 
     public function __construct(
         string $method,

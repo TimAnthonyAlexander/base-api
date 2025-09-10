@@ -39,6 +39,7 @@ class App
         self::$kernel = new Kernel(self::$router);
 
         // Register global middleware in order
+        self::$kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
         self::$kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
