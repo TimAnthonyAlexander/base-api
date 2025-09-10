@@ -34,10 +34,7 @@ class RateLimitMiddleware implements Middleware, OptionedMiddleware
 
     public function handle(Request $request, callable $next): Response
     {
-        // error_log("RateLimitMiddleware called with options: " . json_encode($this->options));
-        
         if (empty($this->options['limit'])) {
-            // error_log("No limit set, passing through");
             return $next($request);
         }
 
