@@ -10,7 +10,16 @@
 
 **Development:** `php -S 127.0.0.1:8000 -t public public/router.php`
 
+**Other Commands:**
+- `phpstan analyse --memory-limit=256M` (composer)
+
 ## Tools & Configuration
+
+**Linting/Formatting:** phpstan
+
+## Code Generation
+
+**Laravel-Migrations:** 24 files
 
 ## Generated/Ignored Files
 
@@ -18,16 +27,16 @@
 
 ## Key Files
 
-- `app/Logger.php` (graph_central)
-- `app/Http/Kernel.php` (graph_central)
-- `app/App.php` (graph_central)
-- `app/Http/UploadedFile.php` (graph_central)
-- `app/Http/JsonResponse.php` (graph_central)
-- `app/Console/Command.php` (graph_central)
-- `app/Http/Request.php` (graph_central)
-- `app/Http/Binding/ControllerBinder.php` (graph_central)
-- `app/Http/Validation/Validator.php` ()
-- `app/Config.php` (config)
+- `app/Database/Migrations/MigrationsFile.php` (graph_central)
+- `app/Database/Migrations/MigrationPlan.php` (graph_central)
+- `app/Database/Migrations/SqlGenerator.php` (graph_central)
+- `app/Database/Migrations/DatabaseIntrospector.php` (graph_central)
+- `app/Database/Migrations/ModelScanner.php` (graph_central)
+- `app/Database/Migrations/DiffEngine.php` (graph_central)
+- `app/Database/Migrations/ColumnDef.php` (graph_central)
+- `app/Database/Migrations/DatabaseSchema.php` (graph_central)
+- `app/Database/Migrations/ForeignKeyDef.php` (graph_central)
+- `app/Database/Migrations/IndexDef.php` (graph_central)
 
 
 ---
