@@ -441,7 +441,14 @@ abstract class BaseModel implements \JsonSerializable
                 continue;
             }
             
-            $data[$property->getName()] = $property->getValue($this);
+            $name = $property->getName();
+            
+            // Skip uninitialized typed properties (including relationships)
+            if ($property->hasType() && !$property->isInitialized($this)) {
+                continue;
+            }
+            
+            $data[$name] = $property->getValue($this);
         }
 
         return $data;
