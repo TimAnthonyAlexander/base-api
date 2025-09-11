@@ -532,6 +532,12 @@ abstract class BaseModel implements \JsonSerializable
             }
             
             $name = $property->getName();
+            
+            // Skip uninitialized typed properties (typically relationships)
+            if ($property->hasType() && !$property->isInitialized($this)) {
+                continue;
+            }
+            
             $value = $property->getValue($this);
 
             // Skip timestamps for insert (let DB handle them)
@@ -560,6 +566,12 @@ abstract class BaseModel implements \JsonSerializable
             }
             
             $name = $property->getName();
+            
+            // Skip uninitialized typed properties (typically relationships)
+            if ($property->hasType() && !$property->isInitialized($this)) {
+                continue;
+            }
+            
             $value = $property->getValue($this);
 
             // Skip id and created_at for updates
