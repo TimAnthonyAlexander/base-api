@@ -3,7 +3,13 @@
     "description": "A tiny, KISS-first PHP 8.4 framework for building JSON-first APIs",
     "type": "library",
     "license": "MIT",
-    "keywords": ["framework", "api", "php", "json", "rest"],
+    "keywords": [
+        "framework",
+        "api",
+        "php",
+        "json",
+        "rest"
+    ],
     "authors": [
         {
             "name": "Tim Anthony Alexander",
@@ -32,7 +38,7 @@
         "bin/console"
     ],
     "scripts": {
-        "phpstan": "phpstan analyse --memory-limit=256M",
+        "phpstan": "phpstan analyse --memory-limit=256M src",
         "test": "phpunit"
     },
     "config": {

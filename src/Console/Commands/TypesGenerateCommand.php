@@ -138,7 +138,6 @@ HELP;
 
         // Mock the App::router() method by creating a temporary class
         $mockRouter = new class($routes) {
-            /** @phpstan-ignore-next-line */
             private array $routes;
 
             public function __construct(array &$routes)
@@ -914,7 +913,7 @@ HELP;
         $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
         $method = strtolower($route['method']);
         $pathSuffix = $this->getPathSuffix($route['path']);
-        
+
         return $method . $controller . $pathSuffix;
     }
 
@@ -922,10 +921,10 @@ HELP;
     {
         $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
         $method = ucfirst(strtolower($route['method']));
-        
+
         // Add path parameters to make operation names unique
         $pathSuffix = $this->getPathSuffix($route['path']);
-        
+
         return $method . $controller . $pathSuffix;
     }
 
@@ -933,17 +932,17 @@ HELP;
     {
         // Extract path parameters like {id}, {userId}, etc.
         preg_match_all('/\{(\w+)\}/', $path, $matches);
-        
+
         if (empty($matches[1])) {
             return '';
         }
-        
+
         // Convert parameter names to PascalCase and join
         $suffixParts = [];
         foreach ($matches[1] as $param) {
             $suffixParts[] = 'By' . ucfirst($param);
         }
-        
+
         return implode('', $suffixParts);
     }
 
