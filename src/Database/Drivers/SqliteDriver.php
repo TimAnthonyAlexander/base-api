@@ -76,8 +76,8 @@ class SqliteDriver implements DatabaseDriverInterface
     
     public function getColumns(PDO $pdo, string $dbName, string $tableName): array
     {
-        $stmt = $pdo->prepare("PRAGMA table_info(?)");
-        $stmt->execute([$tableName]);
+        $stmt = $pdo->prepare("PRAGMA table_info(\"{$tableName}\")");
+        $stmt->execute();
         
         $columns = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -95,8 +95,8 @@ class SqliteDriver implements DatabaseDriverInterface
     
     public function getIndexes(PDO $pdo, string $dbName, string $tableName): array
     {
-        $stmt = $pdo->prepare("PRAGMA index_list(?)");
-        $stmt->execute([$tableName]);
+        $stmt = $pdo->prepare("PRAGMA index_list(\"{$tableName}\")");
+        $stmt->execute();
         
         $indexes = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -106,8 +106,8 @@ class SqliteDriver implements DatabaseDriverInterface
             }
             
             // Get index info to find the column
-            $infoStmt = $pdo->prepare("PRAGMA index_info(?)");
-            $infoStmt->execute([$row['name']]);
+            $infoStmt = $pdo->prepare("PRAGMA index_info(\"{$row['name']}\")");
+            $infoStmt->execute();
             $info = $infoStmt->fetch(PDO::FETCH_ASSOC);
             
             if ($info) {
@@ -124,8 +124,8 @@ class SqliteDriver implements DatabaseDriverInterface
     
     public function getForeignKeys(PDO $pdo, string $dbName, string $tableName): array
     {
-        $stmt = $pdo->prepare("PRAGMA foreign_key_list(?)");
-        $stmt->execute([$tableName]);
+        $stmt = $pdo->prepare("PRAGMA foreign_key_list(\"{$tableName}\")");
+        $stmt->execute();
         
         $fks = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
