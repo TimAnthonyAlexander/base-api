@@ -143,4 +143,126 @@ class SqliteMigrationTest extends TestCase
         $this->assertStringContainsString('"updated_at" DATETIME DEFAULT CURRENT_TIMESTAMP', $sql);
         $this->assertStringNotContainsString('ON UPDATE', $sql);
     }
+    
+    /**
+     * Test SQLite introspection methods to ensure PRAGMA statements work correctly
+     * This tests the fix for the "near '?': syntax error" issue
+     */
+    public function testSqliteIntrospectionMethods()
+    {
+        $driver = new SqliteDriver();
+        $pdo = $driver->createConnection(['database' => ':memory:']);
+        
+        // Create a test table with various features
+        $pdo->exec('
+            CREATE TABLE "test_users" (
+                "id" TEXT PRIMARY KEY NOT NULL,
+                "name" TEXT NOT NULL,
+                "email" TEXT NOT NULL,
+                "age" INTEGER DEFAULT 0,
+                "created_at" DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ');
+        
+        // Create an index
+        $pdo->exec('CREATE UNIQUE INDEX "idx_test_users_email" ON "test_users" ("email")');
+        $pdo->exec('CREATE INDEX "idx_test_users_name" ON "test_users" ("name")');
+        
+        // Create another table for foreign key testing
+        $pdo->exec('
+            CREATE TABLE "test_posts" (
+                "id" TEXT PRIMARY KEY NOT NULL,
+                "user_id" TEXT NOT NULL,
+                "title" TEXT NOT NULL,
+                FOREIGN KEY ("user_id") REFERENCES "test_users" ("id")
+            )
+        ');
+        
+        $dbName = $driver->getDatabaseName($pdo);
+        
+        // Test getTables
+        $tables = $driver->getTables($pdo, $dbName);
+        $this->assertContains('test_users', $tables);
+        $this->assertContains('test_posts', $tables);
+        
+        // Test getColumns - this should not throw a syntax error
+        $columns = $driver->getColumns($pdo, $dbName, 'test_users');
+        $this->assertArrayHasKey('id', $columns);
+        $this->assertArrayHasKey('name', $columns);
+        $this->assertArrayHasKey('email', $columns);
+        $this->assertArrayHasKey('age', $columns);
+        $this->assertArrayHasKey('created_at', $columns);
+        
+        // Verify column properties
+        $idColumn = $columns['id'];
+        $this->assertEquals('id', $idColumn->name);
+        $this->assertTrue($idColumn->is_pk);
+        $this->assertFalse($idColumn->nullable);
+        
+        $ageColumn = $columns['age'];
+        $this->assertEquals('age', $ageColumn->name);
+        $this->assertFalse($ageColumn->is_pk);
+        $this->assertTrue($ageColumn->nullable);
+        $this->assertEquals('0', $ageColumn->default);
+        
+        // Test getIndexes - this should not throw a syntax error
+        $indexes = $driver->getIndexes($pdo, $dbName, 'test_users');
+        $this->assertArrayHasKey('idx_test_users_email', $indexes);
+        $this->assertArrayHasKey('idx_test_users_name', $indexes);
+        
+        // Verify index properties
+        $emailIndex = $indexes['idx_test_users_email'];
+        $this->assertEquals('idx_test_users_email', $emailIndex->name);
+        $this->assertEquals('email', $emailIndex->column);
+        $this->assertEquals('unique', $emailIndex->type);
+        
+        $nameIndex = $indexes['idx_test_users_name'];
+        $this->assertEquals('idx_test_users_name', $nameIndex->name);
+        $this->assertEquals('name', $nameIndex->column);
+        $this->assertEquals('index', $nameIndex->type);
+        
+        // Test getForeignKeys - this should not throw a syntax error
+        $foreignKeys = $driver->getForeignKeys($pdo, $dbName, 'test_posts');
+        $this->assertCount(1, $foreignKeys);
+        
+        // Verify foreign key properties
+        $fk = reset($foreignKeys);
+        $this->assertEquals('user_id', $fk->column);
+        $this->assertEquals('test_users', $fk->ref_table);
+        $this->assertEquals('id', $fk->ref_column);
+    }
+    
+    /**
+     * Test that PRAGMA statements work with table names containing special characters
+     */
+    public function testSqliteIntrospectionWithSpecialTableNames()
+    {
+        $driver = new SqliteDriver();
+        $pdo = $driver->createConnection(['database' => ':memory:']);
+        
+        // Create tables with names that might cause issues if not properly quoted
+        $pdo->exec('CREATE TABLE "user-profiles" ("id" TEXT PRIMARY KEY, "data" TEXT)');
+        $pdo->exec('CREATE TABLE "order items" ("id" TEXT PRIMARY KEY, "name" TEXT)');
+        $pdo->exec('CREATE INDEX "idx_user-profiles_data" ON "user-profiles" ("data")');
+        
+        $dbName = $driver->getDatabaseName($pdo);
+        
+        // These should not throw syntax errors even with special table names
+        $tables = $driver->getTables($pdo, $dbName);
+        $this->assertContains('user-profiles', $tables);
+        $this->assertContains('order items', $tables);
+        
+        // Test introspection on table with hyphen in name
+        $columns = $driver->getColumns($pdo, $dbName, 'user-profiles');
+        $this->assertArrayHasKey('id', $columns);
+        $this->assertArrayHasKey('data', $columns);
+        
+        $indexes = $driver->getIndexes($pdo, $dbName, 'user-profiles');
+        $this->assertArrayHasKey('idx_user-profiles_data', $indexes);
+        
+        // Test introspection on table with space in name
+        $columns = $driver->getColumns($pdo, $dbName, 'order items');
+        $this->assertArrayHasKey('id', $columns);
+        $this->assertArrayHasKey('name', $columns);
+    }
 }
