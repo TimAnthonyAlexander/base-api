@@ -163,12 +163,17 @@ Key configuration options:
 APP_PORT=7879
 APP_DEBUG=true
 
-# Database
+# Database (MySQL)
+DB_DRIVER=mysql
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=my_api
 DB_USER=root
 DB_PASS=
+
+# Database (SQLite) - Alternative to MySQL
+# DB_DRIVER=sqlite
+# DB_NAME=database.sqlite
 
 # Features
 ENABLE_CORS=true
@@ -242,7 +247,7 @@ BaseAPI works great with:
 - **Frontend frameworks** - React, Vue, Angular (with generated TypeScript types)
 - **Testing tools** - PHPUnit integration ready
 - **Deployment** - Docker, traditional hosting, serverless
-- **Databases** - MySQL, PostgreSQL, SQLite
+- **Databases** - MySQL, SQLite (PostgreSQL support coming soon)
 
 ## 🤝 Contributing
 

@@ -128,7 +128,7 @@ class MigrateApplyCommand implements Command
 
     private function executeMigrations(array $statements): void
     {
-        $pdo = App::db()->pdo();
+        $pdo = App::db()->getConnection()->pdo();
         
         echo "Executing migrations...\n";
         

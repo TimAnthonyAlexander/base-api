@@ -20,6 +20,11 @@ class DB
     {
         return $this->connection->pdo();
     }
+    
+    public function getConnection(): Connection
+    {
+        return $this->connection;
+    }
 
     public function raw(string $sql, array $bindings = []): array
     {

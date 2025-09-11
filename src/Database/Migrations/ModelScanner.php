@@ -5,6 +5,7 @@ namespace BaseApi\Database\Migrations;
 use ReflectionClass;
 use ReflectionProperty;
 use BaseApi\Models\BaseModel;
+use BaseApi\App;
 
 class ModelScanner
 {
@@ -213,18 +214,16 @@ class ModelScanner
     private function phpTypeToSqlType(\ReflectionType $type, string $propertyName = ''): string
     {
         if (!$type instanceof \ReflectionNamedType) {
-            return 'VARCHAR(255)';
+            $connection = App::db()->getConnection();
+            $driver = $connection->getDriver();
+            return $driver->phpTypeToSqlType('string', $propertyName);
         }
         
         $typeName = $type->getName();
+        $connection = App::db()->getConnection();
+        $driver = $connection->getDriver();
         
-        return match ($typeName) {
-            'int' => 'INT',
-            'float' => 'DECIMAL(18,6)',
-            'bool' => 'BOOLEAN',
-            'string' => $propertyName === 'id' ? 'CHAR(36)' : 'VARCHAR(255)',
-            default => 'VARCHAR(255)'
-        };
+        return $driver->phpTypeToSqlType($typeName, $propertyName);
     }
 
     private function addIndexes(TableDef $table, ReflectionClass $reflection): void
