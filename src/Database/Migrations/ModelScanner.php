@@ -93,6 +93,12 @@ class ModelScanner
                 $fkColumn = new ColumnDef($fk->column, 'CHAR(36)', $type->allowsNull());
                 $table->columns[$fk->column] = $fkColumn;
             }
+            
+            // Also check if this is a foreign key based on _id naming convention
+            $idFk = $this->idPropertyToForeignKey($property, $reflection);
+            if ($idFk) {
+                $table->fks[$idFk->name] = $idFk;
+            }
         }
         
         // Add indexes from static $indexes property
@@ -197,6 +203,48 @@ class ModelScanner
         $fkColumn = new ColumnDef($fkColumnName, 'CHAR(36)', $type->allowsNull());
         
         return new ForeignKeyDef($fkName, $fkColumnName, $refTableName, 'id');
+    }
+    
+    private function idPropertyToForeignKey(ReflectionProperty $property, ReflectionClass $reflection): ?ForeignKeyDef
+    {
+        $propertyName = $property->getName();
+        
+        // Only process properties ending with _id
+        if (!str_ends_with($propertyName, '_id')) {
+            return null;
+        }
+        
+        // Skip if this property is already handled as a model-typed FK
+        $type = $property->getType();
+        if ($this->isModelType($type)) {
+            return null;
+        }
+        
+        // Extract model name from property name: hotel_id -> hotel -> Hotel
+        $modelName = substr($propertyName, 0, -3); // Remove '_id'
+        $modelClassName = ucfirst($modelName); // hotel -> Hotel
+        
+        // Try to find the model class in the same namespace
+        $currentNamespace = $reflection->getNamespaceName();
+        $fullModelClassName = $currentNamespace . '\\' . $modelClassName;
+        
+        // Check if the model class exists and is a BaseModel
+        if (!class_exists($fullModelClassName)) {
+            return null;
+        }
+        
+        $modelReflection = new ReflectionClass($fullModelClassName);
+        if (!$modelReflection->isSubclassOf(BaseModel::class)) {
+            return null;
+        }
+        
+        // Get referenced table name
+        $refTableName = $this->getTableName($modelReflection);
+        
+        // Create FK constraint name
+        $fkName = 'fk_' . $this->getTableName($reflection) . '_' . $propertyName;
+        
+        return new ForeignKeyDef($fkName, $propertyName, $refTableName, 'id');
     }
 
     private function isModelType(\ReflectionType $type): bool
