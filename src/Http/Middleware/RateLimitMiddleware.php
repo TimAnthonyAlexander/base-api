@@ -21,7 +21,7 @@ class RateLimitMiddleware implements Middleware, OptionedMiddleware
         
         // Convert to absolute path if relative
         if (!str_starts_with($dir, '/')) {
-            $dir = __DIR__ . '/../../../' . $dir;
+            $dir = App::basePath($dir);
         }
         
         $this->rateLimiter = new RateLimiter($dir);

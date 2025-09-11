@@ -3,6 +3,7 @@
 namespace BaseApi\Console\Commands;
 
 use BaseApi\Console\Command;
+use BaseApi\App;
 
 class MakeModelCommand implements Command
 {
@@ -31,8 +32,8 @@ class MakeModelCommand implements Command
             return 1;
         }
         
-        $modelsDir = __DIR__ . '/../../Models';
-        $filePath = "{$modelsDir}/{$name}.php";
+        $filePath = App::basePath("app/Models/{$name}.php");
+        $modelsDir = dirname($filePath);
         
         // Create Models directory if it doesn't exist
         if (!is_dir($modelsDir)) {
@@ -74,7 +75,7 @@ class MakeModelCommand implements Command
         return <<<PHP
 <?php
 
-namespace BaseApi\Models;
+namespace App\Models;
 
 /**
  * {$name} Model

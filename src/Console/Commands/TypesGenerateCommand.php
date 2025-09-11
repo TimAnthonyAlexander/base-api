@@ -5,6 +5,7 @@ namespace BaseApi\Console\Commands;
 use BaseApi\Console\Command;
 use BaseApi\Http\Attributes\ResponseType;
 use BaseApi\Http\Attributes\Tag;
+use BaseApi\App;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
@@ -127,7 +128,7 @@ HELP;
 
     private function loadRoutes(): void
     {
-        $routesFile = __DIR__ . '/../../../routes/api.php';
+        $routesFile = App::basePath('routes/api.php');
 
         if (!file_exists($routesFile)) {
             throw new \Exception("Routes file not found: {$routesFile}");

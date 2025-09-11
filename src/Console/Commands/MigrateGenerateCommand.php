@@ -28,7 +28,7 @@ class MigrateGenerateCommand implements Command
             
             // Scan models
             $scanner = new ModelScanner();
-            $modelSchema = $scanner->scan(__DIR__ . '/../../Models');
+            $modelSchema = $scanner->scan(App::basePath('app/Models'));
             
             echo "Introspecting database...\n";
             
@@ -44,7 +44,7 @@ class MigrateGenerateCommand implements Command
             
             // Get migrations file path
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
-            $fullPath = __DIR__ . '/../../../' . $migrationsFile;
+            $fullPath = App::basePath($migrationsFile);
             
             // Write plan to file
             MigrationsFile::write($fullPath, $plan->toArray());

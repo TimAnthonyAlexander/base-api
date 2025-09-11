@@ -3,6 +3,7 @@
 namespace BaseApi\Console\Commands;
 
 use BaseApi\Console\Command;
+use BaseApi\App;
 
 class MakeControllerCommand implements Command
 {
@@ -36,7 +37,13 @@ class MakeControllerCommand implements Command
             $name .= 'Controller';
         }
 
-        $filePath = __DIR__ . "/../../Controllers/{$name}.php";
+        $filePath = App::basePath("app/Controllers/{$name}.php");
+        
+        // Create Controllers directory if it doesn't exist
+        $controllersDir = dirname($filePath);
+        if (!is_dir($controllersDir)) {
+            mkdir($controllersDir, 0755, true);
+        }
         
         if (file_exists($filePath)) {
             echo "Error: Controller {$name} already exists\n";
@@ -74,7 +81,7 @@ class MakeControllerCommand implements Command
         return <<<PHP
 <?php
 
-namespace BaseApi\Controllers;
+namespace App\Controllers;
 
 class {$name} extends Controller
 {

@@ -29,7 +29,7 @@ class MigrateApplyCommand implements Command
             
             // Get migrations file path
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
-            $fullPath = __DIR__ . '/../../../' . $migrationsFile;
+            $fullPath = App::basePath($migrationsFile);
             
             // Read migration plan
             $planData = MigrationsFile::read($fullPath);
