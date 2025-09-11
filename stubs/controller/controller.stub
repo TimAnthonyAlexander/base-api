@@ -1,0 +1,29 @@
+<?php
+
+namespace App\Controllers;
+
+use BaseApi\Controllers\Controller;
+use BaseApi\Http\JsonResponse;
+
+class {{ classname }} extends Controller
+{
+    public function get(): JsonResponse
+    {
+        return JsonResponse::ok(['message' => 'Hello from {{ classname }}']);
+    }
+
+    public function post(): JsonResponse
+    {
+        return JsonResponse::ok(['message' => 'Created']);
+    }
+
+    public function put(): JsonResponse
+    {
+        return JsonResponse::ok(['message' => 'Updated']);
+    }
+
+    public function delete(): JsonResponse
+    {
+        return JsonResponse::ok(['message' => 'Deleted']);
+    }
+}

@@ -1,0 +1,87 @@
+#!/usr/bin/env php
+<?php
+
+// Determine the base path of the application using this framework
+$baseAppPath = null;
+$currentPath = getcwd();
+
+// Look for composer.json that indicates this is an application (not the framework itself)
+while ($currentPath !== '/') {
+    $composerFile = $currentPath . '/composer.json';
+    if (file_exists($composerFile)) {
+        $composer = json_decode(file_get_contents($composerFile), true);
+        if (($composer['type'] ?? 'library') === 'project') {
+            $baseAppPath = $currentPath;
+            break;
+        }
+    }
+    $currentPath = dirname($currentPath);
+}
+
+// If we can't detect, use current working directory
+if (!$baseAppPath) {
+    $baseAppPath = getcwd();
+}
+
+// Try to locate the autoloader
+$autoloaderPaths = [
+    $baseAppPath . '/vendor/autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../autoload.php',
+    __DIR__ . '/../../../autoload.php'
+];
+
+$autoloader = null;
+foreach ($autoloaderPaths as $path) {
+    if (file_exists($path)) {
+        $autoloader = $path;
+        break;
+    }
+}
+
+if (!$autoloader) {
+    echo "Error: Could not find composer autoloader.\n";
+    exit(1);
+}
+
+require_once $autoloader;
+
+use BaseApi\Console\Application;
+use BaseApi\Console\Commands\ServeCommand;
+use BaseApi\Console\Commands\MakeControllerCommand;
+use BaseApi\Console\Commands\MakeModelCommand;
+use BaseApi\Console\Commands\MigrateGenerateCommand;
+use BaseApi\Console\Commands\MigrateApplyCommand;
+use BaseApi\Console\Commands\TypesGenerateCommand;
+use BaseApi\Console\Commands\I18nScanCommand;
+use BaseApi\Console\Commands\I18nAddLangCommand;
+use BaseApi\Console\Commands\I18nFillCommand;
+use BaseApi\Console\Commands\I18nLintCommand;
+use BaseApi\Console\Commands\I18nHashCommand;
+
+// Load environment if available
+$envPath = $baseAppPath . '/.env';
+if (file_exists($envPath)) {
+    $dotenv = Dotenv\Dotenv::createImmutable($baseAppPath);
+    $dotenv->load();
+}
+
+$app = new Application($baseAppPath);
+
+// Register commands
+$app->register('serve', new ServeCommand());
+$app->register('make:controller', new MakeControllerCommand());
+$app->register('make:model', new MakeModelCommand());
+$app->register('migrate:generate', new MigrateGenerateCommand());
+$app->register('migrate:apply', new MigrateApplyCommand());
+$app->register('types:generate', new TypesGenerateCommand());
+
+// i18n commands
+$app->register('i18n:scan', new I18nScanCommand());
+$app->register('i18n:add-lang', new I18nAddLangCommand());
+$app->register('i18n:fill', new I18nFillCommand());
+$app->register('i18n:lint', new I18nLintCommand());
+$app->register('i18n:hash', new I18nHashCommand());
+
+// Run the application
+exit($app->run($argv));

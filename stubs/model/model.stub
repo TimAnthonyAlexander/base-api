@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Models;
+
+use BaseApi\Models\BaseModel;
+
+class {{ classname }} extends BaseModel
+{
+    // Define your model properties here
+    // public string $name = '';
+    // public ?string $email = null;
+    // public bool $active = true;
+    
+    /**
+     * Define indexes for this model
+     * @var array<string, string>
+     */
+    public static array $indexes = [
+        // 'email' => 'unique',
+        // 'name' => 'index',
+    ];
+    
+    /**
+     * Define custom column definitions
+     * @var array<string, array>
+     */
+    public static array $columns = [
+        // 'description' => ['type' => 'TEXT', 'null' => true],
+    ];
+}
