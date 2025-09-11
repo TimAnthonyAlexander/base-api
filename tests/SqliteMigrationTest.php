@@ -144,6 +144,78 @@ class SqliteMigrationTest extends TestCase
         $this->assertStringNotContainsString('ON UPDATE', $sql);
     }
     
+    public function testSqliteCreateTableWithForeignKeys()
+    {
+        $driver = new SqliteDriver();
+        
+        $plan = new MigrationPlan();
+        
+        // Add create table operation
+        $plan->addOperation('create_table', [
+            'table' => 'posts',
+            'columns' => [
+                [
+                    'name' => 'id',
+                    'type' => 'TEXT',
+                    'nullable' => false,
+                    'default' => null,
+                    'is_pk' => true
+                ],
+                [
+                    'name' => 'title',
+                    'type' => 'TEXT',
+                    'nullable' => false,
+                    'default' => null,
+                    'is_pk' => false
+                ],
+                [
+                    'name' => 'user_id',
+                    'type' => 'CHAR(36)',
+                    'nullable' => false,
+                    'default' => null,
+                    'is_pk' => false
+                ]
+            ],
+            'destructive' => false
+        ]);
+        
+        // Add foreign key operation
+        $plan->addOperation('add_fk', [
+            'table' => 'posts',
+            'fk' => [
+                'name' => 'fk_posts_user_id',
+                'column' => 'user_id',
+                'ref_table' => 'users',
+                'ref_column' => 'id',
+                'on_delete' => 'CASCADE',
+                'on_update' => 'CASCADE'
+            ],
+            'destructive' => false
+        ]);
+        
+        $statements = $driver->generateSql($plan);
+        $this->assertCount(1, $statements); // Should only have CREATE TABLE, not separate FK statement
+        
+        $sql = $statements[0]['sql'];
+        
+        // Should include foreign key constraint in CREATE TABLE
+        $this->assertStringContainsString('FOREIGN KEY ("user_id") REFERENCES "users" ("id")', $sql);
+        $this->assertStringContainsString('ON DELETE CASCADE', $sql);
+        $this->assertStringContainsString('ON UPDATE CASCADE', $sql);
+        
+        // Verify complete structure
+        $expectedStructure = [
+            '"id" TEXT PRIMARY KEY NOT NULL',
+            '"title" TEXT NOT NULL',
+            '"user_id" CHAR(36) NOT NULL',
+            'FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE'
+        ];
+        
+        foreach ($expectedStructure as $expected) {
+            $this->assertStringContainsString($expected, $sql);
+        }
+    }
+    
     /**
      * Test SQLite introspection methods to ensure PRAGMA statements work correctly
      * This tests the fix for the "near '?': syntax error" issue

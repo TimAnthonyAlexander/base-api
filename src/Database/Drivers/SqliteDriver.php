@@ -176,8 +176,20 @@ class SqliteDriver implements DatabaseDriverInterface
         }
         
         // Execute in proper order: creates → adds → drops
+        // For SQLite, collect foreign keys for new tables since they must be defined in CREATE TABLE
+        $tableFks = [];
+        foreach ($addFks as $op) {
+            $tableName = $op['table'];
+            if (!isset($tableFks[$tableName])) {
+                $tableFks[$tableName] = [];
+            }
+            $tableFks[$tableName][] = $op['fk'];
+        }
+        
         foreach ($createTables as $op) {
-            $statements[] = $this->generateCreateTable($op);
+            $tableName = $op['table'];
+            $fks = $tableFks[$tableName] ?? [];
+            $statements[] = $this->generateCreateTable($op, $fks);
         }
         
         foreach ($addColumns as $op) {
@@ -195,8 +207,21 @@ class SqliteDriver implements DatabaseDriverInterface
         
         foreach ($addFks as $op) {
             // SQLite foreign keys are defined at table creation time
-            // For now, we'll skip adding FKs to existing tables
-            // This would require table recreation
+            // Skip FKs for tables that are being created (handled in CREATE TABLE)
+            $tableName = $op['table'];
+            $isNewTable = false;
+            foreach ($createTables as $createOp) {
+                if ($createOp['table'] === $tableName) {
+                    $isNewTable = true;
+                    break;
+                }
+            }
+            
+            if (!$isNewTable) {
+                // For existing tables, we would need table recreation
+                // This is complex and not implemented yet
+                // For now, skip adding FKs to existing tables
+            }
         }
         
         // Drops happen last
@@ -222,7 +247,7 @@ class SqliteDriver implements DatabaseDriverInterface
         return array_filter($statements);
     }
     
-    private function generateCreateTable(array $op): array
+    private function generateCreateTable(array $op, array $fks = []): array
     {
         $tableName = $op['table'];
         $columns = $op['columns'];
@@ -252,6 +277,20 @@ class SqliteDriver implements DatabaseDriverInterface
         // Only add table-level PRIMARY KEY if there are multiple primary key columns
         if (!empty($primaryKeys) && !$useColumnLevelPK) {
             $sql .= ",\n  PRIMARY KEY (\"" . implode('", "', $primaryKeys) . "\")";
+        }
+        
+        // Add foreign key constraints
+        foreach ($fks as $fkData) {
+            $fk = ForeignKeyDef::fromArray($fkData);
+            $sql .= ",\n  FOREIGN KEY (\"{$fk->column}\") REFERENCES \"{$fk->ref_table}\" (\"{$fk->ref_column}\")";
+            
+            // Add ON DELETE and ON UPDATE clauses if specified
+            if ($fk->on_delete && $fk->on_delete !== 'NO ACTION') {
+                $sql .= " ON DELETE {$fk->on_delete}";
+            }
+            if ($fk->on_update && $fk->on_update !== 'NO ACTION') {
+                $sql .= " ON UPDATE {$fk->on_update}";
+            }
         }
         
         $sql .= "\n)";
