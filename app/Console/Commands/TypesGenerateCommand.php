@@ -897,23 +897,47 @@ HELP;
 
     private function generateOperationSummary(array $route): string
     {
-        $controller = basename($route['controller']['class']);
+        $controller = $this->getShortClassName($route['controller']['class']);
         $method = $route['method'];
         return "{$method} {$controller}";
     }
 
     private function generateOperationId(array $route): string
     {
-        $controller = basename($route['controller']['class']);
+        $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
         $method = strtolower($route['method']);
-        return $method . str_replace('Controller', '', $controller);
+        $pathSuffix = $this->getPathSuffix($route['path']);
+        
+        return $method . $controller . $pathSuffix;
     }
 
     private function generateOperationName(array $route): string
     {
-        $controller = str_replace('Controller', '', basename($route['controller']['class']));
+        $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
         $method = ucfirst(strtolower($route['method']));
-        return $method . $controller;
+        
+        // Add path parameters to make operation names unique
+        $pathSuffix = $this->getPathSuffix($route['path']);
+        
+        return $method . $controller . $pathSuffix;
+    }
+
+    private function getPathSuffix(string $path): string
+    {
+        // Extract path parameters like {id}, {userId}, etc.
+        preg_match_all('/\{(\w+)\}/', $path, $matches);
+        
+        if (empty($matches[1])) {
+            return '';
+        }
+        
+        // Convert parameter names to PascalCase and join
+        $suffixParts = [];
+        foreach ($matches[1] as $param) {
+            $suffixParts[] = 'By' . ucfirst($param);
+        }
+        
+        return implode('', $suffixParts);
     }
 
     private function getPathParamType(array $properties, string $paramName): string

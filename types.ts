@@ -19,70 +19,70 @@ export interface User {
   updated_at?: any | null;
 }
 
-export interface GetBaseApi\s\HealthRequestQuery {
+export interface GetHealthRequestQuery {
   db: string;
   request?: any;
 }
 
-export type GetBaseApi\s\HealthResponse = Envelope<any>;
+export type GetHealthResponse = Envelope<any>;
 
-export interface PostBaseApi\s\HealthRequestBody {
+export interface PostHealthRequestBody {
   db: string;
   request?: any;
 }
 
-export type PostBaseApi\s\HealthResponse = Envelope<any>;
+export type PostHealthResponse = Envelope<any>;
 
-export interface GetBaseApi\s\UserRequestQuery {
+export interface GetUserRequestQuery {
   id?: any;
   perPage?: any;
   request?: any;
 }
 
-export type GetBaseApi\s\UserResponse = Envelope<{ user: any }> | Envelope<{ users: any; perPage: number }>;
+export type GetUserResponse = Envelope<{ user: any }> | Envelope<{ users: any; perPage: number }>;
 
-export interface GetBaseApi\s\UserRequestPath {
+export interface GetUserByIdRequestPath {
   id: any;
 }
 
-export interface GetBaseApi\s\UserRequestQuery {
+export interface GetUserByIdRequestQuery {
   perPage?: any;
   request?: any;
 }
 
-export type GetBaseApi\s\UserResponse = Envelope<{ user: any }> | Envelope<{ users: any; perPage: number }>;
+export type GetUserByIdResponse = Envelope<{ user: any }> | Envelope<{ users: any; perPage: number }>;
 
-export interface DeleteBaseApi\s\UserRequestPath {
+export interface DeleteUserByIdRequestPath {
   id: any;
 }
 
-export interface DeleteBaseApi\s\UserRequestBody {
+export interface DeleteUserByIdRequestBody {
   perPage?: any;
   request?: any;
 }
 
-export type DeleteBaseApi\s\UserResponse = Envelope<{ message: string }>;
+export type DeleteUserByIdResponse = Envelope<{ message: string }>;
 
-export interface PostBaseApi\s\LoginRequestBody {
+export interface PostLoginRequestBody {
   userId: string;
   request?: any;
 }
 
-export type PostBaseApi\s\LoginResponse = Envelope<{ userId: string }>;
+export type PostLoginResponse = Envelope<{ userId: string }>;
 
-export interface PostBaseApi\s\LogoutRequestBody {
+export interface PostLogoutRequestBody {
   request?: any;
 }
 
-export type PostBaseApi\s\LogoutResponse = Envelope<any>;
+export type PostLogoutResponse = Envelope<any>;
 
-export interface GetBaseApi\s\MeRequestQuery {
+export interface GetMeRequestQuery {
   request?: any;
 }
 
-export type GetBaseApi\s\MeResponse = Envelope<User>;
+export type GetMeResponse = Envelope<User>;
 
-export interface GetBaseApi\s\I18nRequestQuery {
+export interface GetI18nRequestQuery {
   lang: string;
   ns: string;
   flat: boolean;
@@ -90,9 +90,9 @@ export interface GetBaseApi\s\I18nRequestQuery {
   request?: any;
 }
 
-export type GetBaseApi\s\I18nResponse = Envelope<any>;
+export type GetI18nResponse = Envelope<any>;
 
-export interface PostBaseApi\s\I18nRequestBody {
+export interface PostI18nRequestBody {
   lang: string;
   ns: string;
   flat: boolean;
@@ -100,4 +100,4 @@ export interface PostBaseApi\s\I18nRequestBody {
   request?: any;
 }
 
-export type PostBaseApi\s\I18nResponse = Envelope<any>;
+export type PostI18nResponse = Envelope<any>;
