@@ -174,7 +174,7 @@
         "/users/{id}": {
             "get": {
                 "summary": "GET UserController",
-                "operationId": "getUser",
+                "operationId": "getUserById",
                 "tags": [
                     "Users"
                 ],
@@ -238,7 +238,7 @@
             },
             "delete": {
                 "summary": "DELETE UserController",
-                "operationId": "deleteUser",
+                "operationId": "deleteUserById",
                 "tags": [
                     "Users"
                 ],

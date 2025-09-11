@@ -91,6 +91,12 @@ class TypesGenerateCommand implements Command
         if (!isset($options['format'])) {
             $options['format'] = 'json';
         }
+        if (!isset($options['out-ts'])) {
+            $options['out-ts'] = 'types.ts';
+        }
+        if (!isset($options['out-openapi'])) {
+            $options['out-openapi'] = 'openapi.json';
+        }
 
         return $options;
     }
@@ -104,13 +110,14 @@ Usage:
   php bin/console types:generate [options]
 
 Options:
-  --out-ts=PATH          Output path for TypeScript definitions
-  --out-openapi=PATH     Output path for OpenAPI specification  
+  --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
+  --out-openapi=PATH     Output path for OpenAPI specification (default: openapi.json)
   --format=FORMAT        OpenAPI format: json (default) or yaml
   --schemas-dir=PATH     Output directory for individual JSON schemas
   --help, -h             Show this help message
 
 Examples:
+  php bin/console types:generate
   php bin/console types:generate --out-ts=web/types/baseapi.d.ts
   php bin/console types:generate --out-openapi=storage/openapi.json
   php bin/console types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
