@@ -21,7 +21,7 @@ class Connection
         $port = $_ENV['DB_PORT'] ?? '3306';
         $database = $_ENV['DB_NAME'] ?? 'baseapi';
         $username = $_ENV['DB_USER'] ?? 'root';
-        $password = $_ENV['DB_PASS'] ?? '';
+        $password = $_ENV['DB_PASSWORD'] ?? '';
         $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
         $persistent = ($_ENV['DB_PERSISTENT'] ?? 'false') === 'true';
 
@@ -36,13 +36,12 @@ class Connection
 
         try {
             $this->pdo = new \PDO($dsn, $username, $password, $options);
-            
+
             // Set timezone to UTC
             $this->pdo->exec("SET time_zone = '+00:00'");
-            
+
             // Set names (charset)
             $this->pdo->exec("SET NAMES {$charset}");
-            
         } catch (\PDOException $e) {
             throw new DbException("Database connection failed: " . $e->getMessage(), $e);
         }
