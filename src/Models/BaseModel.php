@@ -533,7 +533,18 @@ abstract class BaseModel implements \JsonSerializable
             
             $name = $property->getName();
             
-            // Skip uninitialized typed properties (typically relationships)
+            // Skip relationship properties (BaseModel subclasses)
+            if ($property->hasType()) {
+                $type = $property->getType();
+                if ($type instanceof \ReflectionNamedType) {
+                    $typeName = $type->getName();
+                    if (is_subclass_of($typeName, BaseModel::class)) {
+                        continue; // Skip relationship properties entirely
+                    }
+                }
+            }
+            
+            // Skip uninitialized typed properties
             if ($property->hasType() && !$property->isInitialized($this)) {
                 continue;
             }
@@ -567,7 +578,18 @@ abstract class BaseModel implements \JsonSerializable
             
             $name = $property->getName();
             
-            // Skip uninitialized typed properties (typically relationships)
+            // Skip relationship properties (BaseModel subclasses)
+            if ($property->hasType()) {
+                $type = $property->getType();
+                if ($type instanceof \ReflectionNamedType) {
+                    $typeName = $type->getName();
+                    if (is_subclass_of($typeName, BaseModel::class)) {
+                        continue; // Skip relationship properties entirely
+                    }
+                }
+            }
+            
+            // Skip uninitialized typed properties
             if ($property->hasType() && !$property->isInitialized($this)) {
                 continue;
             }
