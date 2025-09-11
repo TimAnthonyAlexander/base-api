@@ -1,5 +1,5 @@
 {
-    "name": "timanthonyalexander/base-api",
+    "name": "baseapi/base-api-template",
     "description": "A tiny, KISS-first PHP 8.4 framework for building JSON-first APIs",
     "type": "library",
     "license": "MIT",
