@@ -436,6 +436,11 @@ abstract class BaseModel implements \JsonSerializable
 
         $data = [];
         foreach ($properties as $property) {
+            // Skip static properties
+            if ($property->isStatic()) {
+                continue;
+            }
+            
             $data[$property->getName()] = $property->getValue($this);
         }
 
@@ -521,6 +526,11 @@ abstract class BaseModel implements \JsonSerializable
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         foreach ($properties as $property) {
+            // Skip static properties
+            if ($property->isStatic()) {
+                continue;
+            }
+            
             $name = $property->getName();
             $value = $property->getValue($this);
 
@@ -544,6 +554,11 @@ abstract class BaseModel implements \JsonSerializable
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
 
         foreach ($properties as $property) {
+            // Skip static properties
+            if ($property->isStatic()) {
+                continue;
+            }
+            
             $name = $property->getName();
             $value = $property->getValue($this);
 
