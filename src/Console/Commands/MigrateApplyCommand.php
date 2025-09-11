@@ -110,7 +110,7 @@ class MigrateApplyCommand implements Command
         foreach ($statements as $i => $statement) {
             $num = $i + 1;
             $destructive = $statement['destructive'] ? " [DESTRUCTIVE]" : "";
-            $warning = $statement['warning'] ? " - {$statement['warning']}" : "";
+            $warning = isset($statement['warning']) && $statement['warning'] ? " - {$statement['warning']}" : "";
             
             echo "{$num}. {$statement['sql']}{$destructive}{$warning}\n\n";
         }

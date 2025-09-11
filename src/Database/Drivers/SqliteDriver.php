@@ -232,17 +232,25 @@ class SqliteDriver implements DatabaseDriverInterface
         
         foreach ($columns as $columnData) {
             $column = ColumnDef::fromArray($columnData);
-            $columnDefs[] = $this->generateColumnDefinition($column);
-            
             if ($column->is_pk) {
                 $primaryKeys[] = $column->name;
             }
         }
         
+        // For SQLite, if there's only one primary key, use column-level PRIMARY KEY
+        // If there are multiple, use table-level PRIMARY KEY constraint
+        $useColumnLevelPK = count($primaryKeys) === 1;
+        
+        foreach ($columns as $columnData) {
+            $column = ColumnDef::fromArray($columnData);
+            $columnDefs[] = $this->generateColumnDefinition($column, $useColumnLevelPK);
+        }
+        
         $sql = "CREATE TABLE \"{$tableName}\" (\n";
         $sql .= "  " . implode(",\n  ", $columnDefs);
         
-        if (!empty($primaryKeys)) {
+        // Only add table-level PRIMARY KEY if there are multiple primary key columns
+        if (!empty($primaryKeys) && !$useColumnLevelPK) {
             $sql .= ",\n  PRIMARY KEY (\"" . implode('", "', $primaryKeys) . "\")";
         }
         
@@ -260,7 +268,7 @@ class SqliteDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
         
-        $sql = "ALTER TABLE \"{$tableName}\" ADD COLUMN " . $this->generateColumnDefinition($column);
+        $sql = "ALTER TABLE \"{$tableName}\" ADD COLUMN " . $this->generateColumnDefinition($column, true);
         
         return [
             'sql' => $sql,
@@ -326,11 +334,12 @@ class SqliteDriver implements DatabaseDriverInterface
         ];
     }
     
-    private function generateColumnDefinition(ColumnDef $column): string
+    private function generateColumnDefinition(ColumnDef $column, bool $useColumnLevelPK = true): string
     {
         $sql = "\"{$column->name}\" {$column->type}";
         
-        if ($column->is_pk) {
+        // Only add column-level PRIMARY KEY if we're using column-level PKs and this is a PK
+        if ($column->is_pk && $useColumnLevelPK) {
             $sql .= ' PRIMARY KEY';
         }
         
@@ -340,6 +349,9 @@ class SqliteDriver implements DatabaseDriverInterface
         
         if ($column->default !== null) {
             if ($column->default === 'CURRENT_TIMESTAMP') {
+                $sql .= ' DEFAULT CURRENT_TIMESTAMP';
+            } elseif ($column->default === 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
+                // SQLite doesn't support ON UPDATE, just use CURRENT_TIMESTAMP
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } else {
                 $sql .= " DEFAULT '{$column->default}'";

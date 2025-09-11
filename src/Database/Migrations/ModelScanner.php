@@ -65,13 +65,18 @@ class ModelScanner
         
         $table = new TableDef($tableName);
         
-        // Scan public typed properties
+        // Scan public typed properties (excluding static properties)
         $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
         
         foreach ($properties as $property) {
             $type = $property->getType();
             if (!$type) {
                 continue; // Skip untyped properties
+            }
+            
+            // Skip static properties (like $indexes, $table, etc.)
+            if ($property->isStatic()) {
+                continue;
             }
             
             $column = $this->propertyToColumn($property, $reflection);
