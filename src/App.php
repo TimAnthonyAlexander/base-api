@@ -6,6 +6,9 @@ use BaseApi\Http\Kernel;
 use BaseApi\Database\Connection;
 use BaseApi\Database\DB;
 use BaseApi\Auth\UserProvider;
+use BaseApi\Container\Container;
+use BaseApi\Container\ContainerInterface;
+use BaseApi\Container\CoreServiceProvider;
 
 class App
 {
@@ -19,6 +22,8 @@ class App
     private static ?Profiler $profiler = null;
     private static bool $booted = false;
     private static ?string $basePath = null;
+    private static ?ContainerInterface $container = null;
+    private static array $serviceProviders = [];
 
     public static function boot(?string $basePath = null): void
     {
@@ -37,39 +42,30 @@ class App
         $dotenv = \Dotenv\Dotenv::createImmutable(self::$basePath);
         $dotenv->safeLoad();
 
-        // Load framework defaults
-        $frameworkDefaults = require __DIR__ . '/../config/defaults.php';
+        // Initialize container
+        self::$container = new Container();
 
-        // Load application configuration
-        $appConfig = [];
-        $configFile = self::$basePath . '/config/app.php';
-        if (file_exists($configFile)) {
-            $appConfig = require $configFile;
+        // Register core service provider
+        self::registerProvider(new CoreServiceProvider());
+
+        // Register services from providers
+        foreach (self::$serviceProviders as $provider) {
+            $provider->register(self::$container);
         }
 
-        // Merge configurations: framework defaults < app config (app config overrides)
-        $config = array_replace_recursive($frameworkDefaults, $appConfig);
+        // Boot services from providers
+        foreach (self::$serviceProviders as $provider) {
+            $provider->boot(self::$container);
+        }
 
-        // Initialize services
-        self::$config = new Config($config, $_ENV);
-        self::$logger = new Logger();
-        self::$router = new Router();
-        self::$connection = new Connection();
-        self::$db = new DB(self::$connection);
-        self::$profiler = new Profiler();
-        self::$kernel = new Kernel(self::$router);
-
-        // Register global middleware in order
-        // Register global middleware in order (outer → inner)
-        self::$kernel->addGlobal(\BaseApi\Http\ProfilerMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
-        self::$kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
+        // Initialize legacy static properties for backward compatibility
+        self::$config = self::$container->make(Config::class);
+        self::$logger = self::$container->make(Logger::class);
+        self::$router = self::$container->make(Router::class);
+        self::$connection = self::$container->make(Connection::class);
+        self::$db = self::$container->make(DB::class);
+        self::$profiler = self::$container->make(Profiler::class);
+        self::$kernel = self::$container->make(Kernel::class);
 
         self::$booted = true;
     }
@@ -141,6 +137,29 @@ class App
             self::boot();
         }
         return self::$profiler;
+    }
+
+    public static function container(): ContainerInterface
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+        return self::$container;
+    }
+
+    public static function registerProvider($provider): void
+    {
+        if (is_string($provider)) {
+            $provider = new $provider();
+        }
+
+        self::$serviceProviders[] = $provider;
+
+        // If already booted, register and boot the provider immediately
+        if (self::$booted && self::$container) {
+            $provider->register(self::$container);
+            $provider->boot(self::$container);
+        }
     }
 
     public static function basePath(string $path = ''): string

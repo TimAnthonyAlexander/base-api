@@ -39,7 +39,8 @@
     ],
     "scripts": {
         "phpstan": "phpstan analyse --memory-limit=256M src",
-        "phpunit": "phpunit --colors=always --testdox tests/"
+        "phpunit": "phpunit --colors=always --testdox tests/",
+        "test-unit": "phpunit --colors=always --testdox"
     },
     "config": {
         "optimize-autoloader": true,

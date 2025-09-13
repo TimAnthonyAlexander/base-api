@@ -6,6 +6,7 @@ use BaseApi\Router;
 use BaseApi\Http\Binding\ControllerBinder;
 use BaseApi\Http\Validation\ValidationException;
 use BaseApi\Http\Middleware\OptionedMiddleware;
+use BaseApi\Container\ContainerInterface;
 
 class Kernel
 {
@@ -13,12 +14,14 @@ class Kernel
     private array $globalMiddleware = [];
     private ControllerBinder $binder;
     private ControllerInvoker $invoker;
+    private ContainerInterface $container;
 
-    public function __construct(Router $router)
+    public function __construct(Router $router, ?ContainerInterface $container = null)
     {
         $this->router = $router;
-        $this->binder = new ControllerBinder();
-        $this->invoker = new ControllerInvoker();
+        $this->container = $container ?? \BaseApi\App::container();
+        $this->binder = $this->container->make(ControllerBinder::class);
+        $this->invoker = $this->container->make(ControllerInvoker::class);
     }
 
     public function addGlobal(string $middlewareClass): void
@@ -168,13 +171,13 @@ class Kernel
 
                 // Handle optioned middleware (ClassName::class => [options])
                 if (is_string($middlewareClass)) {
-                    // Regular middleware
-                    $middleware = new $middlewareClass();
+                    // Regular middleware - use container
+                    $middleware = $this->container->make($middlewareClass);
                 } else {
                     // This is an associative array with class => options
                     $className = key($middlewareClass);
                     $options = current($middlewareClass);
-                    $middleware = new $className();
+                    $middleware = $this->container->make($className);
                     
                     if ($middleware instanceof OptionedMiddleware) {
                         $middleware->setOptions($options);
@@ -202,8 +205,8 @@ class Kernel
         }
 
         try {
-            // Instantiate controller
-            $controller = new $controllerClass();
+            // Instantiate controller using container
+            $controller = $this->container->make($controllerClass);
 
             // Bind request data to controller properties
             $this->binder->bind($controller, $request, $pathParams);

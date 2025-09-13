@@ -13,6 +13,7 @@ It provides all the essential tools you need while maintaining simplicity and pe
 - **Database Agnostic** - Automatic migrations from model definitions, supports MySQL, SQLite, PostgreSQL
 - **Internationalization** - Full i18n support with multiple automatic translation providers (OpenAI, DeepL)
 - **Auto Documentation** - Generate OpenAPI specs and TypeScript types with one command
+- **Dependency Injection** - Built-in DI container with auto-wiring and service providers
 
 ## Quick Start
 
@@ -268,6 +269,124 @@ class ProductController extends Controller
             'message' => I18n::t('products.list_success'),
             'products' => Product::all(),
         ]);
+    }
+}
+```
+
+## Dependency Injection
+
+BaseAPI includes a powerful dependency injection container that automatically resolves dependencies and manages service lifecycles.
+
+### Basic Usage
+
+Controllers and middleware automatically receive dependencies through constructor injection:
+
+```php
+<?php
+
+namespace App\Controllers;
+
+use App\Services\EmailService;
+use BaseApi\Controllers\Controller;
+use BaseApi\Http\JsonResponse;
+
+class UserController extends Controller
+{
+    private EmailService $emailService;
+
+    public function __construct(EmailService $emailService)
+    {
+        $this->emailService = $emailService;
+    }
+
+    public function post(): JsonResponse
+    {
+        // Use the injected service
+        $this->emailService->sendWelcome($this->email, $this->name);
+        
+        return JsonResponse::ok(['message' => 'User created']);
+    }
+}
+```
+
+### Service Providers
+
+Organize service registration using service providers:
+
+```php
+<?php
+
+namespace App\Providers;
+
+use BaseApi\Container\ServiceProvider;
+use BaseApi\Container\ContainerInterface;
+use App\Services\EmailService;
+use App\Services\PaymentService;
+
+class AppServiceProvider extends ServiceProvider
+{
+    public function register(ContainerInterface $container): void
+    {
+        // Register as singleton
+        $container->singleton(EmailService::class);
+        
+        // Register with custom configuration
+        $container->singleton(PaymentService::class, function ($c) {
+            return new PaymentService($c->make(ApiClient::class));
+        });
+    }
+
+    public function boot(ContainerInterface $container): void
+    {
+        // Configure services after all are registered
+        $emailService = $container->make(EmailService::class);
+        $emailService->setDefaultFrom('noreply@example.com');
+    }
+}
+```
+
+Register providers in `config/app.php`:
+
+```php
+return [
+    'providers' => [
+        \App\Providers\AppServiceProvider::class,
+    ],
+];
+```
+
+### Container Methods
+
+Access the container directly when needed:
+
+```php
+// In controllers
+$service = $this->make(SomeService::class);
+$container = $this->container();
+
+// Globally
+$container = \BaseApi\App::container();
+$service = $container->make(SomeService::class);
+
+// Bind services
+$container->bind(ServiceInterface::class, ConcreteService::class);
+$container->singleton(ExpensiveService::class);
+$container->instance(ConfigService::class, $configInstance);
+```
+
+### Auto-wiring
+
+The container automatically resolves dependencies based on type hints:
+
+```php
+class EmailService
+{
+    public function __construct(
+        private Logger $logger,
+        private Config $config,
+        private DatabaseConnection $db
+    ) {
+        // Dependencies automatically injected
     }
 }
 ```

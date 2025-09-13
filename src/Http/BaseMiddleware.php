@@ -1,20 +1,24 @@
 <?php
 
-namespace BaseApi\Controllers;
+namespace BaseApi\Http;
 
-use BaseApi\Http\Validation\Validator;
-use BaseApi\Http\Request;
 use BaseApi\Container\ContainerInterface;
 
-abstract class Controller
+/**
+ * Base middleware class providing container access.
+ * 
+ * Middleware classes can extend this to get easy access to the DI container.
+ */
+abstract class BaseMiddleware implements Middleware
 {
-    public ?Request $request = null;
-
-    protected function validate(array $rules): void
-    {
-        $validator = new Validator();
-        $validator->validate($this, $rules);
-    }
+    /**
+     * Handle the request.
+     * 
+     * @param Request $req The request
+     * @param callable $next The next middleware
+     * @return Response The response
+     */
+    abstract public function handle(Request $req, callable $next): Response;
 
     /**
      * Get the application container instance.
