@@ -6,36 +6,33 @@ class ResponseTimeMiddleware implements Middleware
 {
     public function handle(Request $request, callable $next): Response
     {
-        // Capture start time
-        $request->startTime = microtime(true);
+        $start = hrtime(true); // nanoseconds
 
-        // Call next middleware/controller
         $response = $next($request);
 
-        $responseTime = round((microtime(true) - $request->startTime), 2);
+        $elapsedMs = (int) ((hrtime(true) - $start) / 1_000_000); // integer milliseconds
 
-        // Add response time to JSON responses only
+        // Always attach header
+        $response = $response->withHeader('X-Response-Time-Ms', (string) $elapsedMs);
+
+        // Add responseTimeMs only to JSON responses
         if ($response instanceof JsonResponse) {
-            $response = $this->addResponseTimeToJsonResponse($response, $responseTime);
+            $response = $this->addResponseTimeToJsonResponse($response, $elapsedMs);
         }
 
         return $response;
     }
 
-    private function addResponseTimeToJsonResponse(JsonResponse $response, float $responseTime): JsonResponse
+    private function addResponseTimeToJsonResponse(JsonResponse $response, int $elapsedMs): JsonResponse
     {
-        // Decode the existing JSON body
         $data = json_decode($response->body, true);
 
-        if ($data === null) {
-            // If JSON decode fails, return original response
+        if (!is_array($data)) {
             return $response;
         }
 
-        // Add responseTime to the root level
-        $data['responseTime'] = $responseTime;
+        $data['responseTimeMs'] = $elapsedMs;
 
-        // Create new JsonResponse with updated data
         return new JsonResponse($data, $response->status, $response->headers);
     }
 }
