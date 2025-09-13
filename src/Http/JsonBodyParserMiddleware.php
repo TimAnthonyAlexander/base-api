@@ -9,7 +9,7 @@ class JsonBodyParserMiddleware implements Middleware
     public function handle(Request $req, callable $next): Response
     {
         $contentType = $req->headers['Content-Type'] ?? '';
-        
+
         if (str_starts_with($contentType, 'application/json')) {
             $result = $this->parseJsonBody($req);
             if ($result instanceof Response) {
@@ -26,7 +26,7 @@ class JsonBodyParserMiddleware implements Middleware
         $maxMb = $config->int('REQUEST_MAX_JSON_MB', 2);
         $maxBytes = $maxMb * 1024 * 1024;
 
-        if ($req->rawBody === null) {
+        if ($req->rawBody === null || !json_validate($req->rawBody)) {
             return null;
         }
 
@@ -39,7 +39,7 @@ class JsonBodyParserMiddleware implements Middleware
         }
 
         $decoded = json_decode($req->rawBody, true);
-        
+
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
         }
@@ -47,5 +47,4 @@ class JsonBodyParserMiddleware implements Middleware
         $req->body = $decoded ?? [];
         return null;
     }
-
 }
