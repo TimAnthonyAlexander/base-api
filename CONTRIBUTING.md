@@ -373,11 +373,12 @@ When making changes that affect users:
 
 Include the following information:
 
-- **BaseAPI version**
+- **BaseAPI version** (check `composer show timanthonyalexander/base-api`)
+- **BaseAPI Template version** (if using template project)
 - **PHP version**
 - **Operating system**
 - **Database type and version**
-- **Steps to reproduce**
+- **Steps to reproduce** (preferably in a fresh template project)
 - **Expected behavior**
 - **Actual behavior**
 - **Error messages or logs**
@@ -386,7 +387,8 @@ Include the following information:
 ### Bug Report Template
 
 ```markdown
-**BaseAPI Version:** 0.3.11
+**BaseAPI Version:** 0.3.11 (from `composer show timanthonyalexander/base-api`)
+**Template Version:** 1.0.0 (if applicable)
 **PHP Version:** 8.4.0
 **OS:** macOS 14.0
 **Database:** PostgreSQL 15.2
@@ -395,7 +397,7 @@ Include the following information:
 Brief description of the issue
 
 **Steps to Reproduce:**
-1. Step one
+1. Create new project: `composer create-project baseapi/baseapi-template test-project`
 2. Step two
 3. Step three
 
@@ -413,7 +415,14 @@ Error message here
 **Code Example:**
 ```php
 // Minimal code to reproduce the issue
+// Include relevant model/controller code if applicable
 ```
+
+**Project Structure:**
+- [ ] Issue occurs in fresh template project
+- [ ] Issue occurs in existing project
+- [ ] Issue is in BaseAPI core functionality
+- [ ] Issue is in template-specific code
 ```
 
 ## Feature Requests
