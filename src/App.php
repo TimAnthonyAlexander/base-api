@@ -65,6 +65,7 @@ class App
         self::$kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
+        self::$kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
 
         self::$booted = true;
     }
