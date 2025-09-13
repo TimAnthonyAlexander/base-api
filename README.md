@@ -1,21 +1,20 @@
 # BaseAPI
 
-A tiny, KISS-first PHP 8.4 framework for building JSON-first APIs.
+A tiny, KISS-first PHP 8.4+ framework for building REST APIs.
 
-BaseAPI is designed to get out of your way and let you build APIs quickly and efficiently. It provides all the essential tools you need while maintaining simplicity and performance.
+BaseAPI is designed to get out of your way and let you build APIs quickly and efficiently.
+It provides all the essential tools you need while maintaining simplicity and performance.
 
 ## ✨ Features
 
-- **🚀 Zero Configuration** - Works out of the box with sensible defaults
-- **⚡ High Performance** - Minimal overhead, maximum speed
-- **🔒 Built-in Security** - CORS, rate limiting, and authentication middleware
-- **📊 Database First** - Automatic migrations from model definitions
-- **🌐 Internationalization** - Full i18n support with multiple translation providers
-- **📝 Auto Documentation** - Generate OpenAPI specs and TypeScript types
-- **🎯 Type Safe** - Full PHP 8.4 type support with automatic validation
-- **📱 Modern Development** - Hot reloading dev server and comprehensive CLI tools
+- **Low Configuration** - Works out of the box with sensible defaults
+- **High Performance** - Minimal overhead, maximum speed (<0.01ms overhead per request)
+- **Built-in Security** - CORS, rate limiting, and authentication middlewares included
+- **Database Agnostic** - Automatic migrations from model definitions, supports MySQL, SQLite, PostgreSQL
+- **Internationalization** - Full i18n support with multiple automatic translation providers (OpenAI, DeepL)
+- **Auto Documentation** - Generate OpenAPI specs and TypeScript types with one command
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Create a New Project
 
@@ -74,6 +73,13 @@ class Product extends BaseModel
 }
 ```
 
+There will be comments in the file to guide you through adding fields and relationships.
+There is support for:
+- HasMany
+- BelongsTo
+
+These definitions will be used to generate migrations and foreign keys automatically.
+
 ### 3. Generate and Apply Migrations
 
 ```bash
@@ -90,9 +96,11 @@ php bin/console migrate:apply
 php bin/console make:controller ProductController
 ```
 
+The controller file will also include comments to guide you through adding methods.
+
 ### 5. Define Routes
 
-Add routes to `routes/api.php`:
+Add/remove routes to/from `routes/api.php`:
 
 ```php
 <?php
@@ -100,16 +108,26 @@ Add routes to `routes/api.php`:
 use BaseApi\Router;
 use App\Controllers\ProductController;
 
-$router = app()->router();
+$router = App::router();
+
+$router->get('/auth/login', [RateLimitMiddleware::class => ['limit' => '60/1m'], LoginController::class]);
+# Example of rate limited endpoint, 60 requests per minute
 
 $router->get('/products', [ProductController::class]);
 $router->post('/products', [ProductController::class]);
 $router->get('/products/{id}', [ProductController::class]);
+# Basic CRUD routes for products, support for path parameters
 ```
 
-## 🛠️ CLI Commands
+## CLI Commands
 
-BaseAPI includes a powerful CLI with the following commands:
+BaseAPI includes a powerful CLI with the following commands.
+
+Base command:
+
+```bash
+php bin/console
+```
 
 ### Development
 - `serve` - Start the development server
@@ -137,20 +155,16 @@ BaseAPI follows a simple, predictable structure:
 ```
 app/
 ├── Controllers/     # Request handlers
-├── Models/         # Database models
-├── Database/       # Database utilities
-└── Console/        # CLI commands
-
+├── Models/          # Database models
 routes/
-└── api.php         # Route definitions
-
+└── api.php          # Route definitions
 config/
-├── app.php         # Application configuration
-└── i18n.php        # Internationalization settings
-
+├── app.php          # Application configuration
+├── i18n.php         # Translation configuration, important configuration is in .env
 storage/
-├── logs/           # Application logs
-└── migrations.json # Migration state
+├── logs/            # Application logs
+├── ratelimits/      # File based rate limiting storage
+└── migrations.json  # Migration state
 ```
 
 ## 🔧 Configuration
@@ -161,45 +175,90 @@ BaseAPI uses environment variables for configuration. Copy `.env.example` to `.e
 cp .env.example .env
 ```
 
-Key configuration options:
+### Hint: When installed via composer create-project, this is done automatically.
+
+### .env Configuration
 
 ```env
-# Application
-APP_PORT=7879
+########################################
+# Application Settings
+########################################
+
+# The display name of your application
+APP_NAME=BaseApi
+
+# Environment type: local, staging, production
+APP_ENV=local
+
+# Enable/disable debug mode (shows detailed error messages)
 APP_DEBUG=true
 
-# Database (MySQL)
-DB_DRIVER=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=my_api
-DB_USER=root
-DB_PASS=
+# Base URL and server binding
+APP_URL=http://127.0.0.1:7879
+APP_HOST=127.0.0.1
+APP_PORT=7879
 
-# Database (SQLite) - Alternative to MySQL
-# DB_DRIVER=sqlite
-# DB_NAME=database.sqlite
 
-# Database (PostgreSQL) - Enterprise alternative
-# DB_DRIVER=postgresql
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_NAME=my_api
-# DB_USER=postgres
-# DB_PASS=
+########################################
+# CORS (Cross-Origin Resource Sharing)
+########################################
 
-# Features
-ENABLE_CORS=true
-ENABLE_RATE_LIMITING=true
+# Comma-separated list of allowed origins for API access
+# Example: http://localhost:3000,http://127.0.0.1:3000
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+
+########################################
+# Database Configuration
+########################################
+
+# Database driver: sqlite, mysql, postgresql
+DB_DRIVER=sqlite
+
+# Database name or file (for SQLite, this is a file path)
+DB_NAME=database.sqlite
+
+
+########################################
+# MySQL / PostgreSQL (example settings)
+########################################
+
+# Uncomment and adjust if using MySQL or PostgreSQL
+# DB_DRIVER=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306        # Use 5432 for PostgreSQL
+# DB_NAME=baseapi
+# DB_USER=root        # Use a dedicated non-root user in production
+# DB_PASSWORD=secret
 ```
+
+This is the full configuration as of v0.3.11. More options may be added in future releases.
 
 ## 🌐 Internationalization
 
-BaseAPI includes comprehensive i18n support:
+Translations are separated into namespaces within the `translations/{language}` directories.
+The language token consists of the namespace, a dot, and the key.
+For an admin panel title translation you might have the token `admin.dashboardTitle`,
+which would be stored in `translations/en/admin.json`.
+
+With `php bin/console i18n:fill` you can automatically fill missing translations in other languages than the default using OpenAI or DeepL.
+This way you only have to mainting the default (English) translations and the rest can be generated automatically.
+
+With `php bin/console i18n:scan` you can scan your codebase for translation tokens and add them to the default language file.
+
+These are the i18n commands:
+
+```bash
+  i18n:scan    Scan codebase for translation tokens
+  i18n:add-lang    Add new language(s) to the translation system
+  i18n:fill    Fill missing translations using machine translation
+  i18n:lint    Lint translation files for errors and inconsistencies
+  i18n:hash    Generate hash for translation bundles
+```
+
+You can use these translations in your controllers and modules like this:
 
 ```php
-// In your controllers
-use BaseApi\Support\I18n;
 
 class ProductController extends Controller 
 {
@@ -207,23 +266,13 @@ class ProductController extends Controller
     {
         return JsonResponse::ok([
             'message' => I18n::t('products.list_success'),
-            'products' => Product::all()
+            'products' => Product::all(),
         ]);
     }
 }
 ```
 
-Add translations with AI assistance:
-
-```bash
-# Add German language support
-php bin/console i18n:add-lang de --auto
-
-# Fill missing translations using OpenAI or DeepL
-php bin/console i18n:fill de --provider=openai
-```
-
-## 📚 Documentation Generation
+## Documentation (OpenAPI & TypeScript)
 
 Generate comprehensive API documentation:
 
@@ -233,10 +282,10 @@ php bin/console types:generate --openapi --typescript
 ```
 
 This creates:
-- `docs/openapi.json` - OpenAPI 3.0 specification
-- `docs/types.ts` - TypeScript type definitions
+- `/openapi.json` - OpenAPI 3.0 specification
+- `/types.ts` - TypeScript type definitions for models and endpoints
 
-## 🔒 Security
+## Security
 
 BaseAPI includes security features out of the box:
 
@@ -246,36 +295,31 @@ BaseAPI includes security features out of the box:
 - **SQL injection protection** - Parameterized queries and ORM
 - **Session management** - Secure session handling
 
-## 🚀 Performance
+## Performance
 
-- **Minimal overhead** - Framework adds < 1ms to request time
+- **Minimal overhead** - Framework adds < 0.01ms to request time (measured on MacBook Pro M3 Pro)
 - **Efficient routing** - Fast route matching and caching
 - **Database optimization** - Query builder with automatic optimization
 - **Memory efficient** - Low memory footprint even with large datasets
 
-## 📦 Ecosystem
+## Compatibility; should I use BaseAPI?
 
 BaseAPI works great with:
 
 - **Frontend frameworks** - React, Vue, Angular (with generated TypeScript types)
+- **Mobile apps** - iOS, Android (with generated OpenAPI spec)
 - **Testing tools** - PHPUnit integration ready
 - **Deployment** - Docker, traditional hosting, serverless
 - **Databases** - MySQL, SQLite, PostgreSQL
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-## 📄 License
+## License
 
 BaseAPI is open-sourced software licensed under the [MIT license](LICENSE).
 
-## 🆘 Support
+## Found a bug?
 
-- 📖 [Documentation](https://github.com/timanthonyalexander/base-api/wiki)
-- 🐛 [Issue Tracker](https://github.com/timanthonyalexander/base-api/issues)
-- 💬 [Discussions](https://github.com/timanthonyalexander/base-api/discussions)
-
----
-
-**BaseAPI** - The tiny, KISS-first PHP 8.4 framework that gets out of your way.
+- [Issue Tracker](https://github.com/timanthonyalexander/base-api/issues)
