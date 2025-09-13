@@ -28,4 +28,13 @@ class Response
         $new->status = $status;
         return $new;
     }
+
+    public function withHeaders(array $headers): self
+    {
+        $new = clone $this;
+        foreach ($headers as $name => $value) {
+            $new->headers[$name] = $value;
+        }
+        return $new;
+    }
 }

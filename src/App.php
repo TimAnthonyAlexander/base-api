@@ -58,14 +58,15 @@ class App
         self::$kernel = new Kernel(self::$router);
 
         // Register global middleware in order
-        self::$kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
+        // Register global middleware in order (outer → inner)
         self::$kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
+        self::$kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
+        self::$kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
+        self::$kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
         self::$kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
-        self::$kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
 
         self::$booted = true;
     }
