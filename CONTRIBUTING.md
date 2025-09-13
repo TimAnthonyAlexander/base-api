@@ -124,15 +124,27 @@ After making changes to BaseAPI core:
 
 ### Types of Contributions
 
-We welcome several types of contributions:
+BaseAPI accepts several types of contributions:
 
-- **Bug fixes** - Help us squash bugs
-- **Feature development** - Add new functionality
-- **Documentation** - Improve or add documentation
-- **Testing** - Add or improve test coverage
-- **Performance improvements** - Make BaseAPI faster
-- **Database drivers** - Add support for new databases
-- **Examples** - Create helpful examples and tutorials
+#### Framework Core Contributions
+- **Bug fixes** - Fix issues in the core framework
+- **Feature development** - Add new framework functionality (middleware, database features, CLI commands)
+- **Database drivers** - Add support for new databases (like we recently added PostgreSQL)
+- **Performance improvements** - Optimize framework performance
+- **Security enhancements** - Improve framework security features
+
+#### Documentation & Examples
+- **Documentation** - Improve setup guides, API docs, and examples
+- **Testing** - Add or improve test coverage for framework features
+- **Setup guides** - Create database setup guides (like `examples/postgresql-setup.md`)
+
+#### Template Project Contributions
+For contributions to the project template (the structure users get when they run `composer create-project`), please contribute to the [BaseAPI Template repository](https://github.com/baseapi/baseapi-template).
+
+#### What NOT to Contribute Here
+- Application-specific controllers or models (those belong in individual projects)
+- Project-specific configuration (those belong in the template or individual projects)
+- Business logic implementations (those belong in user projects)
 
 ### Contribution Workflow
 
@@ -453,13 +465,15 @@ BaseAPI follows these principles:
 
 ### Adding New Features
 
-When adding new features:
+When adding new features to BaseAPI core:
 
 1. **Start small** - Implement the minimal viable version first
 2. **Follow existing patterns** - Look at how similar features are implemented
 3. **Consider all database drivers** - Ensure compatibility across MySQL, SQLite, and PostgreSQL
-4. **Add comprehensive tests** - Cover happy path, edge cases, and error conditions
-5. **Update documentation** - Include examples and configuration options
+4. **Test with template project** - Always test your changes in an actual BaseAPI project created from the template
+5. **Add comprehensive tests** - Cover happy path, edge cases, and error conditions
+6. **Update documentation** - Include examples and configuration options
+7. **Consider backward compatibility** - BaseAPI is used by many projects via the template
 
 ### Database Driver Development
 
