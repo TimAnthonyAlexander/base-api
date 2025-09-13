@@ -6,7 +6,6 @@ use BaseApi\Http\Kernel;
 use BaseApi\Database\Connection;
 use BaseApi\Database\DB;
 use BaseApi\Auth\UserProvider;
-use BaseApi\Auth\SimpleUserProvider;
 
 class App
 {
