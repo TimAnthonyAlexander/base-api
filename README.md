@@ -19,20 +19,25 @@ BaseAPI is designed to get out of your way and let you build APIs quickly and ef
 
 ### Create a New Project
 
-The fastest way to get started is using the BaseAPI template:
+In order to set up a new BaseAPI project, run:
 
 ```bash
 composer create-project baseapi/baseapi-template my-api
 cd my-api
 ```
 
-### Manual Installation
+This will create a new project in the `my-api` directory.
+It will contain a User model, and some basic controllers:
 
-If you prefer to add BaseAPI to an existing project:
-
-```bash
-composer require timanthonyalexander/base-api
+```php
+app/Controllers/MeController.php
+app/Controllers/LoginController.php
+app/Controllers/HealthController.php
+app/Controllers/SignupController.php
+app/Controllers/LogoutController.php
 ```
+
+From there, you can easily create new models and controllers and immediately start building your API.
 
 ## 📖 Usage
 
