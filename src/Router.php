@@ -21,6 +21,26 @@ class Router
         $this->addRoute('DELETE', $path, $pipeline);
     }
 
+    public function put(string $path, array $pipeline): void
+    {
+        $this->addRoute('PUT', $path, $pipeline);
+    }
+
+    public function patch(string $path, array $pipeline): void
+    {
+        $this->addRoute('PATCH', $path, $pipeline);
+    }
+
+    public function options(string $path, array $pipeline): void
+    {
+        $this->addRoute('OPTIONS', $path, $pipeline);
+    }
+
+    public function head(string $path, array $pipeline): void
+    {
+        $this->addRoute('HEAD', $path, $pipeline);
+    }
+
     public function match(string $method, string $path): ?array
     {
         if (!isset($this->routes[$method])) {
