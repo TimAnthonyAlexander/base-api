@@ -16,6 +16,7 @@ class App
     private static ?Connection $connection = null;
     private static ?DB $db = null;
     private static ?UserProvider $userProvider = null;
+    private static ?Profiler $profiler = null;
     private static bool $booted = false;
     private static ?string $basePath = null;
 
@@ -55,10 +56,12 @@ class App
         self::$router = new Router();
         self::$connection = new Connection();
         self::$db = new DB(self::$connection);
+        self::$profiler = new Profiler();
         self::$kernel = new Kernel(self::$router);
 
         // Register global middleware in order
         // Register global middleware in order (outer → inner)
+        self::$kernel->addGlobal(\BaseApi\Http\ProfilerMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
         self::$kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
@@ -130,6 +133,14 @@ class App
             self::boot();
         }
         return self::$userProvider;
+    }
+
+    public static function profiler(): Profiler
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+        return self::$profiler;
     }
 
     public static function basePath(string $path = ''): string
