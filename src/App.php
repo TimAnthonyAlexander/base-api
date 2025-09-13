@@ -39,7 +39,7 @@ class App
 
         // Load framework defaults
         $frameworkDefaults = require __DIR__ . '/../config/defaults.php';
-        
+
         // Load application configuration
         $appConfig = [];
         $configFile = self::$basePath . '/config/app.php';
@@ -56,7 +56,6 @@ class App
         self::$router = new Router();
         self::$connection = new Connection();
         self::$db = new DB(self::$connection);
-        self::$userProvider = new SimpleUserProvider(self::$db);
         self::$kernel = new Kernel(self::$router);
 
         // Register global middleware in order
@@ -76,11 +75,11 @@ class App
         if (!self::$booted) {
             self::boot();
         }
-        
+
         if (empty($key)) {
             return self::$config;
         }
-        
+
         return self::$config->get($key, $default);
     }
 
@@ -116,6 +115,14 @@ class App
         return self::$db;
     }
 
+    public static function setUserProvider(UserProvider $provider): void
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+        self::$userProvider = $provider;
+    }
+
     public static function userProvider(): UserProvider
     {
         if (!self::$booted) {
@@ -129,7 +136,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
-        
+
         $basePath = self::$basePath ?? self::detectBasePath();
         return $path ? $basePath . '/' . ltrim($path, '/') : $basePath;
     }
@@ -148,7 +155,7 @@ class App
             }
             $current = dirname($current);
         }
-        
+
         // Fallback to current working directory
         return getcwd();
     }
