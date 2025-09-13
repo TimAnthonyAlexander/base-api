@@ -30,14 +30,30 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ### Prerequisites
 
-- PHP 8.4 or higher
+- PHP 8.4+ or higher
 - Composer
 - Git
 - One of the supported databases (MySQL, PostgreSQL, SQLite)
 
+### Understanding BaseAPI Architecture
+
+BaseAPI is a **framework package** that provides the core functionality. It's designed to be used with the **BaseAPI Template** project:
+
+- **BaseAPI Core** (`timanthonyalexander/base-api`) - The framework package (this repository)
+- **BaseAPI Template** (`baseapi/baseapi-template`) - The project template that users create new projects from
+
+Users create new projects with:
+```bash
+composer create-project baseapi/baseapi-template my-api
+```
+
+This installs BaseAPI as a dependency and provides the application structure (controllers, models, routes, config).
+
 ### Development Setup
 
-1. **Fork the repository** on GitHub
+#### For Framework Development (BaseAPI Core)
+
+1. **Fork the BaseAPI repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
    git clone https://github.com/YOUR_USERNAME/base-api.git
@@ -49,22 +65,59 @@ This project and everyone participating in it is governed by our Code of Conduct
    composer install
    ```
 
-4. **Set up your environment**:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your local settings
-   ```
-
-5. **Run tests** to ensure everything works:
+4. **Run tests** to ensure everything works:
    ```bash
    php vendor/bin/phpunit
    ```
 
-6. **Create a new branch** for your feature or bugfix:
+5. **Create a test project** to test your changes:
    ```bash
+   cd ..
+   composer create-project baseapi/baseapi-template test-project
+   cd test-project
+   ```
+
+6. **Link your local BaseAPI development version**:
+   ```bash
+   # In your test project, modify composer.json to use your local development version
+   # Add this to composer.json repositories section:
+   {
+       "type": "path",
+       "url": "../base-api"
+   }
+   
+   # Then require your local version
+   composer require timanthonyalexander/base-api:dev-main
+   ```
+
+7. **Create a new branch** for your feature or bugfix:
+   ```bash
+   cd ../base-api  # Back to your BaseAPI development directory
    git checkout -b feature/your-feature-name
    # or
    git checkout -b fix/issue-description
+   ```
+
+#### For Testing Your Changes
+
+After making changes to BaseAPI core:
+
+1. **Update your test project**:
+   ```bash
+   cd ../test-project
+   composer update timanthonyalexander/base-api
+   ```
+
+2. **Test the functionality**:
+   ```bash
+   php bin/console serve
+   # Test your changes in the running application
+   ```
+
+3. **Run BaseAPI core tests**:
+   ```bash
+   cd ../base-api
+   php vendor/bin/phpunit
    ```
 
 ## How to Contribute
