@@ -21,23 +21,7 @@ class CoreServiceProvider extends ServiceProvider
 {
     public function register(ContainerInterface $container): void
     {
-        // Register Config as singleton
-        $container->singleton(Config::class, function (ContainerInterface $c) {
-            // Load framework defaults
-            $frameworkDefaults = require __DIR__ . '/../../config/defaults.php';
-
-            // Load application configuration
-            $appConfig = [];
-            $configFile = \BaseApi\App::basePath('config/app.php');
-            if (file_exists($configFile)) {
-                $appConfig = require $configFile;
-            }
-
-            // Merge configurations: framework defaults < app config
-            $config = array_replace_recursive($frameworkDefaults, $appConfig);
-
-            return new Config($config, $_ENV);
-        });
+        // Config is already registered in App::boot() to avoid circular loading
 
         // Register Logger as singleton
         $container->singleton(Logger::class);
@@ -62,7 +46,20 @@ class CoreServiceProvider extends ServiceProvider
 
         // Register Kernel as singleton
         $container->singleton(Kernel::class, function (ContainerInterface $c) {
-            return new Kernel($c->make(Router::class), $c);
+            $kernel = new Kernel($c->make(Router::class), $c);
+            
+            // Configure global middleware here instead of in boot()
+            $kernel->addGlobal(\BaseApi\Http\ProfilerMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
+            $kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
+            
+            return $kernel;
         });
 
         // Register container itself
@@ -72,18 +69,6 @@ class CoreServiceProvider extends ServiceProvider
 
     public function boot(ContainerInterface $container): void
     {
-        // Configure Kernel with global middleware
-        $kernel = $container->make(Kernel::class);
-        
-        // Register global middleware in order (outer → inner)
-        $kernel->addGlobal(\BaseApi\Http\ProfilerMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
-        $kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
-        $kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
+        // Boot method - configuration is done during registration
     }
 }

@@ -12,21 +12,47 @@ class Kernel
 {
     private Router $router;
     private array $globalMiddleware = [];
-    private ControllerBinder $binder;
-    private ControllerInvoker $invoker;
-    private ContainerInterface $container;
+    private ?ControllerBinder $binder = null;
+    private ?ControllerInvoker $invoker = null;
+    private ?ContainerInterface $container = null;
 
     public function __construct(Router $router, ?ContainerInterface $container = null)
     {
         $this->router = $router;
-        $this->container = $container ?? \BaseApi\App::container();
-        $this->binder = $this->container->make(ControllerBinder::class);
-        $this->invoker = $this->container->make(ControllerInvoker::class);
+        $this->container = $container;
+        
+        // Defer binder and invoker creation until container is available
+        if ($this->container) {
+            $this->binder = $this->container->make(ControllerBinder::class);
+            $this->invoker = $this->container->make(ControllerInvoker::class);
+        }
     }
 
     public function addGlobal(string $middlewareClass): void
     {
         $this->globalMiddleware[] = $middlewareClass;
+    }
+
+    private function getBinder(): ControllerBinder
+    {
+        if ($this->binder === null) {
+            if ($this->container === null) {
+                $this->container = \BaseApi\App::container();
+            }
+            $this->binder = $this->container->make(ControllerBinder::class);
+        }
+        return $this->binder;
+    }
+
+    private function getInvoker(): ControllerInvoker
+    {
+        if ($this->invoker === null) {
+            if ($this->container === null) {
+                $this->container = \BaseApi\App::container();
+            }
+            $this->invoker = $this->container->make(ControllerInvoker::class);
+        }
+        return $this->invoker;
     }
 
     public function handle(): void
@@ -172,11 +198,17 @@ class Kernel
                 // Handle optioned middleware (ClassName::class => [options])
                 if (is_string($middlewareClass)) {
                     // Regular middleware - use container
+                    if ($this->container === null) {
+                        $this->container = \BaseApi\App::container();
+                    }
                     $middleware = $this->container->make($middlewareClass);
                 } else {
                     // This is an associative array with class => options
                     $className = key($middlewareClass);
                     $options = current($middlewareClass);
+                    if ($this->container === null) {
+                        $this->container = \BaseApi\App::container();
+                    }
                     $middleware = $this->container->make($className);
                     
                     if ($middleware instanceof OptionedMiddleware) {
@@ -206,13 +238,16 @@ class Kernel
 
         try {
             // Instantiate controller using container
+            if ($this->container === null) {
+                $this->container = \BaseApi\App::container();
+            }
             $controller = $this->container->make($controllerClass);
 
             // Bind request data to controller properties
-            $this->binder->bind($controller, $request, $pathParams);
+            $this->getBinder()->bind($controller, $request, $pathParams);
 
             // Invoke the controller method
-            return $this->invoker->invoke($controller, $request);
+            return $this->getInvoker()->invoke($controller, $request);
         } catch (ValidationException $e) {
             // Return 400 with validation errors
             return JsonResponse::badRequest('Validation failed.', $e->errors());

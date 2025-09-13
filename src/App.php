@@ -42,13 +42,7 @@ class App
         $dotenv = \Dotenv\Dotenv::createImmutable(self::$basePath);
         $dotenv->safeLoad();
 
-        // Initialize container
-        self::$container = new Container();
-
-        // Register core service provider
-        self::$serviceProviders[] = new CoreServiceProvider();
-
-        // Load application service providers from config
+        // Load configuration first
         $frameworkDefaults = require __DIR__ . '/../config/defaults.php';
         $appConfig = [];
         $configFile = self::$basePath . '/config/app.php';
@@ -56,6 +50,16 @@ class App
             $appConfig = require $configFile;
         }
         $config = array_replace_recursive($frameworkDefaults, $appConfig);
+
+        // Initialize container
+        self::$container = new Container();
+
+        // Create and register Config instance directly to avoid circular loading
+        self::$config = new Config($config, $_ENV);
+        self::$container->instance(Config::class, self::$config);
+
+        // Register core service provider
+        self::$serviceProviders[] = new CoreServiceProvider();
         
         // Register application providers from config
         $providers = $config['providers'] ?? [];
@@ -78,7 +82,7 @@ class App
         }
 
         // Initialize legacy static properties for backward compatibility
-        self::$config = self::$container->make(Config::class);
+        // self::$config is already set above
         self::$logger = self::$container->make(Logger::class);
         self::$router = self::$container->make(Router::class);
         self::$connection = self::$container->make(Connection::class);
@@ -136,9 +140,6 @@ class App
 
     public static function setUserProvider(UserProvider $provider): void
     {
-        if (!self::$booted) {
-            self::boot();
-        }
         self::$userProvider = $provider;
     }
 
