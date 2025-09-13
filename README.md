@@ -180,6 +180,14 @@ DB_PASS=
 # DB_DRIVER=sqlite
 # DB_NAME=database.sqlite
 
+# Database (PostgreSQL) - Enterprise alternative
+# DB_DRIVER=postgresql
+# DB_HOST=localhost
+# DB_PORT=5432
+# DB_NAME=my_api
+# DB_USER=postgres
+# DB_PASS=
+
 # Features
 ENABLE_CORS=true
 ENABLE_RATE_LIMITING=true
@@ -252,7 +260,7 @@ BaseAPI works great with:
 - **Frontend frameworks** - React, Vue, Angular (with generated TypeScript types)
 - **Testing tools** - PHPUnit integration ready
 - **Deployment** - Docker, traditional hosting, serverless
-- **Databases** - MySQL, SQLite (PostgreSQL support coming soon)
+- **Databases** - MySQL, SQLite, PostgreSQL
 
 ## 🤝 Contributing
 

@@ -20,6 +20,7 @@ class DatabaseDriverFactory
         $instance = match ($driver) {
             'mysql' => new MySqlDriver(),
             'sqlite' => new SqliteDriver(),
+            'postgresql', 'pgsql' => new PostgreSqlDriver(),
             default => throw new InvalidArgumentException("Unsupported database driver: {$driver}")
         };
         
@@ -32,7 +33,7 @@ class DatabaseDriverFactory
      */
     public static function getAvailableDrivers(): array
     {
-        return ['mysql', 'sqlite'];
+        return ['mysql', 'sqlite', 'postgresql'];
     }
     
     /**

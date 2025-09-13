@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use BaseApi\Database\Drivers\DatabaseDriverFactory;
 use BaseApi\Database\Drivers\MySqlDriver;
 use BaseApi\Database\Drivers\SqliteDriver;
+use BaseApi\Database\Drivers\PostgreSqlDriver;
 
 class DatabaseDriverTest extends TestCase
 {
@@ -23,10 +24,24 @@ class DatabaseDriverTest extends TestCase
         $this->assertEquals('sqlite', $driver->getName());
     }
     
+    public function testPostgreSqlDriverCreation()
+    {
+        $driver = DatabaseDriverFactory::create('postgresql');
+        $this->assertInstanceOf(PostgreSqlDriver::class, $driver);
+        $this->assertEquals('postgresql', $driver->getName());
+    }
+    
+    public function testPostgreSqlDriverCreationWithAlias()
+    {
+        $driver = DatabaseDriverFactory::create('pgsql');
+        $this->assertInstanceOf(PostgreSqlDriver::class, $driver);
+        $this->assertEquals('postgresql', $driver->getName());
+    }
+    
     public function testUnsupportedDriver()
     {
         $this->expectException(\InvalidArgumentException::class);
-        DatabaseDriverFactory::create('postgresql');
+        DatabaseDriverFactory::create('oracle');
     }
     
     public function testAvailableDrivers()
@@ -34,13 +49,15 @@ class DatabaseDriverTest extends TestCase
         $drivers = DatabaseDriverFactory::getAvailableDrivers();
         $this->assertContains('mysql', $drivers);
         $this->assertContains('sqlite', $drivers);
+        $this->assertContains('postgresql', $drivers);
     }
     
     public function testIsSupported()
     {
         $this->assertTrue(DatabaseDriverFactory::isSupported('mysql'));
         $this->assertTrue(DatabaseDriverFactory::isSupported('sqlite'));
-        $this->assertFalse(DatabaseDriverFactory::isSupported('postgresql'));
+        $this->assertTrue(DatabaseDriverFactory::isSupported('postgresql'));
+        $this->assertFalse(DatabaseDriverFactory::isSupported('oracle'));
     }
     
     public function testSqliteConnection()
@@ -61,22 +78,37 @@ class DatabaseDriverTest extends TestCase
     {
         $mysqlDriver = new MySqlDriver();
         $sqliteDriver = new SqliteDriver();
+        $postgresDriver = new PostgreSqlDriver();
         
         // Test basic type mapping
         $this->assertEquals('INT', $mysqlDriver->phpTypeToSqlType('int'));
         $this->assertEquals('INTEGER', $sqliteDriver->phpTypeToSqlType('int'));
+        $this->assertEquals('INTEGER', $postgresDriver->phpTypeToSqlType('int'));
         
         $this->assertEquals('VARCHAR(255)', $mysqlDriver->phpTypeToSqlType('string'));
         $this->assertEquals('TEXT', $sqliteDriver->phpTypeToSqlType('string'));
+        $this->assertEquals('VARCHAR(255)', $postgresDriver->phpTypeToSqlType('string'));
         
         $this->assertEquals('TINYINT(1)', $mysqlDriver->phpTypeToSqlType('bool'));
         $this->assertEquals('INTEGER', $sqliteDriver->phpTypeToSqlType('bool'));
+        $this->assertEquals('BOOLEAN', $postgresDriver->phpTypeToSqlType('bool'));
+        
+        // Test ID field handling
+        $this->assertEquals('VARCHAR(36)', $mysqlDriver->phpTypeToSqlType('string', 'user_id'));
+        $this->assertEquals('TEXT', $sqliteDriver->phpTypeToSqlType('string', 'user_id'));
+        $this->assertEquals('UUID', $postgresDriver->phpTypeToSqlType('string', 'user_id'));
+        
+        // Test array/object handling
+        $this->assertEquals('JSON', $mysqlDriver->phpTypeToSqlType('array'));
+        $this->assertEquals('TEXT', $sqliteDriver->phpTypeToSqlType('array'));
+        $this->assertEquals('JSONB', $postgresDriver->phpTypeToSqlType('array'));
     }
     
     public function testColumnTypeNormalization()
     {
         $mysqlDriver = new MySqlDriver();
         $sqliteDriver = new SqliteDriver();
+        $postgresDriver = new PostgreSqlDriver();
         
         // Test MySQL type normalization
         $this->assertEquals('integer', $mysqlDriver->normalizeColumnType('int'));
@@ -87,5 +119,15 @@ class DatabaseDriverTest extends TestCase
         $this->assertEquals('integer', $sqliteDriver->normalizeColumnType('integer'));
         $this->assertEquals('text', $sqliteDriver->normalizeColumnType('text'));
         $this->assertEquals('real', $sqliteDriver->normalizeColumnType('real'));
+        
+        // Test PostgreSQL type normalization
+        $this->assertEquals('integer', $postgresDriver->normalizeColumnType('integer'));
+        $this->assertEquals('integer', $postgresDriver->normalizeColumnType('int4'));
+        $this->assertEquals('bigint', $postgresDriver->normalizeColumnType('bigint'));
+        $this->assertEquals('bigint', $postgresDriver->normalizeColumnType('bigserial'));
+        $this->assertEquals('boolean', $postgresDriver->normalizeColumnType('boolean'));
+        $this->assertEquals('varchar', $postgresDriver->normalizeColumnType('character varying'));
+        $this->assertEquals('jsonb', $postgresDriver->normalizeColumnType('jsonb'));
+        $this->assertEquals('uuid', $postgresDriver->normalizeColumnType('uuid'));
     }
 }
