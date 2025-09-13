@@ -6,48 +6,75 @@ use BaseApi\App;
 
 class CorsMiddleware implements Middleware
 {
+    private array $defaultMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+    private array $defaultExpose = ['X-Request-Id', 'ETag'];
+    private array $defaultAllowHeaders = ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-Id'];
+
     public function handle(Request $req, callable $next): Response
     {
         $config = App::config();
-        $allowlist = $config->list('CORS_ALLOWLIST');
-        
-        $origin = $req->headers['ORIGIN'] ?? $req->headers['Origin'] ?? null;
-        $isAllowed = $origin && in_array($origin, $allowlist);
-        
+        $allowlist = array_values(array_filter(array_map('trim', $config->list('CORS_ALLOWLIST'))));
+        $maxAge = (int)($config->get('CORS_MAX_AGE', 600));
 
-        // Handle preflight OPTIONS request
+        $origin = $req->headers['Origin'] ?? $req->headers['ORIGIN'] ?? null;
+        $hasOrigin = is_string($origin) && $origin !== '';
+        $wildcard = in_array('*', $allowlist, true);
+        $allowedExact = $hasOrigin && in_array($origin, $allowlist, true);
+
         if ($req->method === 'OPTIONS') {
             $response = new Response(204);
-            
-            if ($isAllowed) {
+
+            if ($allowedExact || $wildcard) {
+                $reqMethod = $req->headers['Access-Control-Request-Method'] ?? $req->headers['ACCESS-CONTROL-REQUEST-METHOD'] ?? null;
+                $methods = $reqMethod ? [$reqMethod] : $this->defaultMethods;
+
+                $reqHeaders = $req->headers['Access-Control-Request-Headers'] ?? $req->headers['ACCESS-CONTROL-REQUEST-HEADERS'] ?? null;
+                $allowHeaders = $reqHeaders ? $reqHeaders : implode(', ', $this->defaultAllowHeaders);
+
+                if ($allowedExact) {
+                    $response = $response
+                        ->withHeader('Access-Control-Allow-Origin', $origin)
+                        ->withHeader('Access-Control-Allow-Credentials', 'true');
+                } else {
+                    $response = $response->withHeader('Access-Control-Allow-Origin', '*');
+                }
+
                 $response = $response
-                    ->withHeader('Access-Control-Allow-Origin', $origin)
-                    ->withHeader('Access-Control-Allow-Credentials', 'true')
-                    ->withHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
-                    ->withHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With, X-Request-Id, Authorization');
+                    ->withHeader('Access-Control-Allow-Methods', implode(', ', array_unique(array_map('strtoupper', $methods))))
+                    ->withHeader('Access-Control-Allow-Headers', $allowHeaders)
+                    ->withHeader('Access-Control-Max-Age', (string)$maxAge);
             }
-            
-            // Always add Vary: Origin for OPTIONS requests to avoid cache poisoning
-            $response = $response->withHeader('Vary', 'Origin');
-            
+
+            $response = $this->addVary($response, ['Origin', 'Access-Control-Request-Method', 'Access-Control-Request-Headers']);
             return $response;
         }
 
-        // Process the actual request
         $response = $next($req);
 
-        // Add CORS headers if origin is allowed
-        if ($isAllowed) {
+        if (!$hasOrigin) {
+            return $response;
+        }
+
+        if ($allowedExact) {
             $response = $response
                 ->withHeader('Access-Control-Allow-Origin', $origin)
                 ->withHeader('Access-Control-Allow-Credentials', 'true')
-                ->withHeader('Access-Control-Expose-Headers', 'X-Request-Id, ETag')
-                ->withHeader('Vary', 'Origin');
-        } elseif ($origin) {
-            // Always add Vary: Origin when Origin header is present to avoid cache poisoning
-            $response = $response->withHeader('Vary', 'Origin');
+                ->withHeader('Access-Control-Expose-Headers', implode(', ', $this->defaultExpose));
+        } elseif ($wildcard) {
+            $response = $response
+                ->withHeader('Access-Control-Allow-Origin', '*')
+                ->withHeader('Access-Control-Expose-Headers', implode(', ', $this->defaultExpose));
         }
 
+        $response = $this->addVary($response, ['Origin']);
         return $response;
+    }
+
+    private function addVary(Response $resp, array $keys): Response
+    {
+        $existing = $resp->headers['Vary'] ?? '';
+        $current = array_map('trim', $existing ? explode(',', $existing) : []);
+        $merged = array_unique(array_filter(array_merge($current, $keys)));
+        return $resp->withHeader('Vary', implode(', ', $merged));
     }
 }

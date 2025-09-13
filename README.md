@@ -205,8 +205,8 @@ APP_PORT=7879
 
 # Comma-separated list of allowed origins for API access
 # Example: http://localhost:3000,http://127.0.0.1:3000
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-
+CORS_ALLOWLIST=http://localhost:3000,http://127.0.0.1:3000
+CORS_MAX_AGE=86400
 
 ########################################
 # Database Configuration
