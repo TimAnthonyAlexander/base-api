@@ -46,14 +46,33 @@ class App
         self::$container = new Container();
 
         // Register core service provider
-        self::registerProvider(new CoreServiceProvider());
+        self::$serviceProviders[] = new CoreServiceProvider();
 
-        // Register services from providers
+        // Load application service providers from config
+        $frameworkDefaults = require __DIR__ . '/../config/defaults.php';
+        $appConfig = [];
+        $configFile = self::$basePath . '/config/app.php';
+        if (file_exists($configFile)) {
+            $appConfig = require $configFile;
+        }
+        $config = array_replace_recursive($frameworkDefaults, $appConfig);
+        
+        // Register application providers from config
+        $providers = $config['providers'] ?? [];
+        foreach ($providers as $providerClass) {
+            if (is_string($providerClass)) {
+                self::$serviceProviders[] = new $providerClass();
+            } else {
+                self::$serviceProviders[] = $providerClass;
+            }
+        }
+
+        // Register services from all providers
         foreach (self::$serviceProviders as $provider) {
             $provider->register(self::$container);
         }
 
-        // Boot services from providers
+        // Boot services from all providers
         foreach (self::$serviceProviders as $provider) {
             $provider->boot(self::$container);
         }

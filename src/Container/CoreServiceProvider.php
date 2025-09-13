@@ -85,13 +85,5 @@ class CoreServiceProvider extends ServiceProvider
         $kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
         $kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
         $kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
-
-        // Register application service providers from config
-        $config = $container->make(Config::class);
-        $providers = $config->get('providers', []);
-        
-        foreach ($providers as $providerClass) {
-            \BaseApi\App::registerProvider($providerClass);
-        }
     }
 }
