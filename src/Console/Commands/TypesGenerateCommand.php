@@ -289,6 +289,7 @@ HELP;
             'class' => $controllerClass,
             'method' => $methodName,
             'properties' => $this->getControllerProperties($reflection),
+            'parameters' => $this->getMethodParameters($methodReflection),
             'responseTypes' => $this->getResponseTypes($methodReflection),
             'tags' => $this->getTags($reflection, $methodReflection),
         ];
@@ -312,6 +313,25 @@ HELP;
         }
 
         return $properties;
+    }
+
+    private function getMethodParameters(ReflectionMethod $method): array
+    {
+        $parameters = [];
+
+        foreach ($method->getParameters() as $param) {
+            $type = $param->getType();
+            $parameters[] = [
+                'name' => $param->getName(),
+                'type' => $type ? $type->__toString() : 'mixed',
+                'nullable' => $type && $type->allowsNull(),
+                'hasDefault' => $param->isDefaultValueAvailable(),
+                'default' => $param->isDefaultValueAvailable() ? $param->getDefaultValue() : null,
+                'isOptional' => $param->isOptional(),
+            ];
+        }
+
+        return $parameters;
     }
 
     private function getResponseTypes(ReflectionMethod $method): array
@@ -604,7 +624,7 @@ HELP;
         // Add path parameters
         preg_match_all('/\{(\w+)\}/', $route['path'], $matches);
         foreach ($matches[1] as $paramName) {
-            $paramType = $this->getPathParamType($controller['properties'], $paramName);
+            $paramType = $this->getPathParamType($controller['parameters'], $paramName);
             $operation['parameters'][] = [
                 'name' => $paramName,
                 'in' => 'path',
@@ -617,10 +637,10 @@ HELP;
         if ($method === 'get') {
             $operation['parameters'] = array_merge(
                 $operation['parameters'],
-                $this->generateQueryParameters($controller['properties'], $matches[1])
+                $this->generateQueryParameters($controller['parameters'], $matches[1])
             );
         } elseif ($method === 'post') {
-            $bodySchema = $this->generateRequestBodySchema($controller['properties'], $matches[1]);
+            $bodySchema = $this->generateRequestBodySchema($controller['parameters'], $matches[1]);
             if (!empty($bodySchema['properties'])) {
                 $operation['requestBody'] = [
                     'required' => true,
@@ -827,7 +847,7 @@ HELP;
         $lines = [];
 
         // Generate path parameters interface
-        $pathParams = $this->getPathParameters($route['path'], $controller['properties']);
+        $pathParams = $this->getPathParameters($route['path'], $controller['parameters']);
         if (!empty($pathParams)) {
             $lines[] = "export interface {$operationName}RequestPath {";
             foreach ($pathParams as $param) {
@@ -839,13 +859,13 @@ HELP;
         }
 
         // Generate query/body parameters interface
-        $bodyParams = $this->getBodyParameters($route, $controller['properties']);
+        $bodyParams = $this->getBodyParameters($route, $controller['parameters']);
         if (!empty($bodyParams)) {
             $interfaceType = $route['method'] === 'GET' ? 'Query' : 'Body';
             $lines[] = "export interface {$operationName}Request{$interfaceType} {";
             foreach ($bodyParams as $param) {
                 $tsType = $this->phpTypeToTsType($param['type']);
-                $optional = $param['nullable'] ? '?' : '';
+                $optional = $param['nullable'] || $param['hasDefault'] ? '?' : '';
                 $lines[] = "  {$param['name']}{$optional}: {$tsType};";
             }
             $lines[] = "}";
@@ -947,11 +967,11 @@ HELP;
         return implode('', $suffixParts);
     }
 
-    private function getPathParamType(array $properties, string $paramName): string
+    private function getPathParamType(array $parameters, string $paramName): string
     {
-        foreach ($properties as $prop) {
-            if ($prop['name'] === $paramName) {
-                return match ($prop['type']) {
+        foreach ($parameters as $param) {
+            if ($param['name'] === $paramName) {
+                return match ($param['type']) {
                     'int' => 'integer',
                     'float' => 'number',
                     'bool' => 'boolean',
@@ -962,47 +982,47 @@ HELP;
         return 'string';
     }
 
-    private function generateQueryParameters(array $properties, array $pathParamNames): array
+    private function generateQueryParameters(array $parameters, array $pathParamNames): array
     {
         $params = [];
-        foreach ($properties as $prop) {
-            if (in_array($prop['name'], $pathParamNames)) continue;
+        foreach ($parameters as $param) {
+            if (in_array($param['name'], $pathParamNames)) continue;
 
             $params[] = [
-                'name' => $prop['name'],
+                'name' => $param['name'],
                 'in' => 'query',
-                'required' => !$prop['nullable'] && !$prop['hasDefault'],
-                'schema' => $this->phpTypeToOpenApiType($prop['type'])
+                'required' => !$param['nullable'] && !$param['hasDefault'],
+                'schema' => $this->phpTypeToOpenApiType($param['type'])
             ];
         }
         return $params;
     }
 
-    private function generateRequestBodySchema(array $properties, array $pathParamNames): array
+    private function generateRequestBodySchema(array $parameters, array $pathParamNames): array
     {
         $schema = [
             'type' => 'object',
             'properties' => []
         ];
 
-        foreach ($properties as $prop) {
-            if (in_array($prop['name'], $pathParamNames)) continue;
+        foreach ($parameters as $param) {
+            if (in_array($param['name'], $pathParamNames)) continue;
 
-            $schema['properties'][$prop['name']] = $this->phpTypeToOpenApiType($prop['type']);
+            $schema['properties'][$param['name']] = $this->phpTypeToOpenApiType($param['type']);
         }
 
         return $schema;
     }
 
-    private function getPathParameters(string $path, array $properties): array
+    private function getPathParameters(string $path, array $parameters): array
     {
         $params = [];
         preg_match_all('/\{(\w+)\}/', $path, $matches);
 
         foreach ($matches[1] as $paramName) {
-            foreach ($properties as $prop) {
-                if ($prop['name'] === $paramName) {
-                    $params[] = $prop;
+            foreach ($parameters as $param) {
+                if ($param['name'] === $paramName) {
+                    $params[] = $param;
                     break;
                 }
             }
@@ -1011,7 +1031,7 @@ HELP;
         return $params;
     }
 
-    private function getBodyParameters(array $route, array $properties): array
+    private function getBodyParameters(array $route, array $parameters): array
     {
         $pathParamNames = [];
         preg_match_all('/\{(\w+)\}/', $route['path'], $matches);
@@ -1020,9 +1040,9 @@ HELP;
         }
 
         $bodyParams = [];
-        foreach ($properties as $prop) {
-            if (!in_array($prop['name'], $pathParamNames)) {
-                $bodyParams[] = $prop;
+        foreach ($parameters as $param) {
+            if (!in_array($param['name'], $pathParamNames)) {
+                $bodyParams[] = $param;
             }
         }
 
