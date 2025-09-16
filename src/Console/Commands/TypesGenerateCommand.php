@@ -289,7 +289,7 @@ HELP;
             'class' => $controllerClass,
             'method' => $methodName,
             'properties' => $this->getControllerProperties($reflection),
-            'parameters' => $this->getMethodParameters($methodReflection),
+            'parameters' => $this->getAllParameters($reflection, $methodReflection),
             'responseTypes' => $this->getResponseTypes($methodReflection),
             'tags' => $this->getTags($reflection, $methodReflection),
         ];
@@ -332,6 +332,67 @@ HELP;
         }
 
         return $parameters;
+    }
+
+    private function getAllParameters(ReflectionClass $reflection, ReflectionMethod $method): array
+    {
+        $parameters = [];
+
+        // 1. Add method parameters
+        $parameters = array_merge($parameters, $this->getMethodParameters($method));
+
+        // 2. Add scalar public properties (API parameters)
+        $scalarProperties = $this->getScalarProperties($reflection);
+        $parameters = array_merge($parameters, $scalarProperties);
+
+        return $parameters;
+    }
+
+    private function getScalarProperties(ReflectionClass $reflection): array
+    {
+        $parameters = [];
+
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
+            if ($prop->isStatic()) continue;
+
+            $type = $prop->getType();
+            $typeName = $type ? $type->__toString() : 'mixed';
+
+            // Only include scalar types as API parameters
+            if ($this->isScalarType($typeName)) {
+                $parameters[] = [
+                    'name' => $prop->getName(),
+                    'type' => $typeName,
+                    'nullable' => $type && $type->allowsNull(),
+                    'hasDefault' => $prop->hasDefaultValue(),
+                    'default' => $prop->hasDefaultValue() ? $prop->getDefaultValue() : null,
+                    'isOptional' => $prop->hasDefaultValue() || ($type && $type->allowsNull()),
+                ];
+            }
+        }
+
+        return $parameters;
+    }
+
+    private function isScalarType(string $typeName): bool
+    {
+        // Handle nullable types by removing the leading ?
+        if (str_starts_with($typeName, '?')) {
+            $typeName = substr($typeName, 1);
+        }
+
+        // Handle union types (like string|null)
+        if (str_contains($typeName, '|')) {
+            $types = explode('|', $typeName);
+            $nonNullTypes = array_filter($types, fn($t) => trim($t) !== 'null');
+            if (count($nonNullTypes) === 1) {
+                $typeName = trim($nonNullTypes[0]);
+            }
+        }
+
+        return in_array($typeName, [
+            'string', 'int', 'integer', 'float', 'double', 'bool', 'boolean', 'array', 'mixed'
+        ]);
     }
 
     private function getResponseTypes(ReflectionMethod $method): array
