@@ -1,5 +1,5 @@
 
-import { Box, Typography, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Box, Typography, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, List, ListItem, ListItemText } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 
 export default function CLIOverview() {

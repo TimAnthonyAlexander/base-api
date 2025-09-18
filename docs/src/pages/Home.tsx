@@ -300,7 +300,7 @@ export default function Home() {
                             { name: 'Slim Framework', value: 8200, color: 'secondary.main' },
                             { name: 'Laravel Lumen', value: 4800, color: 'warning.main' },
                             { name: 'Symfony MicroKernel', value: 3600, color: 'error.main' },
-                        ].map((framework, index) => (
+                        ].map((framework) => (
                             <Box key={framework.name} sx={{ mb: 2 }}>
                                 <Box sx={{ 
                                     display: 'flex', 
@@ -344,7 +344,7 @@ export default function Home() {
                             { name: 'Slim Framework', value: 1.2, color: 'secondary.main' },
                             { name: 'Laravel Lumen', value: 3.1, color: 'warning.main' },
                             { name: 'Symfony MicroKernel', value: 4.7, color: 'error.main' },
-                        ].map((framework, index) => (
+                        ].map((framework) => (
                             <Box key={framework.name} sx={{ mb: 2 }}>
                                 <Box sx={{ 
                                     display: 'flex', 

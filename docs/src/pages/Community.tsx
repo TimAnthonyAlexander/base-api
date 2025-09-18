@@ -5,7 +5,6 @@ import {
   CardContent,
   CardActions,
   Button,
-  Grid,
   List,
   ListItem,
   ListItemIcon,
@@ -14,9 +13,9 @@ import {
   Chip,
   Link as MuiLink
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import {
   GitHub as GitHubIcon,
-  Chat as DiscordIcon,
   Forum as DiscussionIcon,
   QuestionAnswer as QAIcon,
   BugReport as BugIcon,
@@ -119,7 +118,7 @@ export default function Community() {
 
       <Grid container spacing={3} sx={{ mb: 6 }}>
         {communityResources.map((resource, index) => (
-          <Grid item xs={12} sm={6} md={6} key={index}>
+          <Grid xs={12} sm={6} md={6} key={index}>
             <Card 
               sx={{ 
                 height: '100%',
@@ -268,7 +267,7 @@ export default function Community() {
 
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {contributionAreas.map((area, index) => (
-          <Grid item xs={12} sm={6} key={index}>
+          <Grid xs={12} sm={6} key={index}>
             <Card 
               sx={{ 
                 height: '100%',

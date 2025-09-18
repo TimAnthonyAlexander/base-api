@@ -326,7 +326,7 @@ I18n::t('order.created', [
     'date' => $order->created_at->format('Y-m-d'),
     'total' => number_format($order->total, 2)
 ]);
-// Translation: "Order created on {date} for ${total}"
+// Translation: "Order created on {date} for $25.99"
 
 // Nested translations with fallbacks
 I18n::t('errors.database.connection', [], 'en'); // Force English
