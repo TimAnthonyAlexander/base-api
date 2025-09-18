@@ -11,7 +11,7 @@ return [
     |
     */
     
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => $_ENV['FILESYSTEM_DISK'] ?? 'local',
 
     /*
     |--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app'),
-            'url' => env('APP_URL', 'http://localhost:8000') . '/storage',
+            'url' => ($_ENV['APP_URL'] ?? 'http://localhost:8000') . '/storage',
             'permissions' => [
                 'file' => [
                     'public' => 0644,
@@ -45,7 +45,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL', 'http://localhost:8000') . '/storage',
+            'url' => ($_ENV['APP_URL'] ?? 'http://localhost:8000') . '/storage',
             'visibility' => 'public',
         ],
 
@@ -53,13 +53,13 @@ return [
         /*
         's3' => [
             'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
-            'bucket' => env('AWS_BUCKET'),
-            'url' => env('AWS_URL'),
-            'endpoint' => env('AWS_ENDPOINT'), // For S3-compatible services
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'key' => $_ENV['AWS_ACCESS_KEY_ID'] ?? null,
+            'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'] ?? null,
+            'region' => $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1',
+            'bucket' => $_ENV['AWS_BUCKET'] ?? null,
+            'url' => $_ENV['AWS_URL'] ?? null,
+            'endpoint' => $_ENV['AWS_ENDPOINT'] ?? null, // For S3-compatible services
+            'use_path_style_endpoint' => $_ENV['AWS_USE_PATH_STYLE_ENDPOINT'] ?? false,
         ],
         */
 
@@ -67,10 +67,10 @@ return [
         /*
         'gcs' => [
             'driver' => 'gcs',
-            'project_id' => env('GOOGLE_CLOUD_PROJECT_ID'),
-            'key_file' => env('GOOGLE_CLOUD_KEY_FILE'), // Path to service account JSON
-            'bucket' => env('GOOGLE_CLOUD_STORAGE_BUCKET'),
-            'path_prefix' => env('GOOGLE_CLOUD_STORAGE_PATH_PREFIX'),
+            'project_id' => $_ENV['GOOGLE_CLOUD_PROJECT_ID'] ?? null,
+            'key_file' => $_ENV['GOOGLE_CLOUD_KEY_FILE'] ?? null, // Path to service account JSON
+            'bucket' => $_ENV['GOOGLE_CLOUD_STORAGE_BUCKET'] ?? null,
+            'path_prefix' => $_ENV['GOOGLE_CLOUD_STORAGE_PATH_PREFIX'] ?? null,
         ],
         */
 
