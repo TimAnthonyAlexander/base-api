@@ -92,11 +92,11 @@ export default function Home() {
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 800, lg: 900 }, mx: 'auto', px: { xs: 0, sm: 2 } }}>
           <Typography
             variant="h1"
             sx={{
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem', lg: '4rem' },
               fontWeight: 700,
               mb: 2,
               background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
@@ -177,7 +177,7 @@ export default function Home() {
               Learn More
             </Button>
           </Stack>
-        </Container>
+        </Box>
       </Box>
 
       {/* Quick Start */}
@@ -185,7 +185,7 @@ export default function Home() {
         <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
           Quick Start
         </Typography>
-        <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
+        <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 800, lg: 900 }, mx: 'auto' }}>
           <CodeBlock
             language="bash"
             code={quickStartCode}
@@ -204,7 +204,7 @@ export default function Home() {
               Continue with the tutorial
             </Button>
           </Box>
-        </Container>
+        </Box>
       </Box>
 
       {/* Features Grid */}
@@ -214,9 +214,15 @@ export default function Home() {
         </Typography>
         <Box sx={{ 
           display: 'grid', 
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
-          gap: { xs: 2, sm: 3 },
-          px: { xs: 2, sm: 0 }
+          gridTemplateColumns: { 
+            xs: '1fr', 
+            sm: 'repeat(2, 1fr)', 
+            lg: 'repeat(3, 1fr)',
+            xl: 'repeat(3, 1fr)' 
+          }, 
+          gap: { xs: 2, sm: 3, lg: 4 },
+          maxWidth: { lg: 1200, xl: 1400 },
+          mx: 'auto'
         }}>
           {features.map((feature, index) => (
             <Box key={index}>
@@ -279,7 +285,14 @@ export default function Home() {
         <Typography variant="h4" gutterBottom>
           Built for Performance
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 4, mt: 2 }}>
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, 
+          gap: { xs: 3, sm: 4, lg: 6 }, 
+          mt: 2,
+          maxWidth: 800,
+          mx: 'auto'
+        }}>
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="primary.main" fontWeight={700}>
               &lt;0.01ms

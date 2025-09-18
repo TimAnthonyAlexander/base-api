@@ -57,21 +57,27 @@ export default function RootLayout() {
           component="main"
           sx={{
             flexGrow: 1,
-            width: { lg: `calc(100% - ${DRAWER_WIDTH}px)` },
+            width: { 
+              xs: '100%', 
+              lg: `calc(100% - ${DRAWER_WIDTH}px)` 
+            },
             ml: { lg: 0 },
+            minWidth: 0, // Prevent overflow issues
           }}
         >
           {/* Account for header height */}
           <Box sx={{ height: 64 }} />
           
           <Container 
-            maxWidth="lg" 
+            maxWidth={false}
             sx={{ 
-              px: { xs: 2, sm: 3 }, 
+              px: { xs: 2, sm: 3, lg: 4, xl: 6 }, 
               py: 4,
               minHeight: 'calc(100vh - 64px)',
               display: 'flex',
               flexDirection: 'column',
+              maxWidth: { xs: '100%', lg: 'none' },
+              width: '100%',
             }}
           >
             <Suspense 

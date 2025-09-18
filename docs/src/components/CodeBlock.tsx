@@ -65,6 +65,8 @@ export default function CodeBlock({
         overflow: 'hidden',
         my: 2,
         position: 'relative',
+        minWidth: 0,
+        maxWidth: '100%',
       }}
     >
       {/* Header */}
@@ -142,10 +144,15 @@ export default function CodeBlock({
             m: 0,
             p: 2,
             overflow: 'auto',
+            overflowX: 'auto',
+            overflowY: 'hidden',
             fontSize: '0.875rem',
             lineHeight: 1.6,
             fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
             color: 'text.primary',
+            minWidth: 0, // Prevent flex overflow
+            whiteSpace: 'pre',
+            wordBreak: 'normal',
           }}
         >
           {showLineNumbers ? (
