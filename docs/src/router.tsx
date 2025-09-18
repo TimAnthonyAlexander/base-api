@@ -13,6 +13,7 @@ const Controllers = lazy(() => import('./pages/Architecture/Controllers'));
 const ModelsOrm = lazy(() => import('./pages/Architecture/ModelsOrm'));
 const Migrations = lazy(() => import('./pages/Architecture/Migrations'));
 const Validation = lazy(() => import('./pages/Architecture/Validation'));
+const FileStorage = lazy(() => import('./pages/Architecture/FileStorage'));
 const DatabaseDrivers = lazy(() => import('./pages/Database/Drivers'));
 const ConfigurationEnv = lazy(() => import('./pages/Configuration/Env'));
 const ConfigurationCaching = lazy(() => import('./pages/Configuration/Caching'));
@@ -47,6 +48,7 @@ const router = createBrowserRouter([
       { path: 'architecture/models-orm', element: <ModelsOrm /> },
       { path: 'architecture/migrations', element: <Migrations /> },
       { path: 'architecture/validation', element: <Validation /> },
+      { path: 'architecture/file-storage', element: <FileStorage /> },
       
       // Database
       { path: 'database/drivers', element: <DatabaseDrivers /> },

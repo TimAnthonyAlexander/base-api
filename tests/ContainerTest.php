@@ -115,3 +115,4 @@ class CircularB
 {
     public function __construct(CircularA $a) {}
 }
+

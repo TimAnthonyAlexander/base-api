@@ -192,6 +192,12 @@ class App
         return $path ? $basePath . '/' . ltrim($path, '/') : $basePath;
     }
 
+    public static function storagePath(string $path = ''): string
+    {
+        $storagePath = self::basePath('storage');
+        return $path ? $storagePath . '/' . ltrim($path, '/') : $storagePath;
+    }
+
     private static function detectBasePath(): string
     {
         // When installed as package, look for composer.json in parent directories

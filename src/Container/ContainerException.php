@@ -30,3 +30,4 @@ class ContainerException extends Exception
         return new self("Invalid binding for '{$service}': {$reason}");
     }
 }
+

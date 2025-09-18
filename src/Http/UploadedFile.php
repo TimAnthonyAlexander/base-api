@@ -2,6 +2,8 @@
 
 namespace BaseApi\Http;
 
+use BaseApi\Storage\Storage;
+
 class UploadedFile
 {
     public string $name;
@@ -45,5 +47,54 @@ class UploadedFile
     public function getSizeInMB(): float
     {
         return $this->size / (1024 * 1024);
+    }
+
+    /**
+     * Store the uploaded file using the default disk.
+     * 
+     * @param string|null $directory Directory to store in (null for root)
+     * @param string|null $disk Storage disk name (null for default)
+     * @return string The stored file path
+     */
+    public function store(?string $directory = null, ?string $disk = null): string
+    {
+        $directory = $directory ?? '';
+        return Storage::disk($disk)->putFile($directory, $this);
+    }
+
+    /**
+     * Store the uploaded file with a specific name using the default disk.
+     * 
+     * @param string $directory Directory to store in
+     * @param string $name Desired filename
+     * @param string|null $disk Storage disk name (null for default)
+     * @return string The stored file path
+     */
+    public function storeAs(string $directory, string $name, ?string $disk = null): string
+    {
+        return Storage::disk($disk)->putFileAs($directory, $this, $name);
+    }
+
+    /**
+     * Store the uploaded file publicly (on the public disk).
+     * 
+     * @param string|null $directory Directory to store in (null for root)
+     * @return string The stored file path
+     */
+    public function storePublicly(?string $directory = null): string
+    {
+        return $this->store($directory, 'public');
+    }
+
+    /**
+     * Store the uploaded file with a specific name publicly (on the public disk).
+     * 
+     * @param string $directory Directory to store in
+     * @param string $name Desired filename
+     * @return string The stored file path
+     */
+    public function storePubliclyAs(string $directory, string $name): string
+    {
+        return $this->storeAs($directory, $name, 'public');
     }
 }

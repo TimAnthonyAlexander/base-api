@@ -28,3 +28,4 @@ abstract class ServiceProvider implements ServiceProviderInterface
         // Default implementation does nothing
     }
 }
+

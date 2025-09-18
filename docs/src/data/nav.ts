@@ -28,6 +28,7 @@ export const NAV: NavNode[] = [
       { title: 'Models & ORM', path: '/architecture/models-orm' },
       { title: 'Migrations', path: '/architecture/migrations' },
       { title: 'Validation', path: '/architecture/validation' },
+      { title: 'File Storage', path: '/architecture/file-storage' },
     ]
   },
   { 

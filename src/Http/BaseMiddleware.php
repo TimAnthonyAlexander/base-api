@@ -42,3 +42,4 @@ abstract class BaseMiddleware implements Middleware
         return $this->container()->make($abstract, $parameters);
     }
 }
+
