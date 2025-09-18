@@ -45,6 +45,7 @@ export const lightPalette: PaletteOptions = {
     700: '#1976d2',
     800: '#1565c0',
     900: '#0d47a1',
+    main: '#2196f3',
   },
   secondary: {
     50: '#f3e5f5',
@@ -57,6 +58,7 @@ export const lightPalette: PaletteOptions = {
     700: '#7b1fa2',
     800: '#6a1b9a',
     900: '#4a148c',
+    main: '#9c27b0',
   },
   neutral: {
     50: '#fafafa',
@@ -93,6 +95,7 @@ export const darkPalette: PaletteOptions = {
     700: '#1976d2',
     800: '#1565c0',
     900: '#0d47a1',
+    main: '#2196f3',
   },
   secondary: {
     50: '#f3e5f5',
@@ -105,6 +108,7 @@ export const darkPalette: PaletteOptions = {
     700: '#7b1fa2',
     800: '#6a1b9a',
     900: '#4a148c',
+    main: '#9c27b0',
   },
   neutral: {
     50: '#fafafa',
