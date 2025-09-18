@@ -26,7 +26,7 @@ const features = [
         icon: <PerformanceIcon />,
         title: 'High Performance',
         description: 'Minimal overhead (<0.01ms per request) with unified caching system for 10x+ query performance',
-        link: '/performance/benchmarks',
+        link: '/configuration/caching',
     },
     {
         icon: <SecurityIcon />,
@@ -56,7 +56,7 @@ const features = [
         icon: <DocsIcon />,
         title: 'Auto Documentation',
         description: 'Generate OpenAPI specs and TypeScript types with one command',
-        link: '/cli/docs-generation',
+        link: '/cli/overview',
     },
 ];
 

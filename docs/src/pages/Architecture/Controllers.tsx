@@ -46,6 +46,11 @@ class UserController extends Controller
     // Route parameters are automatically injected as properties
     public string $id = '';
     
+    // Form fields are automatically injected as properties
+    public string $name = '';
+    public string $email = '';
+    public string $password = '';
+    
     // GET /users or GET /users/{id}
     public function get(): JsonResponse
     {

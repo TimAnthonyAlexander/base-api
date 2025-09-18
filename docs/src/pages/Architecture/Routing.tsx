@@ -156,7 +156,7 @@ class PostController extends Controller
       <CodeBlock language="php" code={`<?php
 use BaseApi\\Http\\Middleware\\AuthMiddleware;
 use BaseApi\\Http\\Middleware\\RateLimitMiddleware;
-use BaseApi\\Http\\Middleware\\CacheResponse;
+use BaseApi\\Cache\\Middleware\\CacheResponse;
 
 // Route with middleware
 $router->get(

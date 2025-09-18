@@ -22,11 +22,11 @@ use BaseApi\\Models\\BaseModel;
 
 class Product extends BaseModel
 {
-    public string $id;
-    public string $name;
+    public string $name = '';
     public ?string $description = null;
-    public float $price;
-    public \\DateTime $created_at;
+    public float $price = 0.0;
+    
+    // id, created_at, updated_at are inherited from BaseModel
 }`;
 
 const controllerCode = `<?php
@@ -45,12 +45,6 @@ class ProductController extends Controller
     public float $price = 0.0;
     public string $id = '';
     
-    public function get(): JsonResponse
-    {
-        $products = Product::all();
-        return JsonResponse::ok(['products' => $products]);
-    }
-    
     public function post(): JsonResponse
     {
         // Validate input (BaseAPI provides automatic validation)
@@ -68,15 +62,22 @@ class ProductController extends Controller
         return JsonResponse::created(['product' => $product]);
     }
     
-    public function getId(): JsonResponse
+    public function get(): JsonResponse
     {
-        $product = Product::find($this->id);
-        
-        if (!$product) {
-            return JsonResponse::notFound(['message' => 'Product not found']);
+        // If ID is provided as route parameter, return single product
+        if (!empty($this->id)) {
+            $product = Product::find($this->id);
+            
+            if (!$product) {
+                return JsonResponse::notFound(['message' => 'Product not found']);
+            }
+            
+            return JsonResponse::ok(['product' => $product]);
         }
         
-        return JsonResponse::ok(['product' => $product]);
+        // Otherwise return all products
+        $products = Product::all();
+        return JsonResponse::ok(['products' => $products]);
     }
 }`;
 

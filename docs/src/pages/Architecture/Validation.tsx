@@ -46,7 +46,7 @@ class UserController extends Controller
     {
         $this->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email',
             'password' => 'required|string|min:8',
             'age' => 'required|integer|min:18|max:120',
             'active' => 'boolean',
@@ -133,16 +133,6 @@ class UserController extends Controller
               <TableCell>Maximum length/value</TableCell>
               <TableCell><code>'name' ={'>'} 'max:100'</code></TableCell>
             </TableRow>
-            <TableRow>
-              <TableCell><code>unique:table</code></TableCell>
-              <TableCell>Must be unique in database table</TableCell>
-              <TableCell><code>'email' ={'>'} 'unique:users'</code></TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell><code>exists:table,column</code></TableCell>
-              <TableCell>Must exist in database table</TableCell>
-              <TableCell><code>'user_id' ={'>'} 'exists:users,id'</code></TableCell>
-            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
@@ -171,14 +161,14 @@ class ProductController extends Controller
             // String with length constraints
             'name' => 'required|string|min:3|max:200',
             
-            // Unique constraint with custom error
-            'sku' => 'required|string|unique:products,sku|max:50',
+            // SKU with length constraint
+            'sku' => 'required|string|max:50',
             
             // Numeric with range
             'price' => 'required|numeric|min:0.01|max:999999.99',
             
-            // Foreign key validation
-            'categoryId' => 'required|uuid|exists:categories,id',
+            // UUID validation
+            'categoryId' => 'required|uuid',
             
             // Array validation
             'tags' => 'array',
@@ -194,43 +184,6 @@ class ProductController extends Controller
         $product->save();
         
         return JsonResponse::created($product->jsonSerialize());
-    }
-}`} />
-
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Unique Validation with Updates
-      </Typography>
-
-      <Typography paragraph>
-        For update operations, exclude the current record from unique validation:
-      </Typography>
-
-      <CodeBlock language="php" code={`<?php
-
-class UserController extends Controller
-{
-    public string $id = '';
-    public string $name = '';
-    public string $email = '';
-    
-    public function put(): JsonResponse
-    {
-        $user = User::find($this->id);
-        if (!$user) {
-            return JsonResponse::notFound();
-        }
-        
-        $this->validate([
-            'name' => 'required|string|max:100',
-            // Exclude current user's email from unique check
-            'email' => 'required|email|unique:users,email,' . $user->id,
-        ]);
-        
-        $user->name = $this->name;
-        $user->email = $this->email;
-        $user->save();
-        
-        return JsonResponse::ok($user->jsonSerialize());
     }
 }`} />
 
@@ -319,14 +272,13 @@ class UserController extends Controller
     {
         $this->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email',
             'password' => 'required|string|min:8',
         ], [
             // Custom messages
             'name.required' => 'Please provide your full name.',
             'email.required' => 'An email address is required.',
             'email.email' => 'Please provide a valid email address.',
-            'email.unique' => 'This email address is already registered.',
             'password.min' => 'Password must be at least 8 characters long.',
         ]);
         
