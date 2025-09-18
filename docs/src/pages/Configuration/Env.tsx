@@ -51,7 +51,7 @@ const appEnvVars = [
 const corsEnvVars = [
   {
     key: 'CORS_ALLOWLIST',
-    default: 'http://localhost:3000,http://127.0.0.1:3000',
+    default: 'http://localhost:5173,http://127.0.0.1:5173',
     description: 'Comma-separated list of allowed origins for API access',
   },
   {
@@ -65,15 +65,15 @@ const corsEnvVars = [
 const databaseEnvVars = [
   {
     key: 'DB_DRIVER',
-    default: 'sqlite',
+    default: 'mysql',
     description: 'Database driver',
     type: 'enum' as const,
-    options: ['sqlite', 'mysql', 'postgresql'],
+    options: ['mysql', 'sqlite', 'postgresql'],
   },
   {
     key: 'DB_NAME',
-    default: 'database.sqlite',
-    description: 'Database name or file (for SQLite, this is a file path)',
+    default: 'baseapi',
+    description: 'Database name (MySQL/PostgreSQL) or file path (SQLite)',
   },
   {
     key: 'DB_HOST',
@@ -191,7 +191,7 @@ APP_PORT=7879
 ########################################
 
 # Comma-separated list of allowed origins for API access
-CORS_ALLOWLIST=http://localhost:3000,http://127.0.0.1:3000
+CORS_ALLOWLIST=http://localhost:5173,http://127.0.0.1:5173
 CORS_MAX_AGE=86400
 
 
@@ -199,11 +199,11 @@ CORS_MAX_AGE=86400
 # Database Configuration
 ########################################
 
-# Database driver: sqlite, mysql, postgresql
-DB_DRIVER=sqlite
+# Database driver: mysql, sqlite, postgresql
+DB_DRIVER=mysql
 
-# Database name or file (for SQLite, this is a file path)
-DB_NAME=database.sqlite
+# Database name (MySQL/PostgreSQL) or file path (SQLite)
+DB_NAME=baseapi
 
 
 ########################################
@@ -304,7 +304,7 @@ export default function Env() {
           
           <Callout type="info">
             <Typography>
-              <strong>SQLite (Default):</strong> Only requires <code>DB_DRIVER=sqlite</code> and <code>DB_NAME</code> (file path). Perfect for development and small applications.
+              <strong>MySQL (Default):</strong> Requires <code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, and <code>DB_PASSWORD</code>. For SQLite, only <code>DB_DRIVER=sqlite</code> and <code>DB_NAME</code> (file path) are needed.
             </Typography>
           </Callout>
         </AccordionDetails>
