@@ -140,7 +140,7 @@ export default function CodeBlock({
       >
         <Box
           component="pre"
-          sx={{
+          sx={(theme) => ({
             m: 0,
             p: 2,
             overflow: 'auto',
@@ -149,24 +149,28 @@ export default function CodeBlock({
             fontSize: '0.875rem',
             lineHeight: 1.6,
             fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            color: 'text.primary',
+            color: theme.palette.mode === 'dark' ? '#e0e0e0' : '#333333',
             minWidth: 0, // Prevent flex overflow
             whiteSpace: 'pre',
             wordBreak: 'normal',
-          }}
+            '& code': {
+              color: theme.palette.mode === 'dark' ? '#e0e0e0' : '#333333',
+              fontFamily: 'inherit',
+            },
+          })}
         >
           {showLineNumbers ? (
             <Box sx={{ display: 'flex' }}>
               <Box
-                sx={{
+                sx={(theme) => ({
                   pr: 2,
                   mr: 2,
                   borderRight: 1,
                   borderColor: 'divider',
-                  color: 'text.disabled',
+                  color: theme.palette.mode === 'dark' ? '#888888' : '#999999',
                   userSelect: 'none',
                   minWidth: 'fit-content',
-                }}
+                })}
               >
                 {codeLines.map((_, index) => (
                   <Box key={index} component="div">
@@ -175,11 +179,11 @@ export default function CodeBlock({
                 ))}
               </Box>
               <Box sx={{ flex: 1 }}>
-                <code style={{ color: 'inherit' }}>{code}</code>
+                <code>{code}</code>
               </Box>
             </Box>
           ) : (
-            <code style={{ color: 'inherit' }}>{code}</code>
+            <code>{code}</code>
           )}
         </Box>
       </Box>
