@@ -5,6 +5,8 @@ A tiny, KISS-first PHP 8.4+ framework for building REST APIs.
 BaseAPI is designed to get out of your way and let you build APIs quickly and efficiently.
 It provides all the essential tools you need while maintaining simplicity and performance.
 
+[Documentation Here](https://baseapi.timanthonyalexander.de)
+
 ## ✨ Features
 
 - **Low Configuration** - Works out of the box with sensible defaults
