@@ -1,30 +1,27 @@
 {
   "workspace_root": "/Users/tim.alexander/baseapi",
-  "created_at_unix": 1757541167,
+  "created_at_unix": 1757951464,
   "languages": [
     "php"
   ],
-  "entrypoints": [
-    {
-      "path": "public/index.php",
-      "kind": "backend",
-      "hints": [
-        "laravel",
-        "web"
-      ]
-    }
-  ],
+  "entrypoints": [],
   "scripts": [
-    {
-      "name": "serve",
-      "source": "composer",
-      "cmd": "php -S 127.0.0.1:8000 -t public public/router.php",
-      "paths": null
-    },
     {
       "name": "phpstan",
       "source": "composer",
-      "cmd": "phpstan analyse --memory-limit=256M",
+      "cmd": "phpstan analyse --memory-limit=256M src",
+      "paths": null
+    },
+    {
+      "name": "phpunit",
+      "source": "composer",
+      "cmd": "phpunit --colors=always --testdox tests/",
+      "paths": null
+    },
+    {
+      "name": "test-unit",
+      "source": "composer",
+      "cmd": "phpunit --colors=always --testdox",
       "paths": null
     }
   ],
@@ -35,93 +32,63 @@
       "path": ".gitignore"
     },
     {
-      "tool": "config",
-      "path": "app/Config.php"
-    },
-    {
       "tool": "composer",
       "path": "composer.json"
     },
     {
-      "tool": "phpstan",
-      "path": "phpstan.neon"
+      "tool": "config",
+      "path": "src/Config.php"
     },
     {
       "tool": "unknown",
       "path": "storage/.gitignore"
+    },
+    {
+      "tool": "unknown",
+      "path": "storage/ratelimits/.gitignore"
     }
   ],
   "codegen": [
     {
       "tool": "laravel-migrations",
       "paths": [
-        "app/Database/Migrations/ColumnDef.php",
-        "app/Database/Migrations/DatabaseIntrospector.php",
-        "app/Database/Migrations/DatabaseSchema.php",
-        "app/Database/Migrations/DiffEngine.php",
-        "app/Database/Migrations/ForeignKeyDef.php",
-        "app/Database/Migrations/IndexDef.php",
-        "app/Database/Migrations/MigrationPlan.php",
-        "app/Database/Migrations/MigrationsFile.php",
-        "app/Database/Migrations/ModelScanner.php",
-        "app/Database/Migrations/ModelSchema.php",
-        "app/Database/Migrations/SqlGenerator.php",
-        "app/Database/Migrations/TableDef.php",
-        "app/Database/Migrations/ColumnDef.php",
-        "app/Database/Migrations/DatabaseIntrospector.php",
-        "app/Database/Migrations/DatabaseSchema.php",
-        "app/Database/Migrations/DiffEngine.php",
-        "app/Database/Migrations/ForeignKeyDef.php",
-        "app/Database/Migrations/IndexDef.php",
-        "app/Database/Migrations/MigrationPlan.php",
-        "app/Database/Migrations/MigrationsFile.php",
-        "app/Database/Migrations/ModelScanner.php",
-        "app/Database/Migrations/ModelSchema.php",
-        "app/Database/Migrations/SqlGenerator.php",
-        "app/Database/Migrations/TableDef.php"
+        "src/Database/Migrations/ColumnDef.php",
+        "src/Database/Migrations/DatabaseIntrospector.php",
+        "src/Database/Migrations/DatabaseSchema.php",
+        "src/Database/Migrations/DiffEngine.php",
+        "src/Database/Migrations/ForeignKeyDef.php",
+        "src/Database/Migrations/IndexDef.php",
+        "src/Database/Migrations/MigrationPlan.php",
+        "src/Database/Migrations/MigrationsFile.php",
+        "src/Database/Migrations/ModelScanner.php",
+        "src/Database/Migrations/ModelSchema.php",
+        "src/Database/Migrations/SqlGenerator.php",
+        "src/Database/Migrations/TableDef.php",
+        "src/Database/Migrations/ColumnDef.php",
+        "src/Database/Migrations/DatabaseIntrospector.php",
+        "src/Database/Migrations/DatabaseSchema.php",
+        "src/Database/Migrations/DiffEngine.php",
+        "src/Database/Migrations/ForeignKeyDef.php",
+        "src/Database/Migrations/IndexDef.php",
+        "src/Database/Migrations/MigrationPlan.php",
+        "src/Database/Migrations/MigrationsFile.php",
+        "src/Database/Migrations/ModelScanner.php",
+        "src/Database/Migrations/ModelSchema.php",
+        "src/Database/Migrations/SqlGenerator.php",
+        "src/Database/Migrations/TableDef.php"
       ]
     }
   ],
   "routes_services": [
     {
       "kind": "service",
-      "path": "app/Controllers/Controller.php",
+      "path": "src/Controllers/Controller.php",
       "name": "Controller"
-    },
-    {
-      "kind": "service",
-      "path": "app/Controllers/HealthController.php",
-      "name": "HealthController"
-    },
-    {
-      "kind": "service",
-      "path": "app/Controllers/I18nController.php",
-      "name": "I18nController"
-    },
-    {
-      "kind": "service",
-      "path": "app/Controllers/LoginController.php",
-      "name": "LoginController"
-    },
-    {
-      "kind": "service",
-      "path": "app/Controllers/LogoutController.php",
-      "name": "LogoutController"
-    },
-    {
-      "kind": "service",
-      "path": "app/Controllers/MeController.php",
-      "name": "MeController"
-    },
-    {
-      "kind": "service",
-      "path": "app/Controllers/UserController.php",
-      "name": "UserController"
     }
   ],
   "important_files": [
     {
-      "path": "app/Database/Migrations/MigrationsFile.php",
+      "path": "src/App.php",
       "score": 0.45,
       "reasons": [
         "graph_central"
@@ -143,13 +110,13 @@
       "is_generated": false
     },
     {
-      "path": "app/Database/Migrations/MigrationPlan.php",
-      "score": 0.4439700655594512,
+      "path": "src/Models/BaseModel.php",
+      "score": 0.20645890917044332,
       "reasons": [
         "graph_central"
       ],
       "components": {
-        "centrality": 0.4439700655594512,
+        "centrality": 0.20645890917044332,
         "doc_mentions": 0,
         "git_frequency": 0,
         "git_recency": 0,
@@ -165,1869 +132,11 @@
       "is_generated": false
     },
     {
-      "path": "app/Database/Migrations/SqlGenerator.php",
-      "score": 0.4439700655594512,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.4439700655594512,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/DatabaseIntrospector.php",
-      "score": 0.4436639140773403,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.4436639140773403,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/ModelScanner.php",
-      "score": 0.4436639140773403,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.4436639140773403,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/DiffEngine.php",
-      "score": 0.44335476612674213,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.44335476612674213,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/ColumnDef.php",
-      "score": 0.43732483168619335,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.43732483168619335,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/DatabaseSchema.php",
-      "score": 0.43732483168619335,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.43732483168619335,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/ForeignKeyDef.php",
-      "score": 0.43732483168619335,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.43732483168619335,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/IndexDef.php",
-      "score": 0.43732483168619335,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.43732483168619335,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/ModelSchema.php",
-      "score": 0.43732483168619335,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.43732483168619335,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Migrations/TableDef.php",
-      "score": 0.43732483168619335,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.43732483168619335,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/App.php",
-      "score": 0.3068406738558376,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.3068406738558376,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Models/User.php",
-      "score": 0.287459680397131,
-      "reasons": [
-        "doc_mention"
-      ],
-      "components": {
-        "centrality": 0.13361352655097716,
-        "doc_mentions": 0.15384615384615385,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/UserController.php",
-      "score": 0.1846935326533084,
-      "reasons": [
-        "doc_mention"
-      ],
-      "components": {
-        "centrality": 0.06464273642865792,
-        "doc_mentions": 0.12005079622465047,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "README.md",
-      "score": 0.18355228033617754,
-      "reasons": [
-        "script_ref"
-      ],
-      "components": {
-        "centrality": 0.06424329811766213,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0.11930898221851541
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Command.php",
-      "score": 0.176828000677789,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.176828000677789,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Models/BaseModel.php",
-      "score": 0.13992736448049387,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.13992736448049387,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Logger.php",
-      "score": 0.13816330599336926,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.13816330599336926,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Request.php",
-      "score": 0.1359983275477747,
-      "reasons": [
-        "graph_central"
-      ],
-      "components": {
-        "centrality": 0.1359983275477747,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/JsonResponse.php",
-      "score": 0.1266974510662686,
-      "reasons": null,
-      "components": {
-        "centrality": 0.1266974510662686,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/I18n.php",
-      "score": 0.12237671817741529,
-      "reasons": null,
-      "components": {
-        "centrality": 0.12237671817741529,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/DB.php",
-      "score": 0.12032137773890772,
-      "reasons": null,
-      "components": {
-        "centrality": 0.12032137773890772,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/UploadedFile.php",
-      "score": 0.11513860362040837,
-      "reasons": null,
-      "components": {
-        "centrality": 0.11513860362040837,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/QueryBuilder.php",
-      "score": 0.10980254179048284,
-      "reasons": null,
-      "components": {
-        "centrality": 0.10980254179048284,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Auth/SimpleUserProvider.php",
-      "score": 0.1049415696397997,
-      "reasons": null,
-      "components": {
-        "centrality": 0.1049415696397997,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Auth/UserProvider.php",
-      "score": 0.1049415696397997,
-      "reasons": null,
-      "components": {
-        "centrality": 0.1049415696397997,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Connection.php",
-      "score": 0.1049415696397997,
-      "reasons": null,
-      "components": {
-        "centrality": 0.1049415696397997,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Kernel.php",
-      "score": 0.1049415696397997,
-      "reasons": null,
-      "components": {
-        "centrality": 0.1049415696397997,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Translation/ICUValidator.php",
-      "score": 0.10119065814766574,
-      "reasons": null,
-      "components": {
-        "centrality": 0.10119065814766574,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Attributes/ResponseType.php",
-      "score": 0.10009576570527193,
-      "reasons": null,
-      "components": {
-        "centrality": 0.10009576570527193,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Attributes/Tag.php",
-      "score": 0.10009576570527193,
-      "reasons": null,
-      "components": {
-        "centrality": 0.10009576570527193,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/ModelQuery.php",
-      "score": 0.09893394429017591,
-      "reasons": null,
-      "components": {
-        "centrality": 0.09893394429017591,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Response.php",
-      "score": 0.09459082494753027,
-      "reasons": null,
-      "components": {
-        "centrality": 0.09459082494753027,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Translation/TranslationProviderFactory.php",
-      "score": 0.09205793761540457,
-      "reasons": null,
-      "components": {
-        "centrality": 0.09205793761540457,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Validation/ValidationException.php",
-      "score": 0.08846389556434356,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08846389556434356,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Router.php",
-      "score": 0.08846389556434356,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08846389556434356,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/PaginatedResult.php",
-      "score": 0.08694619261303974,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08694619261303974,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Relations/BelongsTo.php",
-      "score": 0.08694619261303974,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08694619261303974,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Relations/HasMany.php",
-      "score": 0.08694619261303974,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08694619261303974,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Uuid.php",
-      "score": 0.08694619261303974,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08694619261303974,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Validation/Validator.php",
-      "score": 0.08665174791275553,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08665174791275553,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Translation/TranslationException.php",
-      "score": 0.08449202309858543,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08449202309858543,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Translation/TranslationProvider.php",
-      "score": 0.08449202309858543,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08449202309858543,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/DbException.php",
-      "score": 0.08400826279297637,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08400826279297637,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Caching/CacheHelper.php",
-      "score": 0.08400826279297637,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08400826279297637,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/ClientIp.php",
-      "score": 0.08072816437358689,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08072816437358689,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/RateLimiter.php",
-      "score": 0.08072816437358689,
-      "reasons": null,
-      "components": {
-        "centrality": 0.08072816437358689,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Config.php",
-      "score": 0.07832720386265873,
-      "reasons": [
-        "config"
-      ],
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Application.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/I18nAddLangCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/I18nFillCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/I18nHashCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/I18nLintCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/I18nScanCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/MakeModelCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/MigrateApplyCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/MigrateGenerateCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/ServeCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/TypesGenerateCommand.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Database/Relations/Relation.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Dto/UserDto.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/BinaryResponse.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Binding/TypeCoercion.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/ErrorHandler.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Route.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Translation/DeepLProvider.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Support/Translation/OpenAIProvider.php",
-      "score": 0.07832720386265873,
-      "reasons": null,
-      "components": {
-        "centrality": 0.07832720386265873,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Binding/ControllerBinder.php",
-      "score": 0.029723854172500876,
-      "reasons": null,
-      "components": {
-        "centrality": 0.029723854172500876,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Middleware/OptionedMiddleware.php",
-      "score": 0.02944567392020023,
-      "reasons": null,
-      "components": {
-        "centrality": 0.02944567392020023,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "routes/api.php",
-      "score": 0.029308982218515398,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/ControllerListHelpers.php",
-      "score": 0.028206151221197052,
-      "reasons": null,
-      "components": {
-        "centrality": 0.028206151221197052,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Middleware.php",
-      "score": 0.02507128744474306,
-      "reasons": null,
-      "components": {
-        "centrality": 0.02507128744474306,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/HealthController.php",
-      "score": 0.020050796224650454,
-      "reasons": null,
-      "components": {
-        "centrality": 0.020050796224650454,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/I18nController.php",
-      "score": 0.020050796224650454,
-      "reasons": null,
-      "components": {
-        "centrality": 0.020050796224650454,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/LoginController.php",
-      "score": 0.020050796224650454,
-      "reasons": null,
-      "components": {
-        "centrality": 0.020050796224650454,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/LogoutController.php",
-      "score": 0.020050796224650454,
-      "reasons": null,
-      "components": {
-        "centrality": 0.020050796224650454,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/MeController.php",
-      "score": 0.020050796224650454,
-      "reasons": null,
-      "components": {
-        "centrality": 0.020050796224650454,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Middleware/AuthMiddleware.php",
-      "score": 0.019772615972349805,
-      "reasons": null,
-      "components": {
-        "centrality": 0.019772615972349805,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/Middleware/RateLimitMiddleware.php",
-      "score": 0.019772615972349805,
-      "reasons": null,
-      "components": {
-        "centrality": 0.019772615972349805,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Console/Commands/MakeControllerCommand.php",
-      "score": 0.019587162470816044,
-      "reasons": null,
-      "components": {
-        "centrality": 0.019587162470816044,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Controllers/Controller.php",
-      "score": 0.019587162470816044,
-      "reasons": null,
-      "components": {
-        "centrality": 0.019587162470816044,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/ControllerInvoker.php",
-      "score": 0.019587162470816044,
-      "reasons": null,
-      "components": {
-        "centrality": 0.019587162470816044,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/CorsMiddleware.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/FormBodyParserMiddleware.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/JsonBodyParserMiddleware.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/RequestIdMiddleware.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/ResponseTimeMiddleware.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "app/Http/SessionStartMiddleware.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "config/app.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "config/i18n.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "public/index.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "public/router.php",
-      "score": 0.0193089822185154,
-      "reasons": null,
-      "components": {
-        "centrality": 0.0193089822185154,
-        "doc_mentions": 0,
-        "git_frequency": 0,
-        "git_recency": 0,
-        "script_ci_refs": 0
-      },
-      "penalties": {
-        "generated": 0,
-        "large": 0,
-        "test": 0,
-        "vendored": 0
-      },
-      "confidence": 0.8,
-      "is_generated": false
-    },
-    {
-      "path": "tests/ExampleTest.php",
-      "score": 0.0193089822185154,
+      "path": "src/Logger.php",
+      "score": 0.13111573178881414,
       "reasons": null,
       "components": {
-        "centrality": 0.0193089822185154,
+        "centrality": 0.13111573178881414,
         "doc_mentions": 0,
         "git_frequency": 0,
         "git_recency": 0,
@@ -2044,12 +153,2059 @@
     },
     {
       "path": "composer.json",
-      "score": 0.005,
+      "score": 0.12224584388643236,
+      "reasons": [
+        "doc_mention",
+        "config"
+      ],
+      "components": {
+        "centrality": 0.041036045360251315,
+        "doc_mentions": 0.07620979852618105,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Request.php",
+      "score": 0.12217933431853477,
+      "reasons": null,
+      "components": {
+        "centrality": 0.12217933431853477,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "score": 0.11724584388643236,
+      "reasons": [
+        "doc_mention"
+      ],
+      "components": {
+        "centrality": 0.041036045360251315,
+        "doc_mentions": 0.07620979852618105,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "examples/postgresql-setup.md",
+      "score": 0.11724584388643236,
+      "reasons": [
+        "doc_mention"
+      ],
+      "components": {
+        "centrality": 0.041036045360251315,
+        "doc_mentions": 0.07620979852618105,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Container/ContainerInterface.php",
+      "score": 0.11009784786355141,
+      "reasons": null,
+      "components": {
+        "centrality": 0.11009784786355141,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/MigrationPlan.php",
+      "score": 0.1016878729101396,
+      "reasons": null,
+      "components": {
+        "centrality": 0.1016878729101396,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Command.php",
+      "score": 0.09824306147563526,
+      "reasons": null,
+      "components": {
+        "centrality": 0.09824306147563526,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/UploadedFile.php",
+      "score": 0.09521312966560222,
+      "reasons": null,
+      "components": {
+        "centrality": 0.09521312966560222,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Container/Container.php",
+      "score": 0.09199217883601254,
+      "reasons": null,
+      "components": {
+        "centrality": 0.09199217883601254,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Connection.php",
+      "score": 0.08848919859523452,
+      "reasons": null,
+      "components": {
+        "centrality": 0.08848919859523452,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/DB.php",
+      "score": 0.08848919859523452,
+      "reasons": null,
+      "components": {
+        "centrality": 0.08848919859523452,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Kernel.php",
+      "score": 0.08848919859523452,
+      "reasons": null,
+      "components": {
+        "centrality": 0.08848919859523452,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/QueryBuilder.php",
+      "score": 0.08456602549533157,
+      "reasons": null,
+      "components": {
+        "centrality": 0.08456602549533157,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Auth/UserProvider.php",
+      "score": 0.08085301446238559,
+      "reasons": null,
+      "components": {
+        "centrality": 0.08085301446238559,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Container/CoreServiceProvider.php",
+      "score": 0.08085301446238559,
+      "reasons": null,
+      "components": {
+        "centrality": 0.08085301446238559,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Drivers/DatabaseDriverFactory.php",
+      "score": 0.06938764123517073,
+      "reasons": null,
+      "components": {
+        "centrality": 0.06938764123517073,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/ModelQuery.php",
+      "score": 0.06513806818106069,
+      "reasons": null,
+      "components": {
+        "centrality": 0.06513806818106069,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Drivers/DatabaseDriverInterface.php",
+      "score": 0.06381805904835725,
+      "reasons": null,
+      "components": {
+        "centrality": 0.06381805904835725,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/I18n.php",
+      "score": 0.05591423685585288,
+      "reasons": null,
+      "components": {
+        "centrality": 0.05591423685585288,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Translation/ICUValidator.php",
+      "score": 0.055542931376732,
+      "reasons": null,
+      "components": {
+        "centrality": 0.055542931376732,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/DbException.php",
+      "score": 0.0545144151995671,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0545144151995671,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/DatabaseSchema.php",
+      "score": 0.05333276036422504,
+      "reasons": null,
+      "components": {
+        "centrality": 0.05333276036422504,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Response.php",
+      "score": 0.052413356624141566,
+      "reasons": null,
+      "components": {
+        "centrality": 0.052413356624141566,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Drivers/SqliteDriver.php",
+      "score": 0.04737421083607224,
+      "reasons": null,
+      "components": {
+        "centrality": 0.04737421083607224,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/ColumnDef.php",
+      "score": 0.047088305617149134,
+      "reasons": null,
+      "components": {
+        "centrality": 0.047088305617149134,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/ForeignKeyDef.php",
+      "score": 0.047088305617149134,
+      "reasons": null,
+      "components": {
+        "centrality": 0.047088305617149134,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/IndexDef.php",
+      "score": 0.047088305617149134,
+      "reasons": null,
+      "components": {
+        "centrality": 0.047088305617149134,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Binding/ControllerBinder.php",
+      "score": 0.046382069499755374,
+      "reasons": null,
+      "components": {
+        "centrality": 0.046382069499755374,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Router.php",
+      "score": 0.046382069499755374,
+      "reasons": null,
+      "components": {
+        "centrality": 0.046382069499755374,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/PaginatedResult.php",
+      "score": 0.0457101108667898,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0457101108667898,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Relations/BelongsTo.php",
+      "score": 0.0457101108667898,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0457101108667898,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Relations/HasMany.php",
+      "score": 0.0457101108667898,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0457101108667898,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/ControllerListHelpers.php",
+      "score": 0.0457101108667898,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0457101108667898,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Uuid.php",
+      "score": 0.0457101108667898,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0457101108667898,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/JsonResponse.php",
+      "score": 0.041274192250514624,
+      "reasons": null,
+      "components": {
+        "centrality": 0.041274192250514624,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Drivers/PostgreSqlDriver.php",
+      "score": 0.03920549029541247,
+      "reasons": null,
+      "components": {
+        "centrality": 0.03920549029541247,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Middleware/OptionedMiddleware.php",
+      "score": 0.038745885366906443,
+      "reasons": null,
+      "components": {
+        "centrality": 0.038745885366906443,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Validation/ValidationException.php",
+      "score": 0.038745885366906443,
+      "reasons": null,
+      "components": {
+        "centrality": 0.038745885366906443,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Container/ContainerException.php",
+      "score": 0.037348962899807985,
+      "reasons": null,
+      "components": {
+        "centrality": 0.037348962899807985,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Drivers/MySqlDriver.php",
+      "score": 0.03623504646244529,
+      "reasons": null,
+      "components": {
+        "centrality": 0.03623504646244529,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Translation/TranslationProviderFactory.php",
+      "score": 0.035492435504203494,
+      "reasons": null,
+      "components": {
+        "centrality": 0.035492435504203494,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/SqlGenerator.php",
+      "score": 0.0351211300250826,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0351211300250826,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/MigrationsFile.php",
+      "score": 0.0343785190668408,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0343785190668408,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/ModelScanner.php",
+      "score": 0.0343785190668408,
+      "reasons": null,
+      "components": {
+        "centrality": 0.0343785190668408,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Middleware.php",
+      "score": 0.033848082668096656,
+      "reasons": null,
+      "components": {
+        "centrality": 0.033848082668096656,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Config.php",
+      "score": 0.03384598265902997,
       "reasons": [
         "config"
       ],
       "components": {
-        "centrality": 0,
+        "centrality": 0.03384598265902997,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/ControllerInvoker.php",
+      "score": 0.03384598265902997,
+      "reasons": null,
+      "components": {
+        "centrality": 0.03384598265902997,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Profiler.php",
+      "score": 0.03384598265902997,
+      "reasons": null,
+      "components": {
+        "centrality": 0.03384598265902997,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Validation/Validator.php",
+      "score": 0.031779380712994514,
+      "reasons": null,
+      "components": {
+        "centrality": 0.031779380712994514,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Attributes/ResponseType.php",
+      "score": 0.030665464275631816,
+      "reasons": null,
+      "components": {
+        "centrality": 0.030665464275631816,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Attributes/Tag.php",
+      "score": 0.030665464275631816,
+      "reasons": null,
+      "components": {
+        "centrality": 0.030665464275631816,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/DatabaseIntrospector.php",
+      "score": 0.029922853317390023,
+      "reasons": null,
+      "components": {
+        "centrality": 0.029922853317390023,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/DiffEngine.php",
+      "score": 0.029922853317390023,
+      "reasons": null,
+      "components": {
+        "centrality": 0.029922853317390023,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Translation/TranslationException.php",
+      "score": 0.029922853317390023,
+      "reasons": null,
+      "components": {
+        "centrality": 0.029922853317390023,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Translation/TranslationProvider.php",
+      "score": 0.029922853317390023,
+      "reasons": null,
+      "components": {
+        "centrality": 0.029922853317390023,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/ClientIp.php",
+      "score": 0.029392416918645883,
+      "reasons": null,
+      "components": {
+        "centrality": 0.029392416918645883,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/RateLimiter.php",
+      "score": 0.029392416918645883,
+      "reasons": null,
+      "components": {
+        "centrality": 0.029392416918645883,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "config/database.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "config/defaults.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Application.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/I18nAddLangCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/I18nFillCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/I18nHashCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/I18nLintCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/I18nScanCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/MakeControllerCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/MakeModelCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/MigrateApplyCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/MigrateGenerateCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/ServeCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Console/Commands/TypesGenerateCommand.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Container/ServiceProvider.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Container/ServiceProviderInterface.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Controllers/Controller.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/ModelSchema.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Migrations/TableDef.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Database/Relations/Relation.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/BaseMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/BinaryResponse.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Binding/TypeCoercion.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Caching/CacheHelper.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/CorsMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/ErrorHandler.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/FormBodyParserMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/JsonBodyParserMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Middleware/AuthMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Middleware/CsrfMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/Middleware/RateLimitMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/ProfilerMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/RequestIdMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/ResponseTimeMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/SecurityHeadersMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Http/SessionStartMiddleware.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Route.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Translation/DeepLProvider.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "src/Support/Translation/OpenAIProvider.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/ContainerTest.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/DatabaseDriverTest.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/ModelScannerTest.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/PostgreSqlDriverTest.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/SqliteMigrationTest.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/integration/MigrationIntegrationTest.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
+        "doc_mentions": 0,
+        "git_frequency": 0,
+        "git_recency": 0,
+        "script_ci_refs": 0
+      },
+      "penalties": {
+        "generated": 0,
+        "large": 0,
+        "test": 0,
+        "vendored": 0
+      },
+      "confidence": 0.8,
+      "is_generated": false
+    },
+    {
+      "path": "tests/integration/TestModel.php",
+      "score": 0.026209798526181043,
+      "reasons": null,
+      "components": {
+        "centrality": 0.026209798526181043,
         "doc_mentions": 0,
         "git_frequency": 0,
         "git_recency": 0,
@@ -2080,19 +2236,19 @@
   "git_window_days": 730,
   "input_signature": {
     "manifest_hashes": {
-      ".gitignore": "78542e694ea708026f82a89ecaecaf2d4f6a72e57446e71101566a9a2e8a15f9",
-      "composer.json": "34c1e7343935c56004ee1d7f63a6f6ce0349802e756aff3302c614a9177567f9"
+      ".gitignore": "d26eaa5d454d2c28367557156e42ff7820db1fb79dc6f8f918a2a7b08977002a",
+      "composer.json": "cb5e17dc0d396015247db640d1dc67f97575fd1632f76523eeced6b1adc90001"
     },
     "tsconfig_hash": "",
-    "readme_hash": "f0bb54d95108628a49352d8da3113f317cc889c5b7da5530ee739c543c86b24d",
-    "mtime_max": 1757520682
+    "readme_hash": "84508a413c938e79c1db0daf301d90e63aff242ef2a151418a32667fe1555224",
+    "mtime_max": 1757805753
   },
   "metrics": {
-    "files": 138,
-    "edges": 1618,
-    "pagerank_iters": 22,
-    "duration_ms": 173,
-    "rank_churn": 0.8888888888888888
+    "files": 125,
+    "edges": 163,
+    "pagerank_iters": 16,
+    "duration_ms": 288,
+    "rank_churn": 1
   },
   "version": "2"
 }
