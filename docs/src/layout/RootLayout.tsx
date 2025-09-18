@@ -68,16 +68,15 @@ export default function RootLayout() {
           {/* Account for header height */}
           <Box sx={{ height: 64 }} />
           
-          <Container 
-            maxWidth={false}
+          <Box
             sx={{ 
-              px: { xs: 2, sm: 3, lg: 4, xl: 6 }, 
+              px: { xs: 1.5, sm: 2.5, lg: 3, xl: 4 }, 
               py: 4,
               minHeight: 'calc(100vh - 64px)',
               display: 'flex',
               flexDirection: 'column',
-              maxWidth: { xs: '100%', lg: 'none' },
               width: '100%',
+              maxWidth: '100%',
             }}
           >
             <Suspense 
@@ -94,7 +93,7 @@ export default function RootLayout() {
             >
               <Outlet />
             </Suspense>
-          </Container>
+          </Box>
         </Box>
       </Box>
     </ThemeProvider>

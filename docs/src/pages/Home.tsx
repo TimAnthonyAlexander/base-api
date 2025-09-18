@@ -84,15 +84,15 @@ export default function Home() {
         sx={{
           background: (theme) => `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
           borderRadius: 3,
-          p: { xs: 2, sm: 3, md: 6 },
-          mx: { xs: 1, sm: 0 },
+          p: { xs: 1.5, sm: 3, md: 6 },
+          mx: { xs: 0.5, sm: 0 },
           mb: 6,
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 800, lg: 900 }, mx: 'auto', px: { xs: 0, sm: 2 } }}>
+        <Box sx={{ maxWidth: { xs: 'calc(100vw - 24px)', sm: 600, md: 800, lg: 1000, xl: 1200 }, mx: 'auto', px: { xs: 1, sm: 2 } }}>
           <Typography
             variant="h1"
             sx={{
@@ -185,7 +185,7 @@ export default function Home() {
         <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
           Quick Start
         </Typography>
-        <Box sx={{ maxWidth: { xs: '100%', sm: 600, md: 800, lg: 900 }, mx: 'auto' }}>
+        <Box sx={{ maxWidth: { xs: 'calc(100vw - 24px)', sm: 600, md: 800, lg: 1000, xl: 1200 }, mx: 'auto', px: { xs: 1, sm: 0 } }}>
           <CodeBlock
             language="bash"
             code={quickStartCode}
@@ -220,9 +220,10 @@ export default function Home() {
             lg: 'repeat(3, 1fr)',
             xl: 'repeat(3, 1fr)' 
           }, 
-          gap: { xs: 2, sm: 3, lg: 4 },
-          maxWidth: { lg: 1200, xl: 1400 },
-          mx: 'auto'
+          gap: { xs: 1.5, sm: 3, lg: 4, xl: 5 },
+          maxWidth: { xs: 'calc(100vw - 16px)', sm: 'none', lg: '95%', xl: '90%' },
+          mx: 'auto',
+          px: { xs: 1, sm: 0 }
         }}>
           {features.map((feature, index) => (
             <Box key={index}>
@@ -277,8 +278,8 @@ export default function Home() {
         sx={{
           background: (theme) => alpha(theme.palette.primary.main, 0.05),
           borderRadius: 3,
-          p: { xs: 3, sm: 4 },
-          mx: { xs: 1, sm: 0 },
+          p: { xs: 2.5, sm: 4 },
+          mx: { xs: 0.5, sm: 0 },
           textAlign: 'center',
         }}
       >
@@ -288,9 +289,9 @@ export default function Home() {
         <Box sx={{ 
           display: 'grid', 
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, 
-          gap: { xs: 3, sm: 4, lg: 6 }, 
+          gap: { xs: 2, sm: 4, lg: 6, xl: 8 }, 
           mt: 2,
-          maxWidth: 800,
+          maxWidth: { xs: '100%', sm: 800, lg: 1000, xl: 1200 },
           mx: 'auto'
         }}>
           <Box sx={{ textAlign: 'center' }}>
