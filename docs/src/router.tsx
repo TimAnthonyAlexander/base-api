@@ -17,6 +17,9 @@ const FileStorage = lazy(() => import('./pages/Architecture/FileStorage'));
 const DatabaseDrivers = lazy(() => import('./pages/Database/Drivers'));
 const ConfigurationEnv = lazy(() => import('./pages/Configuration/Env'));
 const ConfigurationCaching = lazy(() => import('./pages/Configuration/Caching'));
+
+// Deployment
+const DeploymentProduction = lazy(() => import('./pages/Deployment/Production'));
 const DIContainer = lazy(() => import('./pages/DI/Container'));
 const CLIOverview = lazy(() => import('./pages/CLI/Overview'));
 const I18nOverview = lazy(() => import('./pages/I18n/Overview'));
@@ -27,6 +30,7 @@ const ReferenceHttpResponses = lazy(() => import('./pages/Reference/HttpResponse
 const ReferenceCacheApi = lazy(() => import('./pages/Reference/CacheApi'));
 const TroubleshootingCommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));
 const TroubleshootingFaq = lazy(() => import('./pages/Troubleshooting/Faq'));
+const Community = lazy(() => import('./pages/Community'));
 const Roadmap = lazy(() => import('./pages/Roadmap'));
 
 const router = createBrowserRouter([
@@ -57,6 +61,9 @@ const router = createBrowserRouter([
       { path: 'configuration/env', element: <ConfigurationEnv /> },
       { path: 'configuration/caching', element: <ConfigurationCaching /> },
       
+      // Deployment
+      { path: 'deployment/production', element: <DeploymentProduction /> },
+      
       // Dependency Injection
       { path: 'di/container', element: <DIContainer /> },
       
@@ -80,6 +87,9 @@ const router = createBrowserRouter([
       // Troubleshooting
       { path: 'troubleshooting/common-errors', element: <TroubleshootingCommonErrors /> },
       { path: 'troubleshooting/faq', element: <TroubleshootingFaq /> },
+      
+      // Community
+      { path: 'community', element: <Community /> },
       
       // Roadmap
       { path: 'roadmap', element: <Roadmap /> },

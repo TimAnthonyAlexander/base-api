@@ -14,6 +14,7 @@ import {
   DarkMode,
   LightMode,
   GitHub,
+  Forum as CommunityIcon,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { VERSIONS, getCurrentVersion } from '../data/versions';
@@ -115,6 +116,16 @@ export default function AppHeader({
             aria-label="toggle dark mode"
           >
             {darkMode ? <LightMode /> : <DarkMode />}
+          </IconButton>
+
+          {/* Community Link */}
+          <IconButton
+            color="inherit"
+            component={Link}
+            to="/community"
+            aria-label="Community and support"
+          >
+            <CommunityIcon />
           </IconButton>
 
           {/* GitHub Link */}

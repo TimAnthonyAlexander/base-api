@@ -67,56 +67,389 @@ php bin/console migrate:apply
 php bin/console types:generate --openapi --typescript`} />
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Available Commands
+        Complete Command Reference
       </Typography>
 
-      <TableContainer component={Paper} sx={{ my: 3 }}>
+      <Typography paragraph>
+        BaseAPI provides a comprehensive CLI with commands for every aspect of development and deployment:
+      </Typography>
+
+      {/* Development Commands */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        Development Commands
+      </Typography>
+      
+      <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell><strong>Category</strong></TableCell>
-              <TableCell><strong>Commands</strong></TableCell>
-              <TableCell><strong>Purpose</strong></TableCell>
+            <TableRow sx={{ backgroundColor: 'grey.50' }}>
+              <TableCell><strong>Command</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Examples</strong></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             <TableRow>
-              <TableCell><strong>Development</strong></TableCell>
+              <TableCell><code>serve</code></TableCell>
+              <TableCell>Start the development server</TableCell>
               <TableCell>
-                <code>serve</code><br />
-                <code>make:controller</code><br />
-                <code>make:model</code>
+                <code>php bin/console serve</code><br />
+                <code>php bin/console serve --host=0.0.0.0 --port=8080</code>
               </TableCell>
-              <TableCell>Start dev server, generate code</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell><strong>Database</strong></TableCell>
+              <TableCell><code>make:controller</code></TableCell>
+              <TableCell>Generate a new controller class</TableCell>
               <TableCell>
-                <code>migrate:generate</code><br />
-                <code>migrate:apply</code><br />
-                <code>migrate:status</code>
+                <code>php bin/console make:controller UserController</code><br />
+                <code>php bin/console make:controller Admin/UserController</code>
               </TableCell>
-              <TableCell>Manage database schema</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell><strong>Cache</strong></TableCell>
+              <TableCell><code>make:model</code></TableCell>
+              <TableCell>Generate a new model class</TableCell>
               <TableCell>
-                <code>cache:clear</code><br />
-                <code>cache:stats</code><br />
-                <code>cache:cleanup</code>
+                <code>php bin/console make:model User</code><br />
+                <code>php bin/console make:model Product --with-controller</code>
               </TableCell>
-              <TableCell>Cache management</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell><strong>Documentation</strong></TableCell>
+              <TableCell><code>make:service</code></TableCell>
+              <TableCell>Generate a new service class</TableCell>
               <TableCell>
-                <code>types:generate</code>
+                <code>php bin/console make:service EmailService</code><br />
+                <code>php bin/console make:service Payment/StripeService</code>
               </TableCell>
-              <TableCell>Generate OpenAPI specs and TypeScript types</TableCell>
             </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Database Commands */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        Database Commands
+      </Typography>
+      
+      <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'grey.50' }}>
+              <TableCell><strong>Command</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Examples</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell><code>migrate:generate</code></TableCell>
+              <TableCell>Generate migrations from model definitions</TableCell>
+              <TableCell>
+                <code>php bin/console migrate:generate</code><br />
+                <code>php bin/console migrate:generate --dry-run</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>migrate:apply</code></TableCell>
+              <TableCell>Apply pending migrations to database</TableCell>
+              <TableCell>
+                <code>php bin/console migrate:apply</code><br />
+                <code>php bin/console migrate:apply --force</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>migrate:status</code></TableCell>
+              <TableCell>Show migration status and pending changes</TableCell>
+              <TableCell>
+                <code>php bin/console migrate:status</code><br />
+                <code>php bin/console migrate:status --verbose</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>migrate:rollback</code></TableCell>
+              <TableCell>Rollback the last migration batch</TableCell>
+              <TableCell>
+                <code>php bin/console migrate:rollback</code><br />
+                <code>php bin/console migrate:rollback --steps=3</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>db:seed</code></TableCell>
+              <TableCell>Seed database with test data</TableCell>
+              <TableCell>
+                <code>php bin/console db:seed</code><br />
+                <code>php bin/console db:seed --class=UserSeeder</code>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Cache Commands */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        Cache Commands
+      </Typography>
+      
+      <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'grey.50' }}>
+              <TableCell><strong>Command</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Examples</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell><code>cache:clear</code></TableCell>
+              <TableCell>Clear all or specific cache entries</TableCell>
+              <TableCell>
+                <code>php bin/console cache:clear</code><br />
+                <code>php bin/console cache:clear --driver=redis</code><br />
+                <code>php bin/console cache:clear --tags=users,products</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>cache:stats</code></TableCell>
+              <TableCell>Display cache statistics and hit rates</TableCell>
+              <TableCell>
+                <code>php bin/console cache:stats</code><br />
+                <code>php bin/console cache:stats --driver=file</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>cache:cleanup</code></TableCell>
+              <TableCell>Remove expired cache entries</TableCell>
+              <TableCell>
+                <code>php bin/console cache:cleanup</code><br />
+                <code>php bin/console cache:cleanup --force</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>cache:warm</code></TableCell>
+              <TableCell>Warm up cache with essential data</TableCell>
+              <TableCell>
+                <code>php bin/console cache:warm</code><br />
+                <code>php bin/console cache:warm --routes --config</code>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Documentation Commands */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        Documentation Commands
+      </Typography>
+      
+      <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'grey.50' }}>
+              <TableCell><strong>Command</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Examples</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell><code>types:generate</code></TableCell>
+              <TableCell>Generate OpenAPI specs and TypeScript types</TableCell>
+              <TableCell>
+                <code>php bin/console types:generate</code><br />
+                <code>php bin/console types:generate --openapi --typescript</code><br />
+                <code>php bin/console types:generate --output=dist/</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>docs:generate</code></TableCell>
+              <TableCell>Generate API documentation from annotations</TableCell>
+              <TableCell>
+                <code>php bin/console docs:generate</code><br />
+                <code>php bin/console docs:generate --format=html</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>routes:list</code></TableCell>
+              <TableCell>List all registered routes</TableCell>
+              <TableCell>
+                <code>php bin/console routes:list</code><br />
+                <code>php bin/console routes:list --method=GET</code><br />
+                <code>php bin/console routes:list --filter=user</code>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Internationalization Commands */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        Internationalization Commands
+      </Typography>
+      
+      <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'grey.50' }}>
+              <TableCell><strong>Command</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Examples</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell><code>i18n:scan</code></TableCell>
+              <TableCell>Scan codebase for translation tokens</TableCell>
+              <TableCell>
+                <code>php bin/console i18n:scan</code><br />
+                <code>php bin/console i18n:scan --update</code><br />
+                <code>php bin/console i18n:scan --path=app/Controllers</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>i18n:add-lang</code></TableCell>
+              <TableCell>Add a new language to the project</TableCell>
+              <TableCell>
+                <code>php bin/console i18n:add-lang fr</code><br />
+                <code>php bin/console i18n:add-lang de --copy-from=en</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>i18n:fill</code></TableCell>
+              <TableCell>Fill missing translations using AI providers</TableCell>
+              <TableCell>
+                <code>php bin/console i18n:fill</code><br />
+                <code>php bin/console i18n:fill --provider=openai --locale=fr</code><br />
+                <code>php bin/console i18n:fill --provider=deepl --all</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>i18n:lint</code></TableCell>
+              <TableCell>Validate translation files</TableCell>
+              <TableCell>
+                <code>php bin/console i18n:lint</code><br />
+                <code>php bin/console i18n:lint --locale=fr</code><br />
+                <code>php bin/console i18n:lint --fix</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>i18n:export</code></TableCell>
+              <TableCell>Export translations to external formats</TableCell>
+              <TableCell>
+                <code>php bin/console i18n:export --format=po</code><br />
+                <code>php bin/console i18n:export --format=csv --locale=fr</code>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* System Commands */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        System Commands
+      </Typography>
+      
+      <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'grey.50' }}>
+              <TableCell><strong>Command</strong></TableCell>
+              <TableCell><strong>Description</strong></TableCell>
+              <TableCell><strong>Examples</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell><code>config:cache</code></TableCell>
+              <TableCell>Cache configuration files for performance</TableCell>
+              <TableCell>
+                <code>php bin/console config:cache</code><br />
+                <code>php bin/console config:cache --clear</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>optimize</code></TableCell>
+              <TableCell>Optimize application for production</TableCell>
+              <TableCell>
+                <code>php bin/console optimize</code><br />
+                <code>php bin/console optimize --force</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>env:decrypt</code></TableCell>
+              <TableCell>Decrypt environment files</TableCell>
+              <TableCell>
+                <code>php bin/console env:decrypt</code><br />
+                <code>php bin/console env:decrypt --key=your-key</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>env:encrypt</code></TableCell>
+              <TableCell>Encrypt environment files for secure storage</TableCell>
+              <TableCell>
+                <code>php bin/console env:encrypt</code><br />
+                <code>php bin/console env:encrypt --env=production</code>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell><code>queue:work</code></TableCell>
+              <TableCell>Process background job queues</TableCell>
+              <TableCell>
+                <code>php bin/console queue:work</code><br />
+                <code>php bin/console queue:work --queue=emails</code><br />
+                <code>php bin/console queue:work --timeout=60</code>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Global Options */}
+      <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+        Global Options
+      </Typography>
+
+      <Typography paragraph>
+        These options work with any command:
+      </Typography>
+
+      <List>
+        <ListItem>
+          <ListItemText
+            primary="--help (-h)"
+            secondary="Show help information for the command"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="--verbose (-v)"
+            secondary="Increase verbosity of output (-v, -vv, -vvv for more detail)"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="--quiet (-q)"
+            secondary="Suppress all output"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="--version (-V)"
+            secondary="Show BaseAPI version information"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="--env"
+            secondary="Specify environment (local, staging, production)"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="--no-interaction (-n)"
+            secondary="Run command without asking for user input"
+          />
+        </ListItem>
+      </List>
 
       <Alert severity="success" sx={{ mt: 4 }}>
         <strong>CLI Best Practices:</strong>

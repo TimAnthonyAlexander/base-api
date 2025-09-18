@@ -69,6 +69,84 @@ export default function Overview() {
       </Alert>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+        Request Flow Diagram
+      </Typography>
+
+      <Typography paragraph>
+        Every BaseAPI request follows this predictable flow:
+      </Typography>
+
+      <Box sx={{ 
+        my: 4, 
+        p: 3, 
+        border: 1, 
+        borderColor: 'divider', 
+        borderRadius: 2,
+        backgroundColor: 'background.paper',
+        overflow: 'auto'
+      }}>
+        <Box
+          component="pre"
+          sx={{
+            m: 0,
+            fontFamily: 'monospace',
+            fontSize: '0.85rem',
+            lineHeight: 1.6,
+            color: 'text.primary',
+            whiteSpace: 'pre',
+            overflow: 'auto',
+          }}
+        >
+{`    HTTP Request
+         │
+         ▼
+    ┌─────────────┐
+    │   Router    │ ◄─── Route Matching
+    │  Matching   │      /users/{id} → UserController
+    └─────────────┘
+         │
+         ▼
+    ┌─────────────┐
+    │ Middleware  │ ◄─── CORS, Auth, Rate Limiting
+    │  Pipeline   │      Security & Request Processing
+    └─────────────┘
+         │
+         ▼
+    ┌─────────────┐
+    │ Dependency  │ ◄─── Auto-inject Services
+    │ Injection   │      UserService, EmailService, etc.
+    └─────────────┘
+         │
+         ▼
+    ┌─────────────┐
+    │ Controller  │ ◄─── Handle Business Logic
+    │ Processing  │      Validation, Data Processing
+    └─────────────┘
+         │
+         ▼
+    ┌─────────────┐
+    │    Model    │ ◄─── Database Operations
+    │  Queries    │      User::find(), ->save()
+    └─────────────┘
+         │
+         ▼
+    ┌─────────────┐
+    │   Cache     │ ◄─── Optional Caching Layer
+    │   Layer     │      Redis, File, Array Cache
+    └─────────────┘
+         │
+         ▼
+    ┌─────────────┐
+    │  Response   │ ◄─── JSON Response
+    │ Generation  │      JsonResponse::ok()
+    └─────────────┘
+         │
+         ▼
+    HTTP Response`}
+        </Box>
+      </Box>
+
+      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
         Application Lifecycle
       </Typography>
 

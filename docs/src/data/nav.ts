@@ -45,6 +45,12 @@ export const NAV: NavNode[] = [
     ]
   },
   { 
+    title: 'Deployment', 
+    children: [
+      { title: 'Production Setup', path: '/deployment/production' },
+    ]
+  },
+  { 
     title: 'Dependency Injection', 
     children: [
       { title: 'Container', path: '/di/container' },
@@ -88,6 +94,10 @@ export const NAV: NavNode[] = [
       { title: 'Common Errors', path: '/troubleshooting/common-errors' },
       { title: 'FAQ', path: '/troubleshooting/faq' },
     ]
+  },
+  { 
+    title: 'Community', 
+    path: '/community' 
   },
   { 
     title: 'Roadmap', 
