@@ -78,4 +78,28 @@ export const components: Components<Theme> = {
       },
     },
   },
+  MuiCssBaseline: {
+    styleOverrides: (theme) => ({
+      code: {
+        fontFamily: [
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          '"Liberation Mono"',
+          '"Courier New"',
+          'monospace',
+        ].join(','),
+        fontSize: '0.875em',
+        padding: '0.2em 0.4em',
+        borderRadius: '3px',
+        backgroundColor: theme.palette.mode === 'dark' 
+          ? 'rgba(255, 255, 255, 0.1)' 
+          : 'rgba(0, 0, 0, 0.04)',
+        color: theme.palette.mode === 'dark' 
+          ? '#f8f8f2' 
+          : '#d63384',
+      },
+    }),
+  },
 };
