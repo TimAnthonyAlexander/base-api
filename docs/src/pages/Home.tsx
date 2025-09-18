@@ -60,9 +60,7 @@ const features = [
     },
 ];
 
-const quickStartCode = `# Note: Verify package name on Packagist first
-# The actual package may be: timanthonyalexander/base-api
-composer create-project baseapi/baseapi-template my-api
+const quickStartCode = `composer create-project baseapi/baseapi-template my-api
 cd my-api
 
 # Start the development server
