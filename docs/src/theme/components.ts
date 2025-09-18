@@ -94,11 +94,11 @@ export const components: Components<Theme> = {
         padding: '0.2em 0.4em',
         borderRadius: '3px',
         backgroundColor: theme.palette.mode === 'dark' 
-          ? 'rgba(255, 255, 255, 0.1)' 
-          : 'rgba(0, 0, 0, 0.04)',
+          ? '#2d3748 !important' 
+          : 'rgba(0, 0, 0, 0.04) !important',
         color: theme.palette.mode === 'dark' 
-          ? '#f8f8f2' 
-          : '#d63384',
+          ? '#ffffff !important' 
+          : '#d63384 !important',
       },
     }),
   },

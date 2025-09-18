@@ -131,12 +131,9 @@ export default function CodeBlock({
 
       {/* Code Content */}
       <Box
-        sx={{
-          backgroundColor: 'grey.50',
-          ...(theme => theme.palette.mode === 'dark' && {
-            backgroundColor: 'grey.900',
-          }),
-        }}
+        sx={(theme) => ({
+          backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8',
+        })}
       >
         <Box
           component="pre"
@@ -149,13 +146,18 @@ export default function CodeBlock({
             fontSize: '0.875rem',
             lineHeight: 1.6,
             fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            color: theme.palette.mode === 'dark' ? '#e0e0e0' : '#333333',
+            color: theme.palette.mode === 'dark' ? '#ffffff !important' : '#2d3748 !important',
+            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e !important' : '#f8f8f8 !important',
             minWidth: 0, // Prevent flex overflow
             whiteSpace: 'pre',
             wordBreak: 'normal',
             '& code': {
-              color: theme.palette.mode === 'dark' ? '#e0e0e0' : '#333333',
+              color: theme.palette.mode === 'dark' ? '#ffffff !important' : '#2d3748 !important',
+              backgroundColor: 'transparent !important',
               fontFamily: 'inherit',
+            },
+            '& *': {
+              color: theme.palette.mode === 'dark' ? '#ffffff !important' : '#2d3748 !important',
             },
           })}
         >
@@ -166,8 +168,8 @@ export default function CodeBlock({
                   pr: 2,
                   mr: 2,
                   borderRight: 1,
-                  borderColor: 'divider',
-                  color: theme.palette.mode === 'dark' ? '#888888' : '#999999',
+                  borderColor: theme.palette.mode === 'dark' ? '#444444' : '#e2e8f0',
+                  color: theme.palette.mode === 'dark' ? '#888888 !important' : '#999999 !important',
                   userSelect: 'none',
                   minWidth: 'fit-content',
                 })}
