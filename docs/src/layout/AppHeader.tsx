@@ -80,11 +80,11 @@ export default function AppHeader({
         </Typography>
 
         {/* Search */}
-        <Box sx={{ flexGrow: 1, maxWidth: 400, mr: 2 }}>
+        <Box sx={{ flexGrow: 1, maxWidth: 500, mx: 3 }}>
           <Search />
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
           {/* Version Selector */}
           <FormControl size="small">
             <Select
