@@ -1,5 +1,5 @@
 
-import { Box, Typography, Alert, List, ListItem, ListItemText, Card, CardContent, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Typography, Alert, List, ListItem, ListItemText, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';

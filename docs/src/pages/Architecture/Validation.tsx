@@ -86,62 +86,62 @@ class UserController extends Controller
             <TableRow>
               <TableCell><code>required</code></TableCell>
               <TableCell>Field must be present and not empty</TableCell>
-              <TableCell><code>'name' => 'required'</code></TableCell>
+              <TableCell><code>'name' ={'>'} 'required'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>string</code></TableCell>
               <TableCell>Must be a string value</TableCell>
-              <TableCell><code>'title' => 'string'</code></TableCell>
+              <TableCell><code>'title' ={'>'} 'string'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>integer</code></TableCell>
               <TableCell>Must be an integer value</TableCell>
-              <TableCell><code>'age' => 'integer'</code></TableCell>
+              <TableCell><code>'age' ={'>'} 'integer'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>numeric</code></TableCell>
               <TableCell>Must be numeric (int or float)</TableCell>
-              <TableCell><code>'price' => 'numeric'</code></TableCell>
+              <TableCell><code>'price' ={'>'} 'numeric'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>boolean</code></TableCell>
               <TableCell>Must be true/false, 1/0, "true"/"false"</TableCell>
-              <TableCell><code>'active' => 'boolean'</code></TableCell>
+              <TableCell><code>'active' ={'>'} 'boolean'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>email</code></TableCell>
               <TableCell>Must be valid email address</TableCell>
-              <TableCell><code>'email' => 'email'</code></TableCell>
+              <TableCell><code>'email' ={'>'} 'email'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>uuid</code></TableCell>
               <TableCell>Must be valid UUID format</TableCell>
-              <TableCell><code>'id' => 'uuid'</code></TableCell>
+              <TableCell><code>'id' ={'>'} 'uuid'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>url</code></TableCell>
               <TableCell>Must be valid URL format</TableCell>
-              <TableCell><code>'website' => 'url'</code></TableCell>
+              <TableCell><code>'website' ={'>'} 'url'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>min:value</code></TableCell>
               <TableCell>Minimum length/value</TableCell>
-              <TableCell><code>'password' => 'min:8'</code></TableCell>
+              <TableCell><code>'password' ={'>'} 'min:8'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>max:value</code></TableCell>
               <TableCell>Maximum length/value</TableCell>
-              <TableCell><code>'name' => 'max:100'</code></TableCell>
+              <TableCell><code>'name' ={'>'} 'max:100'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>unique:table</code></TableCell>
               <TableCell>Must be unique in database table</TableCell>
-              <TableCell><code>'email' => 'unique:users'</code></TableCell>
+              <TableCell><code>'email' ={'>'} 'unique:users'</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>exists:table,column</code></TableCell>
               <TableCell>Must exist in database table</TableCell>
-              <TableCell><code>'user_id' => 'exists:users,id'</code></TableCell>
+              <TableCell><code>'user_id' ={'>'} 'exists:users,id'</code></TableCell>
             </TableRow>
           </TableBody>
         </Table>

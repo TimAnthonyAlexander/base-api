@@ -1,5 +1,4 @@
-
-import { Box, Typography, Alert, List, ListItem, ListItemText, Card, CardContent, Grid } from '@mui/material';
+import { Box, Typography, Alert, List, ListItem, ListItemText } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 
 export default function Overview() {
@@ -8,89 +7,73 @@ export default function Overview() {
       <Typography variant="h1" gutterBottom>
         Architecture Overview
       </Typography>
-      
       <Typography variant="h5" color="text.secondary" paragraph>
-        Understanding the core architecture and design principles of BaseAPI.
+        Understanding BaseAPI's architecture and core principles
       </Typography>
 
       <Typography paragraph>
-        BaseAPI is a KISS-first (Keep It Simple, Stupid) PHP 8.4+ framework that prioritizes simplicity, 
-        performance, and developer experience. It follows a conventional MVC-like architecture with 
-        modern features like dependency injection, caching, and automated migrations.
+        BaseAPI is designed as a modern, high-performance PHP framework that prioritizes 
+        developer productivity and application maintainability. Built on PHP 8.4+, it leverages 
+        the latest language features while maintaining simplicity and clarity.
       </Typography>
 
       <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI adds less than 0.01ms overhead per request and is designed to get out of your way 
-        so you can focus on building your API logic.
+        BaseAPI follows a request-response cycle with dependency injection, middleware processing, 
+        and automatic data binding to create robust APIs with minimal boilerplate.
       </Alert>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
         Core Principles
       </Typography>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                Convention over Configuration
-              </Typography>
-              <Typography variant="body2">
-                BaseAPI uses sensible defaults and naming conventions to minimize configuration. 
-                Models automatically map to tables, routes follow predictable patterns, and 
-                migrations are generated from model definitions.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                Performance First
-              </Typography>
-              <Typography variant="body2">
-                Every component is designed for minimal overhead and maximum speed. Built-in 
-                caching system, efficient routing, and optimized database queries ensure 
-                your API performs well even under load.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                Security by Default
-              </Typography>
-              <Typography variant="body2">
-                CORS handling, rate limiting, input validation, and SQL injection protection 
-                are built-in and enabled by default. You don't have to remember to add security—it's already there.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom color="primary">
-                Developer Experience
-              </Typography>
-              <Typography variant="body2">
-                Auto-generated OpenAPI specs and TypeScript types, comprehensive CLI tools, 
-                and clear error messages make development fast and enjoyable.
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <Alert severity="info" sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Convention over Configuration
+        </Typography>
+        <Typography>
+          BaseAPI uses sensible defaults and naming conventions to minimize configuration. 
+          Models automatically map to tables, routes follow predictable patterns, and 
+          migrations are generated from model definitions.
+        </Typography>
+      </Alert>
+
+      <Alert severity="success" sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Performance First
+        </Typography>
+        <Typography>
+          Every component is designed for minimal overhead and maximum speed. Built-in 
+          caching system, efficient routing, and optimized database queries ensure 
+          your API performs well even under load.
+        </Typography>
+      </Alert>
+
+      <Alert severity="warning" sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Security by Default
+        </Typography>
+        <Typography>
+          CORS handling, rate limiting, input validation, and SQL injection protection 
+          are built-in and enabled by default. You don't have to remember to add security—it's already there.
+        </Typography>
+      </Alert>
+
+      <Alert severity="info" sx={{ mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Developer Experience
+        </Typography>
+        <Typography>
+          Auto-generated OpenAPI specs and TypeScript types, comprehensive CLI tools, 
+          and clear error messages make development fast and enjoyable.
+        </Typography>
+      </Alert>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
         Application Lifecycle
       </Typography>
 
       <Typography paragraph>
-        BaseAPI applications follow a predictable lifecycle from request to response:
+        Every BaseAPI request follows a predictable lifecycle that ensures consistency and performance:
       </Typography>
 
       <List sx={{ mb: 4 }}>
@@ -137,188 +120,145 @@ export default function Overview() {
       </Typography>
 
       <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-        Application Core (App)
+        App & DI Container
       </Typography>
-      
+
       <Typography paragraph>
-        The central <code>App</code> class manages application lifecycle, service registration, 
-        and provides access to core services. It follows a singleton pattern and bootstraps 
-        the entire framework.
+        The App class serves as the central bootstrap point, managing service registration, 
+        configuration loading, and providing static access to core services like routing, 
+        database, cache, and logging.
       </Typography>
 
       <CodeBlock language="php" code={`<?php
 
 // Bootstrap the application
-App::boot('/path/to/project');
+App::boot();
 
 // Access core services
 $router = App::router();
 $db = App::db();
-$config = App::config();
-$container = App::container();`} />
+$cache = App::cache();
+$logger = App::logger();`} />
 
       <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-        Dependency Injection Container
+        HTTP Layer
       </Typography>
-      
+
       <Typography paragraph>
-        BaseAPI includes a powerful DI container that automatically resolves dependencies 
-        and manages service lifecycles. Controllers and services receive their dependencies 
-        through constructor injection.
+        The HTTP layer handles incoming requests through a middleware pipeline, with automatic 
+        parameter binding, validation, and response formatting:
       </Typography>
 
       <CodeBlock language="php" code={`<?php
 
 class UserController extends Controller
 {
-    public function __construct(
-        private EmailService $emailService,
-        private UserRepository $userRepository
-    ) {}
+    public string $name = '';     // Auto-populated from request
+    public string $email = '';    // Validated against rules
     
     public function post(): JsonResponse
     {
-        // Dependencies are automatically injected
-        $user = $this->userRepository->create($this->toArray());
-        $this->emailService->sendWelcome($user);
+        $this->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email'
+        ]);
         
-        return JsonResponse::created($user->jsonSerialize());
+        // Create user with validated data
+        $user = new User();
+        $user->name = $this->name;
+        $user->email = $this->email;
+        $user->save();
+        
+        return JsonResponse::created($user);
     }
 }`} />
 
       <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-        HTTP Layer
-      </Typography>
-      
-      <Typography paragraph>
-        The HTTP layer handles request parsing, routing, middleware execution, and response 
-        formatting. It's built around PSR-7 principles but optimized for BaseAPI's specific use case.
-      </Typography>
-
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="Request"
-            secondary="Parses HTTP requests, including JSON body parsing, file uploads, and query parameters"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Router"
-            secondary="Fast route matching with parameter extraction and method-based routing"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Middleware"
-            secondary="Composable request/response pipeline with built-in security middlewares"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Response"
-            secondary="JsonResponse and BinaryResponse classes with automatic serialization"
-          />
-        </ListItem>
-      </List>
-
-      <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
         Database Layer
       </Typography>
-      
+
       <Typography paragraph>
-        BaseAPI provides a database abstraction layer with query builder, ORM-like models, 
-        and automatic migrations. It supports MySQL, PostgreSQL, and SQLite.
+        BaseAPI's ORM provides a simple yet powerful abstraction over database operations 
+        with automatic caching, relationship loading, and migration generation:
       </Typography>
 
       <CodeBlock language="php" code={`<?php
 
-// Query Builder
-$users = App::db()->qb()
-    ->table('users')
-    ->where('active', '=', true)
-    ->orderBy('created_at', 'DESC')
-    ->limit(10)
-    ->get();
+// Simple queries with automatic caching
+$users = User::cached(300)->where('active', true)->get();
 
-// Model Usage
-$user = User::find($id);
-$activeUsers = User::where('active', '=', true)
-    ->orderBy('created_at')
-    ->get();
+// Relationships and eager loading
+$posts = Post::with(['user', 'comments'])->get();
 
-// Relationships
-$userWithPosts = User::with(['posts'])->find($id);`} />
+// Automatic migrations from model definitions
+// php bin/console migrate:generate`} />
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
         Project Structure
       </Typography>
 
       <Typography paragraph>
-        BaseAPI follows a conventional directory structure that separates concerns while 
-        keeping everything easily discoverable:
+        BaseAPI projects follow a conventional structure that promotes organization and maintainability:
       </Typography>
 
-      <CodeBlock language="bash" code={`project-root/
-├── app/                    # Application code
-│   ├── Controllers/        # Request handlers
-│   ├── Models/            # Database models
-│   ├── Services/          # Business logic services
-│   └── Providers/         # Service providers
-├── config/                # Configuration files
-│   ├── app.php           # Application config
-│   └── i18n.php          # Internationalization config
-├── routes/               # Route definitions
-│   └── api.php          # API routes
-├── storage/             # Application storage
-│   ├── cache/           # File cache
-│   ├── logs/            # Application logs
-│   └── migrations.json  # Migration state
-├── translations/        # I18n translation files
-│   ├── en/             # English translations
-│   └── de/             # German translations
-├── public/             # Web root
-│   └── index.php       # Entry point
-├── .env               # Environment configuration
-└── composer.json      # Dependencies`} />
+      <List>
+        <ListItem>
+          <ListItemText
+            primary="app/ - Application Code"
+            secondary="Controllers, Models, Services, and custom business logic"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="config/ - Configuration"
+            secondary="Environment-specific settings and application configuration"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="routes/ - Route Definitions"
+            secondary="API endpoint definitions with middleware and controller mappings"
+          />
+        </ListItem>
+        <ListItem>
+          <ListItemText
+            primary="storage/ - File Storage"
+            secondary="Logs, cache files, uploads, and temporary data"
+          />
+        </ListItem>
+      </List>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
         Design Patterns
       </Typography>
 
       <Typography paragraph>
-        BaseAPI leverages several proven design patterns to maintain clean, maintainable code:
+        BaseAPI implements several proven design patterns:
       </Typography>
 
       <List>
         <ListItem>
           <ListItemText
-            primary="Service Container Pattern"
-            secondary="Centralized dependency resolution and service lifecycle management"
+            primary="Active Record Pattern"
+            secondary="Models represent database records with built-in query methods"
           />
         </ListItem>
         <ListItem>
           <ListItemText
-            primary="Active Record Pattern"
-            secondary="Models encapsulate both data and behavior, with automatic persistence"
+            primary="Dependency Injection"
+            secondary="Constructor injection with automatic resolution and container management"
           />
         </ListItem>
         <ListItem>
           <ListItemText
             primary="Middleware Pattern"
-            secondary="Composable request/response pipeline for cross-cutting concerns"
+            secondary="Composable request/response processing pipeline"
           />
         </ListItem>
         <ListItem>
           <ListItemText
             primary="Repository Pattern"
-            secondary="Optional data access abstraction for complex queries and business logic"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Service Provider Pattern"
-            secondary="Modular service registration and configuration"
+            secondary="Cache and database access through consistent interfaces"
           />
         </ListItem>
       </List>
@@ -328,43 +268,43 @@ $userWithPosts = User::with(['posts'])->find($id);`} />
       </Typography>
 
       <Typography paragraph>
-        BaseAPI is optimized for real-world API performance:
+        BaseAPI is designed for high performance in production environments:
       </Typography>
 
       <List>
         <ListItem>
           <ListItemText
-            primary="Minimal Framework Overhead"
-            secondary="Less than 0.01ms added to request time (measured on MacBook Pro M3)"
+            primary="Minimal Memory Footprint"
+            secondary="Lazy loading and efficient object creation reduce memory usage"
           />
         </ListItem>
         <ListItem>
           <ListItemText
-            primary="Efficient Memory Usage"
-            secondary="Low memory footprint even with complex object graphs"
+            primary="Built-in Caching"
+            secondary="Multi-level caching for queries, responses, and application data"
           />
         </ListItem>
         <ListItem>
           <ListItemText
-            primary="Smart Caching"
-            secondary="Multi-layer caching with automatic invalidation reduces database load"
+            primary="Optimized Database Access"
+            secondary="Connection pooling, prepared statements, and query optimization"
           />
         </ListItem>
         <ListItem>
           <ListItemText
-            primary="Optimized Queries"
-            secondary="Query builder generates efficient SQL with automatic parameter binding"
+            primary="Efficient Routing"
+            secondary="Fast route matching and parameter extraction"
           />
         </ListItem>
       </List>
 
       <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Next Steps:</strong> Explore the individual architecture components:
-        <br />• <strong>Routing</strong> - How requests are matched to controllers
-        <br />• <strong>Controllers</strong> - Request handling and business logic
-        <br />• <strong>Models & ORM</strong> - Database interaction and relationships
-        <br />• <strong>Migrations</strong> - Automatic database schema management
-        <br />• <strong>Validation</strong> - Input validation and sanitization
+        <strong>Architecture Benefits:</strong>
+        <br />• Predictable request lifecycle and clear separation of concerns
+        <br />• Automatic dependency resolution reduces coupling
+        <br />• Convention-based structure accelerates development
+        <br />• Built-in performance optimizations handle scaling concerns
+        <br />• Security features protect against common vulnerabilities
       </Alert>
     </Box>
   );

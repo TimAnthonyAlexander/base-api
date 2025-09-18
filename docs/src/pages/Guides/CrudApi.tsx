@@ -1,7 +1,6 @@
 
-import { Box, Typography, Alert, List, ListItem, ListItemText } from '@mui/material';
+import { Box, Typography, Alert } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
-import Callout from '../../components/Callout';
 
 export default function CRUDAPI() {
   return (

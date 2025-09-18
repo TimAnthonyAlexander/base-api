@@ -1,5 +1,5 @@
 
-import { Box, Typography, Alert, List, ListItem, ListItemText, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import { Box, Typography, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
@@ -70,37 +70,37 @@ $router->delete('/users/{id}', [UserController::class]);`} />
             <TableRow>
               <TableCell><code>GET</code></TableCell>
               <TableCell>Retrieve resources</TableCell>
-              <TableCell><code>$router->get('/users', [UserController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}get('/users', [UserController::class]);</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>POST</code></TableCell>
               <TableCell>Create resources</TableCell>
-              <TableCell><code>$router->post('/users', [UserController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}post('/users', [UserController::class]);</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>PUT</code></TableCell>
               <TableCell>Update/replace resources</TableCell>
-              <TableCell><code>$router->put('/users/{id}', [UserController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}put('/users/{'{'}id{'}'}, [UserController::class]);</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>PATCH</code></TableCell>
               <TableCell>Partial resource updates</TableCell>
-              <TableCell><code>$router->patch('/users/{id}', [UserController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}patch('/users/{'{'}id{'}'}, [UserController::class]);</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>DELETE</code></TableCell>
               <TableCell>Remove resources</TableCell>
-              <TableCell><code>$router->delete('/users/{id}', [UserController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}delete('/users/{'{'}id{'}'}, [UserController::class]);</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>OPTIONS</code></TableCell>
               <TableCell>CORS preflight requests</TableCell>
-              <TableCell><code>$router->options('/users', [CorsController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}options('/users', [CorsController::class]);</code></TableCell>
             </TableRow>
             <TableRow>
               <TableCell><code>HEAD</code></TableCell>
               <TableCell>Metadata without body</TableCell>
-              <TableCell><code>$router->head('/users/{id}', [UserController::class]);</code></TableCell>
+              <TableCell><code>$router-{'>'}head('/users/{'{'}id{'}'}, [UserController::class]);</code></TableCell>
             </TableRow>
           </TableBody>
         </Table>

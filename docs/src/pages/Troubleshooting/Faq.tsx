@@ -78,7 +78,7 @@ php bin/console types:generate --openapi --typescript`} />
         <AccordionDetails>
           <Typography>
             BaseAPI includes a multi-driver cache system with Array, File, and Redis drivers. 
-            Models automatically use tagged caching for smart invalidation. Use cache()->put() and cache()->get() 
+            Models automatically use tagged caching for smart invalidation. Use cache()-{'>'}put() and cache()-{'>'}get() 
             for manual caching, or Model::cached() for query caching.
           </Typography>
         </AccordionDetails>
