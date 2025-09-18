@@ -56,4 +56,21 @@ return [
         'public_access' => false,
         'cache_translations' => true,
     ],
+    
+    'filesystems' => [
+        'default' => 'local',
+        'disks' => [
+            'local' => [
+                'driver' => 'local',
+                'root' => 'storage/app',
+                'url' => 'http://127.0.0.1:7879/storage',
+            ],
+            'public' => [
+                'driver' => 'local',
+                'root' => 'storage/app/public',
+                'url' => 'http://127.0.0.1:7879/storage',
+                'visibility' => 'public',
+            ],
+        ],
+    ],
 ];

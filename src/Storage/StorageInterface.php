@@ -83,3 +83,4 @@ interface StorageInterface
      */
     public function size(string $path): int;
 }
+

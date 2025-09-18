@@ -111,52 +111,55 @@ $deleted = Storage::delete('file.txt');            // Delete file`}
       </Typography>
 
       <Typography variant="body1" paragraph>
-        Storage disks are configured in <code>config/filesystems.php</code>:
+        Storage disks are configured in your application's <code>config/app.php</code> following BaseAPI's unified configuration pattern.
+        This keeps all application configuration in one place, making it easy to manage and understand.
       </Typography>
+
+      <Alert severity="info" sx={{ mb: 2 }}>
+        <strong>BaseAPI Configuration Pattern:</strong> Unlike other frameworks that use separate config files, 
+        BaseAPI uses a single <code>config/app.php</code> that extends framework defaults. This follows the KISS principle 
+        and keeps configuration simple and centralized.
+      </Alert>
 
       <CodeBlock
         language="php"
-        title="config/filesystems.php"
+        title="config/app.php"
         code={`<?php
 
 return [
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    // ... other application configuration ...
 
-    'disks' => [
-        'local' => [
-            'driver' => 'local',
-            'root' => storage_path('app'),
-            'url' => env('APP_URL') . '/storage',
-            'permissions' => [
-                'file' => [
-                    'public' => 0644,
-                    'private' => 0600,
-                ],
-                'dir' => [
-                    'public' => 0755,
-                    'private' => 0700,
-                ],
+    'filesystems' => [
+        'default' => $_ENV['FILESYSTEM_DISK'] ?? 'local',
+
+        'disks' => [
+            'local' => [
+                'driver' => 'local',
+                'root' => 'storage/app',
+                'url' => ($_ENV['APP_URL'] ?? 'http://localhost:7879') . '/storage',
             ],
-        ],
 
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL') . '/storage',
-            'visibility' => 'public',
-        ],
+            'public' => [
+                'driver' => 'local',
+                'root' => 'storage/app/public',
+                'url' => ($_ENV['APP_URL'] ?? 'http://localhost:7879') . '/storage',
+                'visibility' => 'public',
+            ],
 
-        // Cloud storage examples (coming soon)
-        /*
-        's3' => [
-            'driver' => 's3',
-            'key' => env('AWS_ACCESS_KEY_ID'),
-            'secret' => env('AWS_SECRET_ACCESS_KEY'),
-            'region' => env('AWS_DEFAULT_REGION'),
-            'bucket' => env('AWS_BUCKET'),
+            // Cloud storage examples (coming soon)
+            /*
+            's3' => [
+                'driver' => 's3',
+                'key' => $_ENV['AWS_ACCESS_KEY_ID'] ?? null,
+                'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'] ?? null,
+                'region' => $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1',
+                'bucket' => $_ENV['AWS_BUCKET'] ?? null,
+            ],
+            */
         ],
-        */
     ],
+
+    // ... other configuration sections ...
 ];`}
       />
 
@@ -349,8 +352,8 @@ Storage::disk('s3')->put('documents/file.pdf', $content);
 Storage::disk('gcs')->putFile('uploads', $file);
 
 // Seamless switching between local and cloud
-$disk = env('APP_ENV') === 'production' ? 's3' : 'local';
-$path = Storage::disk($disk)->store('uploads', $file);`}
+$disk = ($_ENV['APP_ENV'] ?? 'local') === 'production' ? 's3' : 'local';
+$path = Storage::disk($disk)->putFile('uploads', $file);`}
       />
 
       <Admonition type="note" title="Implementation Status">
@@ -360,3 +363,4 @@ $path = Storage::disk($disk)->store('uploads', $file);`}
     </Box>
   );
 }
+

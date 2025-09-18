@@ -137,10 +137,17 @@ class StorageManager
      */
     protected function createLocalDriver(array $config): LocalDriver
     {
+        $root = $config['root'] ?? 'storage/app';
+        // Convert relative path to absolute using storage_path helper
+        if (!str_starts_with($root, '/')) {
+            $root = storage_path($root === 'storage/app' ? 'app' : $root);
+        }
+        
         return new LocalDriver(
-            root: $config['root'] ?? storage_path('app'),
+            root: $root,
             url: $config['url'] ?? null,
             permissions: $config['permissions'] ?? []
         );
     }
 }
+

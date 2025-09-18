@@ -10,3 +10,4 @@ use Exception;
 class UnableToWriteFileException extends Exception
 {
 }
+
