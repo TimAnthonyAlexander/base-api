@@ -24,8 +24,8 @@ import CodeBlock from '../components/CodeBlock';
 const features = [
     {
         icon: <PerformanceIcon />,
-        title: 'High Performance',
-        description: 'Minimal overhead (<0.01ms per request) with unified caching system for 10x+ query performance',
+        title: 'Competitive Performance',
+        description: 'Minimal framework overhead with unified caching system for enhanced query performance',
         link: '/configuration/caching',
     },
     {
@@ -126,7 +126,7 @@ export default function Home() {
                     >
                         <Chip label="PHP 8.4+" color="primary" />
                         <Chip label="Zero Configuration" variant="outlined" />
-                        <Chip label="High Performance" variant="outlined" />
+                        <Chip label="Competitive Performance" variant="outlined" />
                         <Chip label="Built-in Security" variant="outlined" />
                     </Stack>
 
@@ -275,9 +275,9 @@ export default function Home() {
                 <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
                     Performance Benchmarks
                 </Typography>
-                
+
                 <Typography variant="body1" paragraph sx={{ textAlign: 'center', mb: 4, maxWidth: 800, mx: 'auto' }}>
-                    BaseAPI consistently outperforms other PHP frameworks in real-world scenarios.
+                    BaseAPI delivers competitive performance among lightweight PHP frameworks.
                     Benchmarks run on PHP 8.4 with OPcache enabled, testing a simple "Hello World" JSON API endpoint.
                 </Typography>
 
@@ -293,20 +293,20 @@ export default function Home() {
                     <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
                         Requests per Second (Higher is Better)
                     </Typography>
-                    
+
                     <Box sx={{ maxWidth: 800, mx: 'auto' }}>
                         {[
-                            { name: 'BaseAPI', value: 12500, color: 'primary.main' },
-                            { name: 'Slim Framework', value: 8200, color: 'secondary.main' },
-                            { name: 'Laravel Lumen', value: 4800, color: 'warning.main' },
-                            { name: 'Symfony MicroKernel', value: 3600, color: 'error.main' },
+                            { name: 'BaseAPI', value: 1350, color: 'primary.main' },
+                            { name: 'Slim Framework', value: 1200, color: 'secondary.main' },
+                            { name: 'Laravel Lumen', value: 950, color: 'warning.main' },
+                            { name: 'Symfony MicroKernel', value: 750, color: 'error.main' },
                         ].map((framework) => (
                             <Box key={framework.name} sx={{ mb: 2 }}>
-                                <Box sx={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    mb: 0.5 
+                                    mb: 0.5
                                 }}>
                                     <Typography variant="body1" fontWeight={600}>
                                         {framework.name}
@@ -322,7 +322,7 @@ export default function Home() {
                                     overflow: 'hidden'
                                 }}>
                                     <Box sx={{
-                                        width: `${(framework.value / 12500) * 100}%`,
+                                        width: `${(framework.value / 1350) * 100}%`,
                                         height: '100%',
                                         backgroundColor: framework.color,
                                         borderRadius: 1,
@@ -337,20 +337,20 @@ export default function Home() {
                     <Typography variant="h5" gutterBottom sx={{ textAlign: 'center', mb: 3, mt: 5 }}>
                         Memory Usage per Request (Lower is Better)
                     </Typography>
-                    
+
                     <Box sx={{ maxWidth: 800, mx: 'auto' }}>
                         {[
                             { name: 'BaseAPI', value: 0.8, color: 'primary.main' },
-                            { name: 'Slim Framework', value: 1.2, color: 'secondary.main' },
-                            { name: 'Laravel Lumen', value: 3.1, color: 'warning.main' },
-                            { name: 'Symfony MicroKernel', value: 4.7, color: 'error.main' },
+                            { name: 'Slim Framework', value: 0.9, color: 'secondary.main' },
+                            { name: 'Laravel Lumen', value: 1.0, color: 'warning.main' },
+                            { name: 'Symfony MicroKernel', value: 1.3, color: 'error.main' },
                         ].map((framework) => (
                             <Box key={framework.name} sx={{ mb: 2 }}>
-                                <Box sx={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
                                     alignItems: 'center',
-                                    mb: 0.5 
+                                    mb: 0.5
                                 }}>
                                     <Typography variant="body1" fontWeight={600}>
                                         {framework.name}
@@ -366,7 +366,7 @@ export default function Home() {
                                     overflow: 'hidden'
                                 }}>
                                     <Box sx={{
-                                        width: `${(framework.value / 4.7) * 100}%`,
+                                        width: `${(framework.value / 1.3) * 100}%`,
                                         height: '100%',
                                         backgroundColor: framework.color,
                                         borderRadius: 1,
@@ -381,7 +381,7 @@ export default function Home() {
                 {/* Test Details */}
                 <Box sx={{ mt: 3, textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary" display="block">
-                        Test Environment: PHP 8.4 + OPcache, 8GB RAM, 4-core CPU
+                        Test Environment: PHP 8.4 + OPcache, nginx + PHP-FPM, 18GB RAM, Apple M3 Pro
                     </Typography>
                     <Typography variant="caption" color="text.secondary" display="block">
                         Load Test: wrk -t8 -c100 -d30s --latency (30 seconds, 100 concurrent connections)
@@ -412,7 +412,7 @@ export default function Home() {
                 }}>
                     <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="h3" color="primary.main" fontWeight={700}>
-                            &lt;0.01ms
+                            &lt;1ms
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
                             Framework overhead per request
@@ -420,7 +420,7 @@ export default function Home() {
                     </Box>
                     <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="h3" color="primary.main" fontWeight={700}>
-                            12,500+
+                            1,350+
                         </Typography>
                         <Typography variant="body1" color="text.secondary">
                             Requests per second

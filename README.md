@@ -10,7 +10,7 @@ It provides all the essential tools you need while maintaining simplicity and pe
 ## ✨ Features
 
 - **Low Configuration** - Works out of the box with sensible defaults
-- **High Performance** - Minimal overhead, maximum speed (<0.01ms overhead per request)
+- **High Performance** - Minimal overhead, maximum speed (<1ms overhead per request)
 - **Built-in Security** - CORS, rate limiting, and authentication middlewares included
 - **Database Agnostic** - Automatic migrations from model definitions, supports MySQL, SQLite, PostgreSQL
 - **Unified Caching** - Multi-driver caching system with Redis, File, and Array stores plus tagged cache invalidation
@@ -682,7 +682,7 @@ BaseAPI includes security features out of the box:
 
 ## Performance
 
-- **Minimal overhead** - Framework adds < 0.01ms to request time (measured on MacBook Pro M3 Pro)
+- **Minimal overhead** - Framework adds < 1ms to request time (measured on MacBook Pro M3 Pro)
 - **Unified caching** - Multi-driver cache system with Redis support for 10x+ query performance
 - **Efficient routing** - Fast route matching and caching
 - **Database optimization** - Query builder with automatic optimization and query result caching
