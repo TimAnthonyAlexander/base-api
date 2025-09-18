@@ -145,6 +145,14 @@ export default function Installation() {
         <Typography paragraph>
           The BaseAPI template comes with everything you need to start building:
         </Typography>
+        
+        <Callout type="warning">
+          <Typography>
+            <strong>Package Name Note:</strong> The actual package names may differ from what's shown in this documentation. 
+            Please verify the correct package names on Packagist before installation. The core library appears to be 
+            published as <code>timanthonyalexander/base-api</code>.
+          </Typography>
+        </Callout>
 
         <List>
           {[

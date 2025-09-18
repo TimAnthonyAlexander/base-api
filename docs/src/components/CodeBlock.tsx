@@ -145,6 +145,7 @@ export default function CodeBlock({
             fontSize: '0.875rem',
             lineHeight: 1.6,
             fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            color: 'text.primary',
           }}
         >
           {showLineNumbers ? (
@@ -167,11 +168,11 @@ export default function CodeBlock({
                 ))}
               </Box>
               <Box sx={{ flex: 1 }}>
-                <code>{code}</code>
+                <code style={{ color: 'inherit' }}>{code}</code>
               </Box>
             </Box>
           ) : (
-            <code>{code}</code>
+            <code style={{ color: 'inherit' }}>{code}</code>
           )}
         </Box>
       </Box>

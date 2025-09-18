@@ -61,7 +61,8 @@ const features = [
   },
 ];
 
-const quickStartCode = `# Create a new BaseAPI project
+const quickStartCode = `# Note: Verify package name on Packagist first
+# The actual package may be: timanthonyalexander/base-api
 composer create-project baseapi/baseapi-template my-api
 cd my-api
 
@@ -83,18 +84,19 @@ export default function Home() {
         sx={{
           background: (theme) => `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
           borderRadius: 3,
-          p: { xs: 4, md: 6 },
+          p: { xs: 2, sm: 3, md: 6 },
+          mx: { xs: 1, sm: 0 },
           mb: 6,
           textAlign: 'center',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
           <Typography
             variant="h1"
             sx={{
-              fontSize: { xs: '2.5rem', md: '3.5rem' },
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
               fontWeight: 700,
               mb: 2,
               background: (theme) => `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
@@ -183,7 +185,7 @@ export default function Home() {
         <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
           Quick Start
         </Typography>
-        <Container maxWidth="md">
+        <Container maxWidth="md" sx={{ px: { xs: 2, sm: 3 } }}>
           <CodeBlock
             language="bash"
             code={quickStartCode}
@@ -210,7 +212,12 @@ export default function Home() {
         <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
           Why BaseAPI?
         </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, 
+          gap: { xs: 2, sm: 3 },
+          px: { xs: 2, sm: 0 }
+        }}>
           {features.map((feature, index) => (
             <Box key={index}>
               <Card
@@ -264,7 +271,8 @@ export default function Home() {
         sx={{
           background: (theme) => alpha(theme.palette.primary.main, 0.05),
           borderRadius: 3,
-          p: 4,
+          p: { xs: 3, sm: 4 },
+          mx: { xs: 1, sm: 0 },
           textAlign: 'center',
         }}
       >

@@ -39,6 +39,12 @@ use BaseApi\\Http\\JsonResponse;
 
 class ProductController extends Controller
 {
+    // Auto-populated from request data
+    public string $name = '';
+    public ?string $description = null;
+    public float $price = 0.0;
+    public string $id = '';
+    
     public function get(): JsonResponse
     {
         $products = Product::all();
@@ -47,6 +53,12 @@ class ProductController extends Controller
     
     public function post(): JsonResponse
     {
+        // Validate input (BaseAPI provides automatic validation)
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0'
+        ]);
+        
         $product = new Product();
         $product->name = $this->name;
         $product->description = $this->description ?? null;

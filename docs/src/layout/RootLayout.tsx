@@ -67,7 +67,7 @@ export default function RootLayout() {
           <Container 
             maxWidth="lg" 
             sx={{ 
-              px: 3, 
+              px: { xs: 2, sm: 3 }, 
               py: 4,
               minHeight: 'calc(100vh - 64px)',
               display: 'flex',
