@@ -8,6 +8,7 @@ use BaseApi\Database\QueryBuilder;
 use BaseApi\Database\ModelQuery;
 use BaseApi\Database\Relations\BelongsTo;
 use BaseApi\Database\Relations\HasMany;
+use BaseApi\Cache\Cache;
 
 abstract class BaseModel implements \JsonSerializable
 {
@@ -204,11 +205,20 @@ abstract class BaseModel implements \JsonSerializable
 
     public function save(): bool
     {
+        $result = false;
+        
         if (empty($this->id)) {
-            return $this->insert();
+            $result = $this->insert();
         } else {
-            return $this->update();
+            $result = $this->update();
         }
+        
+        // Invalidate cache after successful save
+        if ($result) {
+            $this->invalidateCache();
+        }
+        
+        return $result;
     }
 
     public function delete(): bool
@@ -222,7 +232,14 @@ abstract class BaseModel implements \JsonSerializable
             ->where('id', '=', $this->id)
             ->delete();
 
-        return $affected > 0;
+        $result = $affected > 0;
+        
+        // Invalidate cache after successful delete
+        if ($result) {
+            $this->invalidateCache();
+        }
+
+        return $result;
     }
 
     /**
@@ -492,6 +509,70 @@ abstract class BaseModel implements \JsonSerializable
         }
 
         return $instance;
+    }
+
+    /**
+     * Invalidate cache entries related to this model.
+     */
+    protected function invalidateCache(): void
+    {
+        $tableName = static::table();
+        $modelClass = static::class;
+        
+        // Generate cache tags for this model
+        $tags = [
+            'model:' . $tableName,
+            'model:' . $modelClass,
+        ];
+        
+        // Add instance-specific tag if ID exists
+        if (!empty($this->id)) {
+            $tags[] = 'model:' . $tableName . ':' . $this->id;
+            $tags[] = 'model:' . $modelClass . ':' . $this->id;
+        }
+        
+        // Invalidate tagged cache entries
+        foreach ($tags as $tag) {
+            Cache::tags([$tag])->flush();
+        }
+    }
+
+    /**
+     * Get cache tags for this model instance.
+     */
+    public function getCacheTags(): array
+    {
+        $tableName = static::table();
+        $modelClass = static::class;
+        
+        $tags = [
+            'model:' . $tableName,
+            'model:' . $modelClass,
+        ];
+        
+        if (!empty($this->id)) {
+            $tags[] = 'model:' . $tableName . ':' . $this->id;
+            $tags[] = 'model:' . $modelClass . ':' . $this->id;
+        }
+        
+        return $tags;
+    }
+
+    /**
+     * Create a cached query for this model.
+     */
+    public static function cached(int $ttl = 300): ModelQuery
+    {
+        $qb = App::db()->qb()->table(static::table());
+        $modelQuery = new ModelQuery($qb, static::class);
+        
+        // Auto-tag with model information
+        $tags = [
+            'model:' . static::table(),
+            'model:' . static::class,
+        ];
+        
+        return $modelQuery->cacheWithTags($tags, $ttl);
     }
 
     private function insert(): bool

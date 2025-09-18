@@ -3,6 +3,7 @@
 namespace BaseApi\Database;
 
 use BaseApi\Models\BaseModel;
+use BaseApi\Cache\Cache;
 
 /**
  * @template T of BaseModel
@@ -12,6 +13,10 @@ class ModelQuery
     private QueryBuilder $qb;
     private string $modelClass;
     private array $eagerRelations = [];
+    private ?string $cacheKey = null;
+    private ?int $cacheTtl = null;
+    private array $cacheTags = [];
+    private bool $cacheEnabled = true;
 
     /**
      * @param class-string<T> $modelClass
@@ -137,6 +142,121 @@ class ModelQuery
      */
     public function get(): array
     {
+        // Check cache first if enabled
+        if ($this->cacheEnabled) {
+            $cacheKey = $this->getCacheKey();
+            
+            if (!empty($this->cacheTags)) {
+                $cache = Cache::tags($this->cacheTags);
+            } else {
+                $cache = Cache::driver();
+            }
+            
+            $ttl = $this->cacheTtl ?? $this->getDefaultCacheTtl();
+            
+            return $cache->remember($cacheKey, $ttl, function() {
+                return $this->executeGet();
+            });
+        }
+        
+        return $this->executeGet();
+    }
+
+    /**
+     * Get first result as hydrated model
+     * 
+     * @return T|null
+     */
+    public function first(): ?BaseModel
+    {
+        // Check cache first if enabled
+        if ($this->cacheEnabled) {
+            $cacheKey = $this->getCacheKey() . ':first';
+            
+            if (!empty($this->cacheTags)) {
+                $cache = Cache::tags($this->cacheTags);
+            } else {
+                $cache = Cache::driver();
+            }
+            
+            $ttl = $this->cacheTtl ?? $this->getDefaultCacheTtl();
+            
+            return $cache->remember($cacheKey, $ttl, function() {
+                return $this->executeFirst();
+            });
+        }
+        
+        return $this->executeFirst();
+    }
+
+    /**
+     * Get access to underlying QueryBuilder
+     */
+    public function qb(): QueryBuilder
+    {
+        return $this->qb;
+    }
+
+    /**
+     * Cache query results with optional TTL and custom key.
+     */
+    public function cache(?int $ttl = null, ?string $key = null): self
+    {
+        $this->cacheTtl = $ttl;
+        $this->cacheKey = $key;
+        $this->cacheEnabled = true;
+
+        return $this;
+    }
+
+    /**
+     * Cache query results with tags for invalidation.
+     */
+    public function cacheWithTags(array $tags, int $ttl = 300): self
+    {
+        $this->cacheTags = $tags;
+        $this->cacheTtl = $ttl;
+        $this->cacheEnabled = true;
+
+        return $this;
+    }
+
+    /**
+     * Disable caching for this query.
+     */
+    public function noCache(): self
+    {
+        $this->cacheEnabled = false;
+        return $this;
+    }
+
+    /**
+     * Get cache key for current query.
+     */
+    public function getCacheKey(): string
+    {
+        if ($this->cacheKey) {
+            return $this->cacheKey;
+        }
+
+        // Generate cache key from query components
+        $components = [
+            'model' => $this->modelClass,
+            'sql' => $this->qb->toSql(),
+            'bindings' => $this->qb->getBindings(),
+            'relations' => $this->eagerRelations,
+        ];
+
+        return 'query:' . hash('md5', serialize($components));
+    }
+
+    /**
+     * Execute the get query without caching.
+     * 
+     * @return T[]
+     */
+    private function executeGet(): array
+    {
         $rows = $this->qb->get();
         $models = $this->hydrateRows($rows);
         
@@ -149,11 +269,11 @@ class ModelQuery
     }
 
     /**
-     * Get first result as hydrated model
+     * Execute the first query without caching.
      * 
      * @return T|null
      */
-    public function first(): ?BaseModel
+    private function executeFirst(): ?BaseModel
     {
         $row = $this->qb->first();
         if (!$row) {
@@ -172,11 +292,12 @@ class ModelQuery
     }
 
     /**
-     * Get access to underlying QueryBuilder
+     * Get default cache TTL from configuration.
      */
-    public function qb(): QueryBuilder
+    private function getDefaultCacheTtl(): int
     {
-        return $this->qb;
+        // Default to 5 minutes for model queries
+        return 300;
     }
 
     /**

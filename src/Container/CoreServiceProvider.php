@@ -11,6 +11,7 @@ use BaseApi\Database\DB;
 use BaseApi\Http\Kernel;
 use BaseApi\Http\ControllerInvoker;
 use BaseApi\Http\Binding\ControllerBinder;
+use BaseApi\Cache\CacheManager;
 
 /**
  * Core service provider for BaseAPI framework services.
@@ -38,6 +39,11 @@ class CoreServiceProvider extends ServiceProvider
         // Register DB as singleton
         $container->singleton(DB::class, function (ContainerInterface $c) {
             return new DB($c->make(Connection::class));
+        });
+
+        // Register Cache Manager as singleton
+        $container->singleton(CacheManager::class, function (ContainerInterface $c) {
+            return new CacheManager($c->make(Config::class));
         });
 
         // Register HTTP components
