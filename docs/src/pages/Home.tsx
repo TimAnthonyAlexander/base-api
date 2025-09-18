@@ -1,9 +1,7 @@
-import React from 'react';
 import {
   Box,
   Typography,
   Button,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -212,9 +210,9 @@ export default function Home() {
         <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
           Why BaseAPI?
         </Typography>
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
           {features.map((feature, index) => (
-            <Grid item xs={12} md={6} lg={4} key={index}>
+            <Box key={index}>
               <Card
                 sx={{
                   height: '100%',
@@ -256,9 +254,9 @@ export default function Home() {
                   </Button>
                 </CardActions>
               </Card>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Box>
 
       {/* Stats Section */}
@@ -273,32 +271,32 @@ export default function Home() {
         <Typography variant="h4" gutterBottom>
           Built for Performance
         </Typography>
-        <Grid container spacing={4} sx={{ mt: 2 }}>
-          <Grid item xs={12} sm={4}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 4, mt: 2 }}>
+          <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="primary.main" fontWeight={700}>
               &lt;0.01ms
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Framework overhead per request
             </Typography>
-          </Grid>
-          <Grid item xs={12} sm={4}>
+          </Box>
+          <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="primary.main" fontWeight={700}>
               10x+
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Faster with unified caching
             </Typography>
-          </Grid>
-          <Grid item xs={12} sm={4}>
+          </Box>
+          <Box sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="primary.main" fontWeight={700}>
               3
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Database drivers supported
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Paper,
@@ -9,7 +8,6 @@ import {
   Info as InfoIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
-  CheckCircle as SuccessIcon,
   Lightbulb as TipIcon,
   Security as SecurityIcon,
 } from '@mui/icons-material';

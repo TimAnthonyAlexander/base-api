@@ -1,4 +1,4 @@
-import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { createTheme, type ThemeOptions } from '@mui/material/styles';
 import { lightPalette, darkPalette } from './palette';
 import { typography } from './typography';
 import { components } from './components';

@@ -1,4 +1,4 @@
-import { Components, Theme } from '@mui/material/styles';
+import type { Components, Theme } from '@mui/material/styles';
 
 export const components: Components<Theme> = {
   MuiLink: {
@@ -75,25 +75,6 @@ export const components: Components<Theme> = {
       paper: {
         borderRight: '1px solid',
         borderRightColor: 'rgba(0, 0, 0, 0.12)',
-      },
-    },
-  },
-  MuiCode: {
-    styleOverrides: {
-      root: {
-        fontFamily: [
-          'SFMono-Regular',
-          'Menlo',
-          'Monaco',
-          'Consolas',
-          '"Liberation Mono"',
-          '"Courier New"',
-          'monospace',
-        ].join(','),
-        fontSize: '0.875em',
-        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        padding: '2px 4px',
-        borderRadius: 4,
       },
     },
   },

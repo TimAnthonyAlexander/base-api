@@ -1,6 +1,4 @@
-import { TypographyOptions } from '@mui/material/styles/createTypography';
-
-export const typography: TypographyOptions = {
+export const typography = {
   fontSize: 14,
   fontFamily: [
     '-apple-system',
@@ -73,6 +71,6 @@ export const typography: TypographyOptions = {
     fontWeight: 500,
     lineHeight: 1.5,
     letterSpacing: '0.08em',
-    textTransform: 'uppercase',
+    textTransform: 'uppercase' as const,
   },
 };

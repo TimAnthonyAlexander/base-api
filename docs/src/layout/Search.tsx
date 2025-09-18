@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   TextField,
   Autocomplete,
@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { NAV, NavNode } from '../data/nav';
+import { NAV, type NavNode } from '../data/nav';
 
 interface SearchResult {
   title: string;
@@ -54,8 +54,8 @@ export default function Search() {
     ).slice(0, 8); // Limit results
   }, [searchTerm, searchResults]);
 
-  const handleSelect = (_: any, value: SearchResult | null) => {
-    if (value) {
+  const handleSelect = (_: any, value: string | SearchResult | null) => {
+    if (value && typeof value === 'object') {
       navigate(value.path);
       setSearchTerm('');
     }

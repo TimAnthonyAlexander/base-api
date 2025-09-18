@@ -13,7 +13,7 @@ import {
   Home as HomeIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
-import { NAV, NavNode } from '../data/nav';
+import { NAV, type NavNode } from '../data/nav';
 
 interface SidebarTreeProps {
   onItemClick?: () => void;
