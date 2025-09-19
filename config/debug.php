@@ -19,7 +19,7 @@ return [
     | of this setting for security.
     |
     */
-    'enabled' => env('APP_DEBUG', false),
+    'enabled' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
 
     /*
     |--------------------------------------------------------------------------
@@ -31,10 +31,10 @@ return [
     |
     */
     'profiler' => [
-        'enabled' => env('APP_DEBUG', true),
-        'memory_tracking' => env('APP_DEBUG', true),
-        'query_logging' => env('APP_DEBUG', true),
-        'exception_tracking' => env('APP_DEBUG', true),
+        'enabled' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
+        'memory_tracking' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
+        'query_logging' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
+        'exception_tracking' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
     ],
 
     /*
@@ -48,13 +48,13 @@ return [
     */
     'queries' => [
         // Log all database queries when debugging is enabled
-        'log_all' => env('APP_DEBUG', true),
+        'log_all' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
         
         // Threshold in milliseconds for slow query detection
-        'slow_query_threshold' => env('SLOW_QUERY_THRESHOLD', 100),
+        'slow_query_threshold' => (int) ($_ENV['SLOW_QUERY_THRESHOLD'] ?? 100),
         
         // Include parameter bindings in query logs
-        'log_bindings' => env('APP_DEBUG', true),
+        'log_bindings' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
         
         // Include stack trace for query origin (performance impact)
         'log_stack_trace' => false,
@@ -70,7 +70,7 @@ return [
     */
     'panel' => [
         // Show debug panel in HTML responses when debugging is enabled
-        'show_in_response' => env('APP_DEBUG', true),
+        'show_in_response' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
         
         // Show floating debug toolbar (alternative to panel)
         'show_toolbar' => false,
@@ -89,7 +89,7 @@ return [
     */
     'logging' => [
         // Log incoming request details when debugging is enabled
-        'log_requests' => env('APP_DEBUG', true),
+        'log_requests' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
         
         // Log outgoing response details
         'log_responses' => false,
@@ -117,13 +117,13 @@ return [
     */
     'memory' => [
         // Enable memory usage tracking when debugging is enabled
-        'track_usage' => env('APP_DEBUG', true),
+        'track_usage' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
         
         // Memory usage threshold in MB for warnings
         'warning_threshold' => 128,
         
         // Track memory growth between snapshots
-        'track_growth' => env('APP_DEBUG', true),
+        'track_growth' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
     ],
 
     /*
@@ -136,7 +136,7 @@ return [
     */
     'performance' => [
         // Enable automatic performance warnings  
-        'enable_warnings' => env('APP_DEBUG', true),
+        'enable_warnings' => ($_ENV['APP_DEBUG'] ?? 'false') === 'true',
         
         // Maximum acceptable query count per request
         'max_query_count' => 20,
