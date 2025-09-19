@@ -19,7 +19,7 @@ return [
     | of this setting for security.
     |
     */
-    'enabled' => env('DEBUG_ENABLED', env('APP_DEBUG', false)),
+    'enabled' => env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -31,10 +31,10 @@ return [
     |
     */
     'profiler' => [
-        'enabled' => env('PROFILER_ENABLED', true),
-        'memory_tracking' => env('PROFILER_MEMORY', true),
-        'query_logging' => env('PROFILER_QUERIES', true),
-        'exception_tracking' => env('PROFILER_EXCEPTIONS', true),
+        'enabled' => env('APP_DEBUG', true),
+        'memory_tracking' => env('APP_DEBUG', true),
+        'query_logging' => env('APP_DEBUG', true),
+        'exception_tracking' => env('APP_DEBUG', true),
     ],
 
     /*
@@ -47,17 +47,17 @@ return [
     |
     */
     'queries' => [
-        // Log all database queries
-        'log_all' => env('DEBUG_LOG_QUERIES', true),
+        // Log all database queries when debugging is enabled
+        'log_all' => env('APP_DEBUG', true),
         
         // Threshold in milliseconds for slow query detection
         'slow_query_threshold' => env('SLOW_QUERY_THRESHOLD', 100),
         
         // Include parameter bindings in query logs
-        'log_bindings' => env('DEBUG_LOG_QUERY_BINDINGS', true),
+        'log_bindings' => env('APP_DEBUG', true),
         
         // Include stack trace for query origin (performance impact)
-        'log_stack_trace' => env('DEBUG_LOG_STACK_TRACE', false),
+        'log_stack_trace' => false,
     ],
 
     /*
@@ -69,14 +69,14 @@ return [
     |
     */
     'panel' => [
-        // Show debug panel in HTML responses
-        'show_in_response' => env('DEBUG_SHOW_PANEL', true),
+        // Show debug panel in HTML responses when debugging is enabled
+        'show_in_response' => env('APP_DEBUG', true),
         
         // Show floating debug toolbar (alternative to panel)
-        'show_toolbar' => env('DEBUG_SHOW_TOOLBAR', false),
+        'show_toolbar' => false,
         
         // Panel position: 'bottom', 'top'
-        'panel_position' => env('DEBUG_PANEL_POSITION', 'bottom'),
+        'panel_position' => 'bottom',
     ],
 
     /*
@@ -88,11 +88,11 @@ return [
     |
     */
     'logging' => [
-        // Log incoming request details
-        'log_requests' => env('DEBUG_LOG_REQUESTS', true),
+        // Log incoming request details when debugging is enabled
+        'log_requests' => env('APP_DEBUG', true),
         
         // Log outgoing response details
-        'log_responses' => env('DEBUG_LOG_RESPONSES', false),
+        'log_responses' => false,
         
         // Fields to filter out from logs for security
         'sensitive_fields' => [
@@ -116,14 +116,14 @@ return [
     |
     */
     'memory' => [
-        // Enable memory usage tracking
-        'track_usage' => env('DEBUG_TRACK_MEMORY', true),
+        // Enable memory usage tracking when debugging is enabled
+        'track_usage' => env('APP_DEBUG', true),
         
         // Memory usage threshold in MB for warnings
-        'warning_threshold' => env('DEBUG_MEMORY_WARNING', 128),
+        'warning_threshold' => 128,
         
         // Track memory growth between snapshots
-        'track_growth' => env('DEBUG_TRACK_MEMORY_GROWTH', true),
+        'track_growth' => env('APP_DEBUG', true),
     ],
 
     /*
@@ -135,14 +135,14 @@ return [
     |
     */
     'performance' => [
-        // Enable automatic performance warnings
-        'enable_warnings' => env('DEBUG_PERFORMANCE_WARNINGS', true),
+        // Enable automatic performance warnings  
+        'enable_warnings' => env('APP_DEBUG', true),
         
         // Maximum acceptable query count per request
-        'max_query_count' => env('DEBUG_MAX_QUERIES', 20),
+        'max_query_count' => 20,
         
         // Maximum acceptable request time in milliseconds
-        'max_request_time' => env('DEBUG_MAX_REQUEST_TIME', 1000),
+        'max_request_time' => 1000,
     ],
 
 ];
