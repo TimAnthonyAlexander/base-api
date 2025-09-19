@@ -4,6 +4,7 @@ namespace BaseApi\Database;
 
 use BaseApi\Database\Drivers\DatabaseDriverFactory;
 use BaseApi\Database\Drivers\DatabaseDriverInterface;
+use BaseApi\App;
 
 class Connection
 {
@@ -44,5 +45,64 @@ class Connection
         ];
         
         $this->pdo = $driver->createConnection($config);
+    }
+
+    /**
+     * Execute a query with profiling support
+     */
+    public function executeQuery(string $sql, array $params = []): \PDOStatement
+    {
+        $start = hrtime(true);
+        $exception = null;
+        
+        try {
+            $pdo = $this->pdo();
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            
+            return $stmt;
+            
+        } catch (\Exception $e) {
+            $exception = $e;
+            throw $e;
+            
+        } finally {
+            // Log query to profiler if enabled
+            if (class_exists('BaseApi\App') && method_exists(App::class, 'profiler')) {
+                $profiler = App::profiler();
+                if ($profiler && $profiler->isEnabled()) {
+                    $duration = (hrtime(true) - $start) / 1_000_000; // Convert to milliseconds
+                    $profiler->logQuery($sql, $params, $duration, $exception);
+                }
+            }
+        }
+    }
+
+    /**
+     * Execute a query and return all results
+     */
+    public function query(string $sql, array $params = []): array
+    {
+        $stmt = $this->executeQuery($sql, $params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Execute a query and return the first result
+     */
+    public function queryOne(string $sql, array $params = []): ?array
+    {
+        $stmt = $this->executeQuery($sql, $params);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result === false ? null : $result;
+    }
+
+    /**
+     * Execute a query and return the number of affected rows
+     */
+    public function exec(string $sql, array $params = []): int
+    {
+        $stmt = $this->executeQuery($sql, $params);
+        return $stmt->rowCount();
     }
 }
