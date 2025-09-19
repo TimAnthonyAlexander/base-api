@@ -137,6 +137,8 @@ export default function CodeBlock({
           '& pre': {
             margin: '0 !important',
             borderRadius: '0 !important',
+            background: `${theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8'} !important`,
+            backgroundColor: `${theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8'} !important`,
           },
           '& pre[class*="language-"]': {
             margin: '0 !important',
@@ -148,10 +150,6 @@ export default function CodeBlock({
           '& *': {
             background: 'none !important',
             backgroundColor: 'transparent !important',
-          },
-          '& pre': {
-            background: `${theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8'} !important`,
-            backgroundColor: `${theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8'} !important`,
           },
           
           // Custom syntax highlighting colors (CSS class-based)
