@@ -13,7 +13,6 @@ import {
   Check as CheckIcon,
 } from '@mui/icons-material';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
   language: string;
@@ -145,11 +144,58 @@ export default function CodeBlock({
             background: 'transparent !important',
             padding: '16px !important',
           },
+          // Aggressively remove all background colors from syntax highlighting
+          '& *': {
+            background: 'none !important',
+            backgroundColor: 'transparent !important',
+          },
+          '& pre': {
+            background: `${theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8'} !important`,
+            backgroundColor: `${theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8'} !important`,
+          },
+          
+          // Custom syntax highlighting colors (CSS class-based)
+          '& .token.comment, & .token.prolog, & .token.doctype, & .token.cdata': {
+            color: theme.palette.mode === 'dark' ? '#6272a4' : '#999999',
+          },
+          '& .token.punctuation': {
+            color: theme.palette.mode === 'dark' ? '#f8f8f2' : '#2d3748',
+          },
+          '& .token.property, & .token.tag, & .token.constant, & .token.symbol, & .token.deleted': {
+            color: theme.palette.mode === 'dark' ? '#ff79c6' : '#d73a49',
+          },
+          '& .token.boolean, & .token.number': {
+            color: theme.palette.mode === 'dark' ? '#bd93f9' : '#005cc5',
+          },
+          '& .token.selector, & .token.attr-name, & .token.string, & .token.char, & .token.builtin, & .token.inserted': {
+            color: theme.palette.mode === 'dark' ? '#50fa7b' : '#22863a',
+          },
+          '& .token.operator, & .token.entity, & .token.url, & .language-css .token.string, & .style .token.string, & .token.variable': {
+            color: theme.palette.mode === 'dark' ? '#f8f8f2' : '#2d3748',
+          },
+          '& .token.atrule, & .token.attr-value, & .token.function, & .token.class-name': {
+            color: theme.palette.mode === 'dark' ? '#f1fa8c' : '#6f42c1',
+          },
+          '& .token.keyword': {
+            color: theme.palette.mode === 'dark' ? '#8be9fd' : '#d73a49',
+          },
+          '& .token.regex, & .token.important': {
+            color: theme.palette.mode === 'dark' ? '#ffb86c' : '#e36209',
+          },
+          '& .token.important, & .token.bold': {
+            fontWeight: 'bold',
+          },
+          '& .token.italic': {
+            fontStyle: 'italic',
+          },
+          '& .token.entity': {
+            cursor: 'help',
+          },
         })}
       >
         <SyntaxHighlighter
           language={language}
-          style={theme.palette.mode === 'dark' ? oneDark : oneLight}
+          useInlineStyles={false}
           showLineNumbers={showLineNumbers}
           customStyle={{
             margin: 0,
@@ -157,10 +203,14 @@ export default function CodeBlock({
             fontSize: '0.875rem',
             lineHeight: 1.6,
             fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            background: 'transparent',
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#2d3748',
           }}
           codeTagProps={{
             style: {
               fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+              background: 'transparent',
+              color: theme.palette.mode === 'dark' ? '#ffffff' : '#2d3748',
             }
           }}
         >
