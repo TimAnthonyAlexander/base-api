@@ -15,13 +15,13 @@ export default function Routing() {
       </Typography>
 
       <Typography paragraph>
-        BaseAPI's routing system is designed for simplicity and performance. Routes are defined in 
-        <code>routes/api.php</code> and support parameter extraction, middleware assignment, 
-        and automatic controller resolution.
+        BaseAPI's routing system maps HTTP requests to controllers with minimal configuration. 
+        Routes are defined in <code>routes/api.php</code> and support automatic parameter extraction, 
+        middleware pipelines, and fast pattern matching.
       </Typography>
 
       <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI uses fast route compilation and matching, with minimal overhead even for complex route patterns.
+        Routes are compiled to optimized regex patterns for fast matching, even with complex parameter patterns.
       </Alert>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -29,8 +29,8 @@ export default function Routing() {
       </Typography>
 
       <Typography paragraph>
-        Routes are defined using the router instance from the App class. Each route specifies 
-        an HTTP method, path pattern, and pipeline of middleware and controller.
+        Routes map HTTP methods and URL patterns to controllers. The router automatically 
+        handles parameter extraction and controller method selection.
       </Typography>
 
       <CodeBlock language="php" code={`<?php
@@ -38,16 +38,15 @@ export default function Routing() {
 
 use BaseApi\\App;
 use App\\Controllers\\UserController;
-use App\\Controllers\\ProductController;
 
 $router = App::router();
 
-// Basic routes
-$router->get('/users', [UserController::class]);
-$router->post('/users', [UserController::class]);
-$router->get('/users/{id}', [UserController::class]);
-$router->put('/users/{id}', [UserController::class]);
-$router->delete('/users/{id}', [UserController::class]);`} />
+// Basic CRUD routes
+$router->get('/users', [UserController::class]);      // List users
+$router->post('/users', [UserController::class]);     // Create user
+$router->get('/users/{id}', [UserController::class]); // Get user by ID
+$router->put('/users/{id}', [UserController::class]); // Update user
+$router->delete('/users/{id}', [UserController::class]); // Delete user`} />
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
         HTTP Methods
@@ -111,37 +110,35 @@ $router->delete('/users/{id}', [UserController::class]);`} />
       </Typography>
 
       <Typography paragraph>
-        Route parameters are defined using curly braces <code>{'{paramName}'}</code> and are automatically 
-        injected into controller properties or method parameters.
+        Route parameters use <code>{'{paramName}'}</code> syntax and are automatically 
+        injected into matching controller properties.
       </Typography>
 
       <CodeBlock language="php" code={`<?php
-// Route with parameters
-$router->get('/users/{id}/posts/{postId}', [PostController::class]);
+// Routes with parameters
+$router->get('/users/{id}', [UserController::class]);
 $router->get('/categories/{category}/products', [ProductController::class]);
 
-// In your controller
-class PostController extends Controller
+// Controller automatically receives parameters
+class UserController extends Controller
 {
-    public string $id = '';      // Automatically populated from {id}
-    public string $postId = '';  // Automatically populated from {postId}
+    public string $id = '';      // Auto-populated from {id} parameter
     
     public function get(): JsonResponse
     {
         $user = User::find($this->id);
-        $post = Post::find($this->postId);
         
-        if (!$user || !$post) {
-            return JsonResponse::notFound();
+        if (!$user) {
+            return JsonResponse::notFound('User not found');
         }
         
-        return JsonResponse::ok($post->jsonSerialize());
+        return JsonResponse::ok($user);
     }
 }`} />
 
-      <Callout type="tip" title="Parameter Naming">
-        Route parameter names must match controller property names exactly. 
-        Use camelCase for multi-word parameters: <code>{'{userId}'}</code> matches <code>$userId</code>.
+      <Callout type="tip">
+        Parameter names must match controller property names exactly. 
+        Use camelCase: <code>{'{userId}'}</code> → <code>$userId</code>.
       </Callout>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -149,42 +146,39 @@ class PostController extends Controller
       </Typography>
 
       <Typography paragraph>
-        Routes can include middleware in their pipeline. Middleware runs in the order specified, 
-        with the controller always being the last item in the pipeline.
+        Routes can include middleware that runs before the controller. 
+        Middleware executes in the order specified, ending with the controller.
       </Typography>
 
       <CodeBlock language="php" code={`<?php
 use BaseApi\\Http\\Middleware\\AuthMiddleware;
 use BaseApi\\Http\\Middleware\\RateLimitMiddleware;
-use BaseApi\\Cache\\Middleware\\CacheResponse;
 
-// Route with middleware
+// Protected route with authentication
 $router->get(
-    '/protected-endpoint',
+    '/users/{id}',
     [
-        RateLimitMiddleware::class => ['limit' => '100/1h'],  // Rate limiting
-        AuthMiddleware::class,                                 // Authentication  
-        CacheResponse::class => ['ttl' => 300],               // Response caching
-        ProtectedController::class,                           // Final controller
+        AuthMiddleware::class,        // Require authentication
+        UserController::class,       // Then run controller
     ]
 );
 
-// Multiple middleware with different configurations
+// Rate-limited endpoint
 $router->post(
     '/auth/login',
     [
-        RateLimitMiddleware::class => ['limit' => '5/1m'],    // Strict rate limiting for auth
+        RateLimitMiddleware::class => ['limit' => '5/1m'],  // 5 requests per minute
         LoginController::class,
     ]
 );`} />
 
       <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Best Practices:</strong>
-        <br />• Place specific routes before general ones
-        <br />• Use descriptive route parameter names
-        <br />• Group related routes together
-        <br />• Apply middleware judiciously for performance
-        <br />• Use RESTful conventions for consistency
+        <strong>Routing Best Practices:</strong>
+        <br />• Use RESTful conventions: GET for retrieval, POST for creation
+        <br />• Place specific routes before general patterns
+        <br />• Use clear parameter names: <code>{'{userId}'}</code> not <code>{'{id}'}</code>
+        <br />• Apply middleware only where needed to avoid overhead
+        <br />• Group related routes together for maintainability
       </Alert>
     </Box>
   );
