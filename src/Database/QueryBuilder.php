@@ -2,6 +2,8 @@
 
 namespace BaseApi\Database;
 
+use BaseApi\App;
+
 class QueryBuilder
 {
     private Connection $connection;
@@ -718,26 +720,46 @@ class QueryBuilder
 
     private function execute(string $sql): array
     {
+        $start = hrtime(true);
+        $exception = null;
+        
         try {
             $pdo = $this->connection->pdo();
             $stmt = $pdo->prepare($sql);
             $stmt->execute($this->bindings);
 
-            return $stmt->fetchAll();
+            $result = $stmt->fetchAll();
+            
+            // Log to profiler if available and enabled
+            $this->logQueryToProfiler($sql, $start, $exception);
+            
+            return $result;
         } catch (\PDOException $e) {
+            $exception = $e;
+            $this->logQueryToProfiler($sql, $start, $exception);
             throw new DbException("Query execution failed: " . $e->getMessage(), $e);
         }
     }
 
     private function executeUpdate(string $sql): int
     {
+        $start = hrtime(true);
+        $exception = null;
+        
         try {
             $pdo = $this->connection->pdo();
             $stmt = $pdo->prepare($sql);
             $stmt->execute($this->bindings);
 
-            return $stmt->rowCount();
+            $result = $stmt->rowCount();
+            
+            // Log to profiler if available and enabled
+            $this->logQueryToProfiler($sql, $start, $exception);
+            
+            return $result;
         } catch (\PDOException $e) {
+            $exception = $e;
+            $this->logQueryToProfiler($sql, $start, $exception);
             throw new DbException("Update execution failed: " . $e->getMessage(), $e);
         }
     }
@@ -804,5 +826,26 @@ class QueryBuilder
     private function camelToSnake(string $input): string
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
+    }
+
+    /**
+     * Log query to profiler if available and enabled
+     */
+    private function logQueryToProfiler(string $sql, int $startTime, ?\Throwable $exception = null): void
+    {
+        // Only log if App class exists and profiler is available
+        if (!class_exists('BaseApi\App')) {
+            return;
+        }
+
+        try {
+            $profiler = App::profiler();
+            if ($profiler && $profiler->isEnabled()) {
+                $duration = (hrtime(true) - $startTime) / 1_000_000; // Convert to milliseconds
+                $profiler->logQuery($sql, $this->bindings, $duration, $exception);
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore profiler errors to avoid disrupting queries
+        }
     }
 }
