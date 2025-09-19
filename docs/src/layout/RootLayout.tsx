@@ -10,6 +10,7 @@ import {
 import { createAppTheme } from '../theme';
 import AppHeader from './AppHeader';
 import AppDrawer from './AppDrawer';
+import ScrollToTop from '../components/ScrollToTop';
 
 const DRAWER_WIDTH = 280;
 
@@ -36,6 +37,7 @@ export default function RootLayout() {
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
+            <ScrollToTop />
             <Box sx={{ display: 'flex', minHeight: '100vh' }}>
                 <AppHeader
                     drawerWidth={DRAWER_WIDTH}
