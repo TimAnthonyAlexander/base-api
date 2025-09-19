@@ -6,11 +6,14 @@ import {
   Typography,
   Paper,
   alpha,
+  useTheme,
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
   Check as CheckIcon,
 } from '@mui/icons-material';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
   language: string;
@@ -40,6 +43,7 @@ export default function CodeBlock({
   showLineNumbers = false 
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const theme = useTheme();
 
   const handleCopy = async () => {
     try {
@@ -52,8 +56,6 @@ export default function CodeBlock({
   };
 
   const languageColor = languageColors[language as keyof typeof languageColors] || languageColors.default;
-
-  const codeLines = code.split('\n');
 
   return (
     <Paper
@@ -133,61 +135,37 @@ export default function CodeBlock({
       <Box
         sx={(theme) => ({
           backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#f8f8f8',
+          '& pre': {
+            margin: '0 !important',
+            borderRadius: '0 !important',
+          },
+          '& pre[class*="language-"]': {
+            margin: '0 !important',
+            borderRadius: '0 !important',
+            background: 'transparent !important',
+            padding: '16px !important',
+          },
         })}
       >
-        <Box
-          component="pre"
-          sx={(theme) => ({
-            m: 0,
-            p: 2,
-            overflow: 'auto',
-            overflowX: 'auto',
-            overflowY: 'hidden',
+        <SyntaxHighlighter
+          language={language}
+          style={theme.palette.mode === 'dark' ? oneDark : oneLight}
+          showLineNumbers={showLineNumbers}
+          customStyle={{
+            margin: 0,
+            borderRadius: 0,
             fontSize: '0.875rem',
             lineHeight: 1.6,
             fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            color: theme.palette.mode === 'dark' ? '#ffffff !important' : '#2d3748 !important',
-            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e !important' : '#f8f8f8 !important',
-            minWidth: 0, // Prevent flex overflow
-            whiteSpace: 'pre',
-            wordBreak: 'normal',
-            '& code': {
-              color: theme.palette.mode === 'dark' ? '#ffffff !important' : '#2d3748 !important',
-              backgroundColor: 'transparent !important',
-              fontFamily: 'inherit',
-            },
-            '& *': {
-              color: theme.palette.mode === 'dark' ? '#ffffff !important' : '#2d3748 !important',
-            },
-          })}
+          }}
+          codeTagProps={{
+            style: {
+              fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            }
+          }}
         >
-          {showLineNumbers ? (
-            <Box sx={{ display: 'flex' }}>
-              <Box
-                sx={(theme) => ({
-                  pr: 2,
-                  mr: 2,
-                  borderRight: 1,
-                  borderColor: theme.palette.mode === 'dark' ? '#444444' : '#e2e8f0',
-                  color: theme.palette.mode === 'dark' ? '#888888 !important' : '#999999 !important',
-                  userSelect: 'none',
-                  minWidth: 'fit-content',
-                })}
-              >
-                {codeLines.map((_, index) => (
-                  <Box key={index} component="div">
-                    {index + 1}
-                  </Box>
-                ))}
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <code>{code}</code>
-              </Box>
-            </Box>
-          ) : (
-            <code>{code}</code>
-          )}
-        </Box>
+          {code}
+        </SyntaxHighlighter>
       </Box>
     </Paper>
   );
