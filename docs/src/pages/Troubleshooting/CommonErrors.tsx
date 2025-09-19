@@ -184,7 +184,7 @@ touch storage/database/database.sqlite`
     cause: 'Migration system hasn\'t been initialized or storage directory is not writable.',
     solution: 'Ensure storage directory exists and is writable, then run migration commands.',
     code: `# Create storage directory structure
-mkdir -p storage/cache storage/logs
+mkdir -p storage/cache storage/logs  # These directories are auto-created if needed
 chmod -R 755 storage/
 chown -R www-data:www-data storage/
 
@@ -231,7 +231,7 @@ php bin/console migrate:generate --dry-run`
     code: `# Set proper permissions
 sudo chown -R www-data:www-data storage/
 sudo chmod -R 755 storage/
-sudo chmod -R 775 storage/logs storage/cache
+sudo chmod -R 775 storage/logs storage/cache  # If these directories exist
 
 # For development (less secure)
 chmod -R 777 storage/

@@ -177,7 +177,7 @@ CACHE_RESPONSES=true`} />
       </List>
 
       <Callout type="warning" title="File Permissions">
-        Ensure your <code>storage/cache</code> directory is writable by your web server. 
+        The <code>storage/cache</code> directory is created automatically when needed. Ensure the parent <code>storage/</code> directory is writable by your web server. 
         BaseAPI needs write permissions to store and manage cache files.
       </Callout>
 
