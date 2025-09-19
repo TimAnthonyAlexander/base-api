@@ -21,7 +21,7 @@ export default function Controllers() {
 
       <Alert severity="info" sx={{ my: 3 }}>
         Controllers use method-based routing: <code>get()</code>, <code>post()</code>, <code>put()</code>, 
-        <code>patch()</code>, <code>delete()</code> methods correspond to HTTP methods.
+        <code>patch()</code>, <code>delete()</code>, <code>head()</code> methods correspond to HTTP methods.
       </Alert>
 
       <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -55,9 +55,9 @@ class UserController extends Controller
     public function get(): JsonResponse
     {
         if (empty($this->id)) {
-            // List all users
-            $users = User::all(50); // Limit for performance
-            return JsonResponse::ok($users);
+            // List all users with pagination
+            $result = User::apiQuery($this->request, 50);
+            return JsonResponse::paginated($result);
         }
         
         // Get specific user
@@ -75,9 +75,15 @@ class UserController extends Controller
         // Validate request
         $this->validate([
             'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email',
             'password' => 'required|string|min:8',
         ]);
+        
+        // Check if user already exists
+        $existingUser = User::firstWhere('email', '=', $this->email);
+        if ($existingUser) {
+            return JsonResponse::error('User with this email already exists', 409);
+        }
         
         $user = new User();
         $user->name = $this->name;
@@ -90,6 +96,33 @@ class UserController extends Controller
 }
 `} />
 
+      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+        JsonResponse Methods
+      </Typography>
+
+      <Typography paragraph>
+        BaseAPI provides a comprehensive set of JsonResponse helper methods for common API responses:
+      </Typography>
+
+      <CodeBlock language="php" code={`// Success responses
+JsonResponse::ok($data)           // 200 with data wrapper
+JsonResponse::created($data)      // 201 for created resources  
+JsonResponse::success($data)      // 200 with success flag and meta
+JsonResponse::accepted($data)     // 202 for async operations
+JsonResponse::paginated($result)  // 200 with pagination info
+
+// Error responses  
+JsonResponse::badRequest($message, $errors)     // 400
+JsonResponse::unauthorized($message)           // 401
+JsonResponse::forbidden($message)              // 403  
+JsonResponse::notFound($message)               // 404
+JsonResponse::error($message, $status)         // Custom error
+JsonResponse::validationError($errors)         // 422
+JsonResponse::unprocessable($message, $details) // 422
+
+// Other
+JsonResponse::noContent()         // 204 empty response`} />
+
       <Alert severity="success" sx={{ mt: 4 }}>
         <strong>Best Practices:</strong>
         <br />• Keep controllers focused on HTTP concerns
@@ -98,6 +131,8 @@ class UserController extends Controller
         <br />• Return appropriate HTTP status codes
         <br />• Handle errors gracefully
         <br />• Use dependency injection for services
+        <br />• Use apiQuery() for paginated list endpoints
+        <br />• Use paginated() response for API lists
       </Alert>
     </Box>
   );
