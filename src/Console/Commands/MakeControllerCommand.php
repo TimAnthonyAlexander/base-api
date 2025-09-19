@@ -83,20 +83,45 @@ class MakeControllerCommand implements Command
 
 namespace App\Controllers;
 
+use BaseApi\Controllers\Controller;
+use BaseApi\Http\JsonResponse;
+
+/**
+ * {$name}
+ * 
+ * Add your controller description here.
+ */
 class {$name} extends Controller
 {
-    public function get(): array
+    // Define public properties to auto-populate from request data
+    // Example:
+    // public string \$name = '';
+    // public ?string \$email = null;
+    // public string \$id = '';
+    
+    public function get(): JsonResponse
     {
-        return [
-            'message' => 'Hello from {$name}'
-        ];
+        // Example GET handler
+        return JsonResponse::ok([
+            'message' => 'Hello from {$name}',
+            'timestamp' => date('c')
+        ]);
     }
 
-    public function post(): array
+    public function post(): JsonResponse
     {
-        return [
-            'message' => 'POST request handled by {$name}'
-        ];
+        // Example POST handler with validation
+        // \$this->validate([
+        //     'name' => 'required|string|max:255',
+        //     'email' => 'required|email'
+        // ]);
+        
+        // Process the request...
+        
+        return JsonResponse::created([
+            'message' => 'POST request handled by {$name}',
+            'timestamp' => date('c')
+        ]);
     }
 }
 PHP;

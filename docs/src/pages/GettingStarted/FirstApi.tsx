@@ -33,13 +33,18 @@ const controllerCode = `<?php
 
 namespace App\\Controllers;
 
-use App\\Models\\Product;
 use BaseApi\\Controllers\\Controller;
 use BaseApi\\Http\\JsonResponse;
+use App\\Models\\Product;
 
+/**
+ * ProductController
+ * 
+ * Handles CRUD operations for products.
+ */
 class ProductController extends Controller
 {
-    // Auto-populated from request data
+    // Define public properties to auto-populate from request data
     public string $name = '';
     public ?string $description = null;
     public float $price = 0.0;
@@ -59,7 +64,7 @@ class ProductController extends Controller
         $product->price = (float) $this->price;
         $product->save();
         
-        return JsonResponse::created(['product' => $product]);
+        return JsonResponse::created($product);
     }
     
     public function get(): JsonResponse
@@ -69,15 +74,15 @@ class ProductController extends Controller
             $product = Product::find($this->id);
             
             if (!$product) {
-                return JsonResponse::notFound(['message' => 'Product not found']);
+                return JsonResponse::notFound('Product not found');
             }
             
-            return JsonResponse::ok(['product' => $product]);
+            return JsonResponse::ok($product);
         }
         
         // Otherwise return all products
         $products = Product::all();
-        return JsonResponse::ok(['products' => $products]);
+        return JsonResponse::ok($products);
     }
 }`;
 
@@ -203,7 +208,8 @@ export default function FirstApi() {
             />
             
             <Typography paragraph variant="body2" color="text.secondary">
-              This creates <code>app/Models/Product.php</code> with the following structure:
+              This creates <code>app/Models/Product.php</code> with a comprehensive template. 
+              For this tutorial, update it with these simple properties:
             </Typography>
             
             <CodeBlock
@@ -211,6 +217,13 @@ export default function FirstApi() {
               code={modelCode}
               title="app/Models/Product.php"
             />
+            
+            <Callout type="info">
+              <Typography>
+                The generated model template includes examples of indexes, relations, and column overrides. 
+                You can use these features as your application grows, but for now, simple public properties are all you need.
+              </Typography>
+            </Callout>
           </StepContent>
         </Step>
 
@@ -260,7 +273,8 @@ php bin/console migrate:apply`}
             />
             
             <Typography paragraph variant="body2" color="text.secondary">
-              Update <code>app/Controllers/ProductController.php</code> with CRUD methods:
+              The generated <code>app/Controllers/ProductController.php</code> includes the basic structure with JsonResponse imports. 
+              Update it with the Product model import and CRUD methods:
             </Typography>
             
             <CodeBlock
@@ -271,7 +285,8 @@ php bin/console migrate:apply`}
 
             <Callout type="tip">
               <Typography>
-                <strong>Convention over Configuration:</strong> Method names like <code>get()</code>, <code>post()</code>, and <code>getId()</code> automatically map to HTTP methods and route parameters.
+                <strong>Convention over Configuration:</strong> Method names like <code>get()</code>, <code>post()</code> automatically map to HTTP methods. 
+                Public properties like <code>$id</code>, <code>$name</code> are auto-populated from request data (JSON body, query params, or route parameters).
               </Typography>
             </Callout>
           </StepContent>
@@ -325,7 +340,8 @@ php bin/console migrate:apply`}
 
             <Callout type="success">
               <Typography>
-                <strong>Congratulations!</strong> You've just built your first BaseAPI endpoint. Your products API is now fully functional with create, read operations.
+                <strong>Congratulations!</strong> You've just built your first BaseAPI endpoint. Your products API is now fully functional with create, read operations. 
+                The framework handles validation, database operations, JSON responses, and error handling automatically.
               </Typography>
             </Callout>
           </StepContent>
