@@ -22,6 +22,7 @@ const ConfigurationCaching = lazy(() => import('./pages/Configuration/Caching'))
 const DeploymentProduction = lazy(() => import('./pages/Deployment/Production'));
 const DIContainer = lazy(() => import('./pages/DI/Container'));
 const CLIOverview = lazy(() => import('./pages/CLI/Overview'));
+const DevelopmentDebugging = lazy(() => import('./pages/Development/Debugging'));
 const I18nOverview = lazy(() => import('./pages/I18n/Overview'));
 const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
 const GuidesCrudApi = lazy(() => import('./pages/Guides/CrudApi'));
@@ -69,6 +70,9 @@ const router = createBrowserRouter([
       
       // CLI
       { path: 'cli/overview', element: <CLIOverview /> },
+      
+      // Development
+      { path: 'development/debugging', element: <DevelopmentDebugging /> },
       
       // I18n
       { path: 'i18n/overview', element: <I18nOverview /> },

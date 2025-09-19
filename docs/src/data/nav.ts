@@ -63,6 +63,12 @@ export const NAV: NavNode[] = [
     ]
   },
   { 
+    title: 'Development', 
+    children: [
+      { title: 'Debug & Profiling', path: '/development/debugging' },
+    ]
+  },
+  { 
     title: 'Internationalization', 
     children: [
       { title: 'Overview', path: '/i18n/overview' },
