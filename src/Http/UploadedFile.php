@@ -35,8 +35,17 @@ class UploadedFile
 
     public function getMimeType(): string
     {
-        $f = new \finfo(FILEINFO_MIME_TYPE);
-        return $f->file($this->tmpName) ?: ($this->clientType ?? 'application/octet-stream');
+        // Check if temp file exists and is readable before trying to detect MIME type
+        if (!empty($this->tmpName) && file_exists($this->tmpName) && is_readable($this->tmpName)) {
+            $f = new \finfo(FILEINFO_MIME_TYPE);
+            $detectedType = $f->file($this->tmpName);
+            if ($detectedType !== false) {
+                return $detectedType;
+            }
+        }
+        
+        // Fallback to client type or default
+        return $this->clientType ?: 'application/octet-stream';
     }
 
     public function getSize(): int

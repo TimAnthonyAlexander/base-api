@@ -89,20 +89,29 @@ class ControllerBinder
     private function processFileValue(mixed $fileData): mixed
     {
         if (is_array($fileData)) {
-            // Check if it's a single file or array of files
+            // Check if it's a single file
             if (isset($fileData['tmp_name'])) {
-                // Single file
                 return new UploadedFile($fileData);
-            } else {
-                // Array of files
-                $files = [];
-                foreach ($fileData as $file) {
-                    if (is_array($file) && isset($file['tmp_name'])) {
-                        $files[] = new UploadedFile($file);
-                    }
-                }
-                return $files;
             }
+            
+            // Check if it's an array of files (indexed array where each element has tmp_name)
+            $isArrayOfFiles = false;
+            $validFiles = [];
+            
+            foreach ($fileData as $key => $file) {
+                if (is_int($key) && is_array($file) && isset($file['tmp_name'])) {
+                    $isArrayOfFiles = true;
+                    $validFiles[] = new UploadedFile($file);
+                }
+            }
+            
+            // If we found valid files in an indexed array, return them
+            if ($isArrayOfFiles && !empty($validFiles)) {
+                return $validFiles;
+            }
+            
+            // If it's neither a single file nor an array of files, return unchanged
+            return $fileData;
         }
 
         return $fileData;
