@@ -4,68 +4,31 @@ import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
 export default function Migrations() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        Migrations
-      </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Automatic database migrations in BaseAPI.
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                Migrations
+            </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Automatic database migrations in BaseAPI.
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI generates database migrations automatically from your model definitions. 
-        No need to write SQL or migration files manually - the framework analyzes your 
-        models and creates the appropriate database schema.
-      </Typography>
+            <Typography paragraph>
+                BaseAPI generates database migrations automatically from your model definitions.
+                No need to write SQL or migration files manually - the framework analyzes your
+                models and creates the appropriate database schema.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI scans your models and generates migration plans that can be reviewed before applying. 
-        This ensures your database schema stays in sync with your code.
-      </Alert>
+            <Alert severity="info" sx={{ my: 3 }}>
+                BaseAPI scans your models and generates migration plans that can be reviewed before applying.
+                This ensures your database schema stays in sync with your code.
+            </Alert>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        How It Works
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Basic Commands
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI migrations work by scanning your model classes and comparing them against 
-        the current database schema. It generates a migration plan that you can review 
-        and apply when ready.
-      </Typography>
-
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="1. Model Scanning"
-            secondary="BaseAPI scans all models in app/Models/ directory"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="2. Schema Comparison"
-            secondary="Compares model definitions against current database structure"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="3. Migration Generation"
-            secondary="Creates SQL statements to bring database in sync with models"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="4. Safe Application"
-            secondary="Applies changes with foreign key constraints and proper ordering"
-          />
-        </ListItem>
-      </List>
-
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Basic Commands
-      </Typography>
-
-      <CodeBlock language="bash" code={`# Generate a migration plan from your models
+            <CodeBlock language="bash" code={`# Generate a migration plan from your models
 php bin/console migrate:generate
 
 # Review the generated migration plan
@@ -77,15 +40,15 @@ php bin/console migrate:apply
 # Check current migration status
 php bin/console migrate:status`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Model to Database Mapping
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Model to Database Mapping
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI automatically creates database tables and columns based on your model properties:
-      </Typography>
+            <Typography paragraph>
+                BaseAPI automatically creates database tables and columns based on your model properties:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 class Product extends BaseModel
 {
@@ -112,20 +75,20 @@ class Product extends BaseModel
     ];
 }`} />
 
-      <Callout type="info" title="Automatic Table Creation">
-        This model automatically generates a <code>products</code> table with appropriate 
-        columns, indexes, and constraints. No manual migration files needed!
-      </Callout>
+            <Callout type="info" title="Automatic Table Creation">
+                This model automatically generates a <code>products</code> table with appropriate
+                columns, indexes, and constraints. No manual migration files needed!
+            </Callout>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Relationships & Foreign Keys
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Relationships & Foreign Keys
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI automatically creates foreign key constraints based on model relationships:
-      </Typography>
+            <Typography paragraph>
+                BaseAPI automatically creates foreign key constraints based on model relationships:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 class Order extends BaseModel
 {
@@ -155,15 +118,15 @@ class Order extends BaseModel
     ];
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Migration State Management
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Migration State Management
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI tracks applied migrations in <code>storage/migrations.json</code>:
-      </Typography>
+            <Typography paragraph>
+                BaseAPI tracks applied migrations in <code>storage/migrations.json</code>:
+            </Typography>
 
-      <CodeBlock language="json" code={`{
+            <CodeBlock language="json" code={`{
   "applied": [
     {
       "id": "20241201_120000_create_users_table",
@@ -185,15 +148,15 @@ class Order extends BaseModel
   ]
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Custom Column Definitions
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Custom Column Definitions
+            </Typography>
 
-      <Typography paragraph>
-        You can customize column definitions when needed:
-      </Typography>
+            <Typography paragraph>
+                You can customize column definitions when needed:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 class User extends BaseModel
 {
@@ -215,83 +178,83 @@ class User extends BaseModel
     ];
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Database Drivers
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Database Drivers
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI supports multiple database drivers with appropriate SQL generation:
-      </Typography>
+            <Typography paragraph>
+                BaseAPI supports multiple database drivers with appropriate SQL generation:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="SQLite"
-            secondary="Perfect for development and small applications"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="MySQL"
-            secondary="Production-ready with full feature support"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="PostgreSQL"
-            secondary="Advanced features and JSON support"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="SQLite"
+                        secondary="Perfect for development and small applications"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="MySQL"
+                        secondary="Production-ready with full feature support"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="PostgreSQL"
+                        secondary="Advanced features and JSON support"
+                    />
+                </ListItem>
+            </List>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Safe Migration Practices
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Safe Migration Practices
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI migrations are designed to be safe and reversible:
-      </Typography>
+            <Typography paragraph>
+                BaseAPI migrations are designed to be safe and reversible:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="Non-destructive Changes"
-            secondary="Adding columns and indexes is always safe"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Data Preservation"
-            secondary="Existing data is preserved during schema changes"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Foreign Key Safety"
-            secondary="Constraints are created in proper order to avoid conflicts"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Rollback Support"
-            secondary="Migration state is tracked for potential rollbacks"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Non-destructive Changes"
+                        secondary="Adding columns and indexes is always safe"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Data Preservation"
+                        secondary="Existing data is preserved during schema changes"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Foreign Key Safety"
+                        secondary="Constraints are created in proper order to avoid conflicts"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Rollback Support"
+                        secondary="Migration state is tracked for potential rollbacks"
+                    />
+                </ListItem>
+            </List>
 
-      <Alert severity="warning" sx={{ mt: 4 }}>
-        <strong>Production Safety:</strong> Always review generated migrations before applying 
-        to production databases. Test migrations on a copy of your production data first.
-      </Alert>
+            <Alert severity="warning" sx={{ mt: 4 }}>
+                <strong>Production Safety:</strong> Always review generated migrations before applying
+                to production databases. Test migrations on a copy of your production data first.
+            </Alert>
 
-      <Alert severity="success" sx={{ mt: 2 }}>
-        <strong>Best Practices:</strong>
-        <br />• Run <code>migrate:generate</code> after model changes
-        <br />• Review migration plans before applying
-        <br />• Test migrations on staging environments
-        <br />• Use version control for your models
-        <br />• Backup production databases before major migrations
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 2 }}>
+                <strong>Best Practices:</strong>
+                <br />• Run <code>migrate:generate</code> after model changes
+                <br />• Review migration plans before applying
+                <br />• Test migrations on staging environments
+                <br />• Use version control for your models
+                <br />• Backup production databases before major migrations
+            </Alert>
+        </Box>
+    );
 }
