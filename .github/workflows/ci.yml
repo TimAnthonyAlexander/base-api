@@ -17,7 +17,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          tools: phpstan
+          tools: composer, phpstan
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run PHPStan
         run: phpstan analyse --memory-limit=256M src
@@ -32,7 +35,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          tools: phpunit
+          tools: composer, phpunit
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run PHPUnit
         run: phpunit --colors=always --testdox tests/
