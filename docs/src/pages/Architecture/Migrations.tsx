@@ -39,10 +39,7 @@ cat storage/migrations.json
 php bin/console migrate:apply
 
 # Apply only non-destructive migrations (safe mode)
-php bin/console migrate:apply --safe
-
-# Check migration status
-php bin/console migrate:status`} />
+php bin/console migrate:apply --safe`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Model to Database Mapping
@@ -50,7 +47,7 @@ php bin/console migrate:status`} />
 
             <Typography paragraph>
                 BaseAPI automatically creates database tables and columns based on your model properties.
-                All models extend BaseModel and automatically include <code>id</code>, <code>created_at</code>, 
+                All models extend BaseModel and automatically include <code>id</code>, <code>created_at</code>,
                 and <code>updated_at</code> columns:
             </Typography>
 
@@ -93,7 +90,7 @@ class Product extends BaseModel
             <Typography paragraph>
                 BaseAPI automatically creates foreign key constraints in two ways:
             </Typography>
-            
+
             <List sx={{ mb: 2 }}>
                 <ListItem>
                     <ListItemText
@@ -144,8 +141,8 @@ class Order extends BaseModel
             </Typography>
 
             <Typography paragraph>
-                BaseAPI tracks migrations in <code>storage/migrations.json</code> and execution state in 
-                <code>storage/executed-migrations.json</code>. Each migration is a self-contained SQL 
+                BaseAPI tracks migrations in <code>storage/migrations.json</code> and execution state in
+                <code>storage/executed-migrations.json</code>. Each migration is a self-contained SQL
                 statement with metadata:
             </Typography>
 
@@ -222,7 +219,7 @@ class User extends BaseModel
             </Typography>
 
             <Typography paragraph>
-                BaseAPI automatically maps PHP property types to appropriate database column types 
+                BaseAPI automatically maps PHP property types to appropriate database column types
                 based on your database driver:
             </Typography>
 
@@ -342,7 +339,6 @@ php bin/console migrate:apply`} />
                 <br />• Run <code>migrate:generate</code> after model changes
                 <br />• Review generated SQL in <code>storage/migrations.json</code> before applying
                 <br />• Use <code>--safe</code> flag for production deployments
-                <br />• Check <code>migrate:status</code> to see pending migrations
                 <br />• Test migrations on staging environments first
                 <br />• Keep migration files in version control
                 <br />• Backup production databases before applying destructive changes
