@@ -40,7 +40,7 @@ class ArrayStore implements StoreInterface
     public function put(string $key, mixed $value, ?int $seconds): void
     {
         $prefixedKey = $this->prefixedKey($key);
-        $expiresAt = $seconds ? time() + $seconds : null;
+        $expiresAt = $seconds !== null ? time() + $seconds : null;
 
         $this->storage[$prefixedKey] = [
             'value' => $value,
