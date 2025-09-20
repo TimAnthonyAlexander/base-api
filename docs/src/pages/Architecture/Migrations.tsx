@@ -46,41 +46,10 @@ php bin/console migrate:apply`} />
 
             <Typography>
                 BaseAPI automatically creates database tables and columns based on your model properties.
+                <br />
                 All models extend BaseModel and automatically include <code>id</code>, <code>created_at</code>,
-                and <code>updated_at</code> columns:
+                and <code>updated_at</code> columns.
             </Typography>
-
-            <CodeBlock language="php" code={`<?php
-
-class Product extends BaseModel
-{
-    // Creates VARCHAR(255) NOT NULL DEFAULT ''
-    public string $name = '';
-    
-    // Creates TEXT NULL
-    public ?string $description = null;
-    
-    // Creates DECIMAL(10,2) NOT NULL DEFAULT 0.00
-    public float $price = 0.0;
-    
-    // Creates BOOLEAN NOT NULL DEFAULT true
-    public bool $active = true;
-    
-    // Creates INTEGER NOT NULL DEFAULT 0
-    public int $stock = 0;
-    
-    // Define indexes
-    public static array $indexes = [
-        'name' => 'index',        // Regular index for searching
-        'price' => 'index',       // Index for price filtering
-        'active' => 'index',      // Index for status queries
-    ];
-}`} />
-
-            <Callout type="info" title="Automatic Table Creation">
-                This model automatically generates a <code>products</code> table with appropriate
-                columns, indexes, and constraints. No manual migration files needed!
-            </Callout>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Relationships & Foreign Keys
