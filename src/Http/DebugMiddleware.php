@@ -17,13 +17,13 @@ class DebugMiddleware implements Middleware
         // Enable profiler and start request tracking
         $profiler = App::profiler();
         $profiler->enable();
-        
+
         // Log initial memory snapshot
         $profiler->trackMemory('request_start');
-        
+
         // Log request details
         $profiler->logRequest($request);
-        
+
         // Start profiling the entire request
         $requestSpanId = $profiler->start('http_request', [
             'method' => $request->method,
@@ -33,27 +33,25 @@ class DebugMiddleware implements Middleware
 
         try {
             $response = $next($request);
-            
+
             // Log response details
             $profiler->logResponse($response);
-            
+
             // Take final memory snapshot
             $profiler->trackMemory('request_end');
-            
+
             // Inject debug information if appropriate
             $response = $this->injectDebugInfo($request, $response);
-            
+
             return $response;
-            
         } catch (\Throwable $exception) {
             // Log any exceptions that occur during request processing
             $profiler->logException($exception, [
                 'request_method' => $request->method,
                 'request_path' => $request->path,
             ]);
-            
+
             throw $exception;
-            
         } finally {
             // Always stop the request span
             $profiler->stop($requestSpanId);
@@ -78,8 +76,8 @@ class DebugMiddleware implements Middleware
         }
 
         // Allow enabling via query parameter (for API testing)
-        return isset($request->query['debug']) && 
-               filter_var($request->query['debug'], FILTER_VALIDATE_BOOLEAN);
+        return isset($request->query['debug']) &&
+            filter_var($request->query['debug'], FILTER_VALIDATE_BOOLEAN);
     }
 
     /**
@@ -88,17 +86,17 @@ class DebugMiddleware implements Middleware
     private function injectDebugInfo(Request $request, Response $response): Response
     {
         $debugPanel = new DebugPanel(true);
-        
+
         // For JSON responses, add debug data to the response body
         if ($response instanceof JsonResponse) {
             return $this->addDebugToJsonResponse($response, $debugPanel);
         }
-        
+
         // For HTML responses, inject debug panel
         if ($this->isHtmlResponse($response)) {
             return $this->addDebugPanelToHtmlResponse($response, $debugPanel);
         }
-        
+
         return $response;
     }
 
@@ -108,14 +106,14 @@ class DebugMiddleware implements Middleware
     private function addDebugToJsonResponse(JsonResponse $response, DebugPanel $debugPanel): JsonResponse
     {
         $data = json_decode($response->body, true);
-        
+
         if (!is_array($data)) {
             return $response;
         }
-        
+
         // Add debug information under a 'debug' key
         $data['debug'] = $debugPanel->getMetrics();
-        
+
         return new JsonResponse($data, $response->status, $response->headers);
     }
 
@@ -125,23 +123,23 @@ class DebugMiddleware implements Middleware
     private function addDebugPanelToHtmlResponse(Response $response, DebugPanel $debugPanel): Response
     {
         $debugHtml = $debugPanel->renderPanel();
-        
+
         if (empty($debugHtml)) {
             return $response;
         }
-        
+
         // Try to inject before closing body tag
         $body = $response->body;
         $debugHtml = "\n" . $debugHtml . "\n";
-        
+
         if (stripos($body, '</body>') !== false) {
             $body = str_ireplace('</body>', $debugHtml . '</body>', $body);
         } else {
             // If no body tag, just append
             $body .= $debugHtml;
         }
-        
-        return new Response($body, $response->status, $response->headers);
+
+        return new Response($response->status, $response->headers, $body);
     }
 
     /**
@@ -150,7 +148,7 @@ class DebugMiddleware implements Middleware
     private function isHtmlResponse(Response $response): bool
     {
         $contentType = '';
-        
+
         // Check Content-Type header
         foreach ($response->headers as $name => $value) {
             if (strtolower($name) === 'content-type') {
@@ -158,8 +156,8 @@ class DebugMiddleware implements Middleware
                 break;
             }
         }
-        
-        return str_contains($contentType, 'text/html') || 
-               (empty($contentType) && str_contains($response->body, '<html'));
+
+        return str_contains($contentType, 'text/html') ||
+            (empty($contentType) && str_contains($response->body, '<html'));
     }
 }
