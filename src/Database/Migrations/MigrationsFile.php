@@ -93,10 +93,10 @@ class MigrationsFile
     /**
      * Generate unique ID for a migration
      */
-    public static function generateMigrationId(string $sql, string $table, string $operation): string
+    public static function generateMigrationId(string $sql, ?string $table, string $operation): string
     {
         // Create a hash based on sql content and current timestamp for uniqueness
-        $content = $sql . $table . $operation . microtime(true);
+        $content = $sql . ($table ?? 'unknown') . $operation . microtime(true);
         return 'mig_' . substr(md5($content), 0, 12);
     }
 

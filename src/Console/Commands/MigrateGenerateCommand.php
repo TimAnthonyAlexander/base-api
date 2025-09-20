@@ -141,11 +141,12 @@ class MigrateGenerateCommand implements Command
 
     private function extractTableFromSql(string $sql): ?string
     {
-        // Simple regex to extract table names from common SQL patterns
+        // Enhanced regex to extract table names from common SQL patterns
+        // Handles backticks, double quotes, square brackets, or no quotes
         $patterns = [
-            '/CREATE TABLE `?(\w+)`?/i',
-            '/ALTER TABLE `?(\w+)`?/i',
-            '/DROP TABLE `?(\w+)`?/i',
+            '/CREATE TABLE [`"\[]?(\w+)[`"\]]?/i',
+            '/ALTER TABLE [`"\[]?(\w+)[`"\]]?/i',
+            '/DROP TABLE [`"\[]?(\w+)[`"\]]?/i',
         ];
         
         foreach ($patterns as $pattern) {
@@ -154,7 +155,7 @@ class MigrateGenerateCommand implements Command
             }
         }
         
-        return null;
+        return 'unknown';  // Return fallback instead of null
     }
 
     private function guessOperationFromSql(string $sql): string
