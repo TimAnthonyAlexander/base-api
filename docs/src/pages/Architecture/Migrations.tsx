@@ -45,7 +45,9 @@ php bin/console migrate:status`} />
             </Typography>
 
             <Typography paragraph>
-                BaseAPI automatically creates database tables and columns based on your model properties:
+                BaseAPI automatically creates database tables and columns based on your model properties.
+                All models extend BaseModel and automatically include <code>id</code>, <code>created_at</code>, 
+                and <code>updated_at</code> columns:
             </Typography>
 
             <CodeBlock language="php" code={`<?php
@@ -85,8 +87,23 @@ class Product extends BaseModel
             </Typography>
 
             <Typography paragraph>
-                BaseAPI automatically creates foreign key constraints based on model relationships:
+                BaseAPI automatically creates foreign key constraints in two ways:
             </Typography>
+            
+            <List sx={{ mb: 2 }}>
+                <ListItem>
+                    <ListItemText
+                        primary="Typed Properties"
+                        secondary="Properties typed as other BaseModel classes automatically create FK columns (e.g., public ?User $user creates user_id column)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Naming Convention"
+                        secondary="Properties ending with '_id' are detected as foreign keys if a matching model exists (e.g., user_id creates FK to User model)"
+                    />
+                </ListItem>
+            </List>
 
             <CodeBlock language="php" code={`<?php
 
@@ -123,29 +140,46 @@ class Order extends BaseModel
             </Typography>
 
             <Typography paragraph>
-                BaseAPI tracks applied migrations in <code>storage/migrations.json</code>:
+                BaseAPI tracks migration plans in <code>storage/migrations.json</code>. The file contains 
+                the generated migration plan and marks when it has been applied:
             </Typography>
 
             <CodeBlock language="json" code={`{
-  "applied": [
+  "generated_at": "2024-12-01T12:00:00+00:00",
+  "plan": [
     {
-      "id": "20241201_120000_create_users_table",
-      "applied_at": "2024-12-01T12:00:00Z",
-      "model": "App\\\\Models\\\\User"
+      "op": "create_table",
+      "table": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "VARCHAR(36)",
+          "nullable": false,
+          "default": null,
+          "is_pk": true
+        },
+        "name": {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "default": null,
+          "is_pk": false
+        }
+      },
+      "destructive": false
     },
     {
-      "id": "20241201_120100_create_products_table", 
-      "applied_at": "2024-12-01T12:01:00Z",
-      "model": "App\\\\Models\\\\Product"
+      "op": "add_index",
+      "table": "users",
+      "index": {
+        "name": "idx_users_name",
+        "column": "name",
+        "type": "index"
+      },
+      "destructive": false
     }
   ],
-  "pending": [
-    {
-      "id": "20241201_120200_create_orders_table",
-      "model": "App\\\\Models\\\\Order",
-      "sql": "CREATE TABLE orders (...)"
-    }
-  ]
+  "applied_at": "2024-12-01T12:01:00+00:00"
 }`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -177,6 +211,42 @@ class User extends BaseModel
         'name' => 'index',
     ];
 }`} />
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                PHP Type to Database Column Mapping
+            </Typography>
+
+            <Typography paragraph>
+                BaseAPI automatically maps PHP property types to appropriate database column types 
+                based on your database driver:
+            </Typography>
+
+            <CodeBlock language="php" code={`// Type mappings vary by database driver:
+
+// MySQL Driver:
+string  -> VARCHAR(255) or VARCHAR(36) for *_id properties
+int     -> INT  
+float   -> DOUBLE
+bool    -> TINYINT(1)
+array   -> JSON
+object  -> JSON
+
+// SQLite Driver:
+string  -> TEXT
+int     -> INTEGER
+float   -> REAL  
+bool    -> INTEGER (0/1)
+array   -> TEXT (JSON)
+object  -> TEXT (JSON)
+
+// PostgreSQL Driver:
+string  -> VARCHAR(255) or UUID for *_id properties
+int     -> INTEGER or SERIAL for *_id properties
+float   -> REAL
+double  -> DOUBLE PRECISION
+bool    -> BOOLEAN
+array   -> JSONB
+object  -> JSONB`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Database Drivers
@@ -247,11 +317,18 @@ class User extends BaseModel
                 to production databases. Test migrations on a copy of your production data first.
             </Alert>
 
+            <Alert severity="info" sx={{ mt: 2 }}>
+                <strong>Safe Mode:</strong> Use <code>migrate:apply --safe</code> to skip destructive 
+                operations like dropping tables or columns. This allows you to apply non-destructive 
+                changes safely while reviewing destructive changes separately.
+            </Alert>
+
             <Alert severity="success" sx={{ mt: 2 }}>
                 <strong>Best Practices:</strong>
                 <br />• Run <code>migrate:generate</code> after model changes
                 <br />• Review migration plans before applying
-                <br />• Test migrations on staging environments
+                <br />• Use <code>--safe</code> flag for production deployments
+                <br />• Test migrations on staging environments first
                 <br />• Use version control for your models
                 <br />• Backup production databases before major migrations
             </Alert>
