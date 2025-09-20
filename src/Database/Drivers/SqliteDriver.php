@@ -354,10 +354,37 @@ class SqliteDriver implements DatabaseDriverInterface
     
     private function generateDropColumn(array $op): array
     {
-        // SQLite doesn't support DROP COLUMN (before 3.35.0)
-        // This would require table recreation which is complex
-        // For now, return empty array - this can be implemented later if needed
-        return [];
+        $tableName = $op['table'];
+        $columnName = $op['column'];
+        
+        // Check SQLite version to see if DROP COLUMN is supported
+        // SQLite 3.35.0+ supports DROP COLUMN natively
+        $version = $this->getSqliteVersion();
+        if (version_compare($version, '3.35.0', '>=')) {
+            $sql = "ALTER TABLE \"{$tableName}\" DROP COLUMN \"{$columnName}\"";
+            return [
+                [
+                    'sql' => $sql,
+                    'destructive' => true,
+                    'warning' => 'Dropping column - data will be lost'
+                ]
+            ];
+        }
+        
+        // For older SQLite versions, dropping columns requires table recreation
+        // This is complex and potentially dangerous, so we'll warn but skip for now
+        return [
+            [
+                'sql' => "-- DROP COLUMN \"{$columnName}\" FROM \"{$tableName}\" (Not supported in SQLite < 3.35.0)",
+                'destructive' => true,
+                'warning' => 'Column drop not implemented for SQLite < 3.35.0. Manual table recreation required.'
+            ]
+        ];
+    }
+    
+    private function getSqliteVersion(): string
+    {
+        return \SQLite3::version()['versionString'] ?? '3.0.0';
     }
     
     private function generateDropTable(array $op): array
