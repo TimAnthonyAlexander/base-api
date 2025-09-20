@@ -342,13 +342,15 @@ class SqliteDriver implements DatabaseDriverInterface
     private function generateDropIndex(array $op): array
     {
         $indexName = $op['index'];
+        $tableName = $op['table'] ?? 'unknown';
         
         $sql = "DROP INDEX \"{$indexName}\"";
         
         return [
             'sql' => $sql,
             'description' => "Drop index {$indexName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     

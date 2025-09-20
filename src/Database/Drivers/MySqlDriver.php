@@ -348,7 +348,8 @@ class MySqlDriver implements DatabaseDriverInterface
         return [
             'sql' => $sql,
             'description' => "Drop index {$indexName} from {$tableName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     

@@ -56,7 +56,8 @@ class MigrateGenerateCommand implements Command
             // Convert SQL statements to migration format
             $migrations = [];
             foreach ($sqlStatements as $statement) {
-                $table = $this->extractTableFromSql($statement['sql']);
+                // Use table from statement if provided, otherwise extract from SQL
+                $table = $statement['table'] ?? $this->extractTableFromSql($statement['sql']);
                 $operation = $this->guessOperationFromSql($statement['sql']);
                 
                 $migrations[] = [
