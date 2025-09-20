@@ -341,14 +341,15 @@ class MySqlDriver implements DatabaseDriverInterface
     private function generateDropIndex(array $op): array
     {
         $tableName = $op['table'];
-        $indexName = $op['index_name'];
+        $indexName = $op['index'];
         
         $sql = "ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`";
         
         return [
             'sql' => $sql,
             'description' => "Drop index {$indexName} from {$tableName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     
@@ -370,12 +371,13 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE `{$tableName}`";
+        $sql = "DROP TABLE IF EXISTS `{$tableName}`";
         
         return [
             'sql' => $sql,
             'description' => "Drop table {$tableName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     

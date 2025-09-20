@@ -6,6 +6,7 @@ use BaseApi\Console\Command;
 use BaseApi\Database\Migrations\MigrationPlan;
 use BaseApi\Database\Migrations\SqlGenerator;
 use BaseApi\Database\Migrations\MigrationsFile;
+use BaseApi\Database\Migrations\ExecutedMigrationsFile;
 use BaseApi\App;
 use PDO;
 
@@ -27,54 +28,50 @@ class MigrateApplyCommand implements Command
             // Check for --safe flag
             $safeMode = in_array('--safe', $args);
             
-            // Get migrations file path
+            // Get file paths
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
-            $fullPath = App::basePath($migrationsFile);
+            $executedMigrationsFile = App::config()->get('EXECUTED_MIGRATIONS_FILE', 'storage/executed-migrations.json');
             
-            // Read migration plan
-            $planData = MigrationsFile::read($fullPath);
-            if ($planData === null) {
-                echo "Error: No migration plan found at {$migrationsFile}\n";
-                echo "Run 'migrate:generate' first to create a migration plan.\n";
+            $migrationsPath = App::basePath($migrationsFile);
+            $executedPath = App::basePath($executedMigrationsFile);
+            
+            // Read all migrations
+            $allMigrations = MigrationsFile::readMigrations($migrationsPath);
+            if (empty($allMigrations)) {
+                echo "No migrations found at {$migrationsFile}\n";
+                echo "Run 'migrate:generate' first to create migrations.\n";
                 return 1;
             }
             
-            // Check if already applied
-            if (MigrationsFile::isApplied($fullPath)) {
-                echo "Migration plan has already been applied.\n";
-                echo "Run 'migrate:generate' to create a new plan.\n";
+            // Get pending migrations (ones not yet executed)
+            $pendingMigrations = ExecutedMigrationsFile::getPendingMigrations($allMigrations, $executedPath);
+            
+            if (empty($pendingMigrations)) {
+                echo "No pending migrations to apply. Database is up to date.\n";
                 return 0;
             }
             
-            $plan = MigrationPlan::fromArray($planData);
-            
-            if ($plan->isEmpty()) {
-                echo "No migrations to apply.\n";
-                return 0;
-            }
-            
-            // Generate SQL statements
-            $generator = new SqlGenerator();
-            $statements = $generator->generate($plan);
+            echo "Found " . count($pendingMigrations) . " pending migration(s).\n";
             
             // Filter out destructive operations in safe mode
+            $migrationsToApply = $pendingMigrations;
             if ($safeMode) {
-                $originalCount = count($statements);
-                $statements = array_filter($statements, fn($stmt) => !($stmt['destructive'] ?? false));
-                $filteredCount = $originalCount - count($statements);
+                $originalCount = count($migrationsToApply);
+                $migrationsToApply = array_filter($migrationsToApply, fn($mig) => !($mig['destructive'] ?? false));
+                $filteredCount = $originalCount - count($migrationsToApply);
                 
                 if ($filteredCount > 0) {
                     echo "Safe mode: Skipping {$filteredCount} destructive operations.\n";
                 }
             }
             
-            if (empty($statements)) {
-                echo "No statements to execute.\n";
+            if (empty($migrationsToApply)) {
+                echo "No migrations to execute after filtering.\n";
                 return 0;
             }
             
             // Show what will be executed
-            $this->showExecutionPlan($statements, $safeMode);
+            $this->showExecutionPlan($migrationsToApply, $safeMode);
             
             // Confirm execution
             if (!$this->confirmExecution()) {
@@ -83,15 +80,17 @@ class MigrateApplyCommand implements Command
             }
             
             // Execute migrations
-            $this->executeMigrations($statements);
+            $executedIds = $this->executeMigrations($migrationsToApply);
             
-            // Mark as applied if not in safe mode or no destructive operations were skipped
-            if (!$safeMode || $plan->getDestructiveCount() === 0) {
-                MigrationsFile::markApplied($fullPath);
-                echo "\nMigration completed and marked as applied.\n";
-            } else {
-                echo "\nMigration completed (partial - destructive operations skipped).\n";
-                echo "Run without --safe to apply destructive changes.\n";
+            // Update executed migrations file
+            ExecutedMigrationsFile::addMultipleExecuted($executedPath, $executedIds);
+            
+            echo "\nMigrations completed successfully!\n";
+            echo "Executed " . count($executedIds) . " migration(s).\n";
+            
+            if ($safeMode && count($executedIds) < count($pendingMigrations)) {
+                $remaining = count($pendingMigrations) - count($executedIds);
+                echo "Note: {$remaining} destructive migration(s) remain. Run without --safe to apply them.\n";
             }
             
             return 0;
@@ -102,17 +101,18 @@ class MigrateApplyCommand implements Command
         }
     }
 
-    private function showExecutionPlan(array $statements, bool $safeMode): void
+    private function showExecutionPlan(array $migrations, bool $safeMode): void
     {
         echo "Execution Plan" . ($safeMode ? " (Safe Mode)" : "") . ":\n";
         echo "==========================================\n";
         
-        foreach ($statements as $i => $statement) {
+        foreach ($migrations as $i => $migration) {
             $num = $i + 1;
-            $destructive = $statement['destructive'] ? " [DESTRUCTIVE]" : "";
-            $warning = isset($statement['warning']) && $statement['warning'] ? " - {$statement['warning']}" : "";
+            $destructive = ($migration['destructive'] ?? false) ? " [DESTRUCTIVE]" : "";
+            $warning = (!empty($migration['warning'])) ? " - {$migration['warning']}" : "";
+            $table = $migration['table'] ? " ({$migration['table']})" : "";
             
-            echo "{$num}. {$statement['sql']}{$destructive}{$warning}\n\n";
+            echo "{$num}. [{$migration['operation']}]{$table} {$migration['sql']}{$destructive}{$warning}\n\n";
         }
     }
 
@@ -126,26 +126,28 @@ class MigrateApplyCommand implements Command
         return strtolower(trim($line)) === 'y';
     }
 
-    private function executeMigrations(array $statements): void
+    private function executeMigrations(array $migrations): array
     {
         $pdo = App::db()->getConnection()->pdo();
+        $executedIds = [];
         
         echo "Executing migrations...\n";
         
-        // Group statements by table for transaction boundaries
-        $tableGroups = $this->groupStatementsByTable($statements);
+        // Group migrations by table for transaction boundaries
+        $tableGroups = $this->groupMigrationsByTable($migrations);
         
-        foreach ($tableGroups as $table => $tableStatements) {
+        foreach ($tableGroups as $table => $tableMigrations) {
             echo "Processing table: {$table}\n";
             
             $pdo->beginTransaction();
             
             try {
-                foreach ($tableStatements as $i => $statement) {
+                foreach ($tableMigrations as $i => $migration) {
                     $num = $i + 1;
-                    echo "  {$num}. Executing: " . substr($statement['sql'], 0, 50) . "...\n";
+                    echo "  {$num}. Executing [{$migration['operation']}]: " . substr($migration['sql'], 0, 50) . "...\n";
                     
-                    $pdo->exec($statement['sql']);
+                    $pdo->exec($migration['sql']);
+                    $executedIds[] = $migration['id'];
                 }
                 
                 $pdo->commit();
@@ -158,46 +160,23 @@ class MigrateApplyCommand implements Command
         }
         
         echo "\nAll migrations executed successfully!\n";
+        return $executedIds;
     }
 
-    private function groupStatementsByTable(array $statements): array
+    private function groupMigrationsByTable(array $migrations): array
     {
         $groups = [];
         
-        foreach ($statements as $statement) {
-            $sql = $statement['sql'];
-            
-            // Extract table name from SQL
-            $table = $this->extractTableName($sql);
-            if (!$table) {
-                $table = 'general';
-            }
+        foreach ($migrations as $migration) {
+            $table = $migration['table'] ?? 'general';
             
             if (!isset($groups[$table])) {
                 $groups[$table] = [];
             }
             
-            $groups[$table][] = $statement;
+            $groups[$table][] = $migration;
         }
         
         return $groups;
-    }
-
-    private function extractTableName(string $sql): ?string
-    {
-        // Simple regex to extract table names from common SQL patterns
-        $patterns = [
-            '/CREATE TABLE `?(\w+)`?/i',
-            '/ALTER TABLE `?(\w+)`?/i',
-            '/DROP TABLE `?(\w+)`?/i',
-        ];
-        
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $sql, $matches)) {
-                return $matches[1];
-            }
-        }
-        
-        return null;
     }
 }

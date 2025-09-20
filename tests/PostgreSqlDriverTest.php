@@ -374,7 +374,7 @@ class PostgreSqlDriverTest extends TestCase
         ]);
         
         $plan->addOperation('drop_index', [
-            'index_name' => 'idx_users_email'
+            'index' => 'idx_users_email'
         ]);
         
         $plan->addOperation('drop_column', [
@@ -391,9 +391,9 @@ class PostgreSqlDriverTest extends TestCase
         
         // Verify drop statements
         $this->assertEquals('ALTER TABLE "posts" DROP CONSTRAINT "fk_posts_user_id"', $statements[0]['sql']);
-        $this->assertEquals('DROP INDEX "idx_users_email"', $statements[1]['sql']);
+        $this->assertEquals('DROP INDEX IF EXISTS "idx_users_email"', $statements[1]['sql']);
         $this->assertEquals('ALTER TABLE "users" DROP COLUMN "phone"', $statements[2]['sql']);
-        $this->assertEquals('DROP TABLE "old_table"', $statements[3]['sql']);
+        $this->assertEquals('DROP TABLE IF EXISTS "old_table"', $statements[3]['sql']);
         
         // Verify all drop operations are marked as destructive
         foreach ($statements as $statement) {
@@ -436,6 +436,6 @@ class PostgreSqlDriverTest extends TestCase
         // Verify proper ordering: creates first, then adds, then drops
         $this->assertStringContainsString('CREATE TABLE "new_table"', $statements[0]['sql']);
         $this->assertStringContainsString('ALTER TABLE "existing_table" ADD COLUMN', $statements[1]['sql']);
-        $this->assertStringContainsString('DROP TABLE "old_table"', $statements[2]['sql']);
+        $this->assertStringContainsString('DROP TABLE IF EXISTS "old_table"', $statements[2]['sql']);
     }
 }

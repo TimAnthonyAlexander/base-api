@@ -341,35 +341,65 @@ class SqliteDriver implements DatabaseDriverInterface
     
     private function generateDropIndex(array $op): array
     {
-        $indexName = $op['index_name'];
+        $indexName = $op['index'];
+        $tableName = $op['table'] ?? 'unknown';
         
-        $sql = "DROP INDEX \"{$indexName}\"";
+        $sql = "DROP INDEX IF EXISTS \"{$indexName}\"";
         
         return [
             'sql' => $sql,
             'description' => "Drop index {$indexName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     
     private function generateDropColumn(array $op): array
     {
-        // SQLite doesn't support DROP COLUMN (before 3.35.0)
-        // This would require table recreation which is complex
-        // For now, return empty array - this can be implemented later if needed
-        return [];
+        $tableName = $op['table'];
+        $columnName = $op['column'];
+        
+        // Check SQLite version to see if DROP COLUMN is supported
+        // SQLite 3.35.0+ supports DROP COLUMN natively
+        $version = $this->getSqliteVersion();
+        if (version_compare($version, '3.35.0', '>=')) {
+            $sql = "ALTER TABLE \"{$tableName}\" DROP COLUMN \"{$columnName}\"";
+            return [
+                [
+                    'sql' => $sql,
+                    'destructive' => true,
+                    'warning' => 'Dropping column - data will be lost'
+                ]
+            ];
+        }
+        
+        // For older SQLite versions, dropping columns requires table recreation
+        // This is complex and potentially dangerous, so we'll warn but skip for now
+        return [
+            [
+                'sql' => "-- DROP COLUMN \"{$columnName}\" FROM \"{$tableName}\" (Not supported in SQLite < 3.35.0)",
+                'destructive' => true,
+                'warning' => 'Column drop not implemented for SQLite < 3.35.0. Manual table recreation required.'
+            ]
+        ];
+    }
+    
+    private function getSqliteVersion(): string
+    {
+        return \SQLite3::version()['versionString'] ?? '3.0.0';
     }
     
     private function generateDropTable(array $op): array
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE \"{$tableName}\"";
+        $sql = "DROP TABLE IF EXISTS \"{$tableName}\"";
         
         return [
             'sql' => $sql,
             'description' => "Drop table {$tableName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     
