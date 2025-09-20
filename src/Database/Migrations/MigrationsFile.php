@@ -95,8 +95,9 @@ class MigrationsFile
      */
     public static function generateMigrationId(string $sql, ?string $table, string $operation): string
     {
-        // Create a hash based on sql content and current timestamp for uniqueness
-        $content = $sql . ($table ?? 'unknown') . $operation . microtime(true);
+        // Create a hash based purely on sql content for true idempotency
+        // Do NOT include timestamp - identical SQL should get identical IDs
+        $content = $sql . ($table ?? 'unknown') . $operation;
         return 'mig_' . substr(md5($content), 0, 12);
     }
 

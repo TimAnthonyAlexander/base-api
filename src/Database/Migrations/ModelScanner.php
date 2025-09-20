@@ -18,20 +18,36 @@ class ModelScanner
         $files = glob($modelsDir . '/*.php');
 
         foreach ($files as $file) {
+            // Skip if file no longer exists (might have been deleted)
+            if (!file_exists($file)) {
+                continue;
+            }
+            
             $className = $this->getClassNameFromFile($file);
-            if (!$className || !class_exists($className)) {
+            if (!$className) {
                 continue;
             }
+            
+            // Try to load the class, but handle errors gracefully
+            try {
+                if (!class_exists($className)) {
+                    continue;
+                }
+                
+                $reflection = new ReflectionClass($className);
 
-            $reflection = new ReflectionClass($className);
+                // Skip abstract classes and non-BaseModel classes
+                if ($reflection->isAbstract() || !$reflection->isSubclassOf(BaseModel::class)) {
+                    continue;
+                }
 
-            // Skip abstract classes and non-BaseModel classes
-            if ($reflection->isAbstract() || !$reflection->isSubclassOf(BaseModel::class)) {
+                $table = $this->scanModel($reflection);
+                $schema->tables[$table->name] = $table;
+                
+            } catch (\Exception $e) {
+                // Skip files that can't be loaded (deleted, syntax errors, etc.)
                 continue;
             }
-
-            $table = $this->scanModel($reflection);
-            $schema->tables[$table->name] = $table;
         }
 
         return $schema;

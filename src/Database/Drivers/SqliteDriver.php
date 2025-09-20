@@ -344,7 +344,7 @@ class SqliteDriver implements DatabaseDriverInterface
         $indexName = $op['index'];
         $tableName = $op['table'] ?? 'unknown';
         
-        $sql = "DROP INDEX \"{$indexName}\"";
+        $sql = "DROP INDEX IF EXISTS \"{$indexName}\"";
         
         return [
             'sql' => $sql,
@@ -393,12 +393,13 @@ class SqliteDriver implements DatabaseDriverInterface
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE \"{$tableName}\"";
+        $sql = "DROP TABLE IF EXISTS \"{$tableName}\"";
         
         return [
             'sql' => $sql,
             'description' => "Drop table {$tableName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     

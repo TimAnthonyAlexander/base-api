@@ -371,12 +371,13 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE `{$tableName}`";
+        $sql = "DROP TABLE IF EXISTS `{$tableName}`";
         
         return [
             'sql' => $sql,
             'description' => "Drop table {$tableName}",
-            'destructive' => true
+            'destructive' => true,
+            'table' => $tableName
         ];
     }
     

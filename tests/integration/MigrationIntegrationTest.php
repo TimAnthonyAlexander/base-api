@@ -123,13 +123,13 @@ class MigrationIntegrationTest extends TestCase
         // Test SQLite DROP TABLE
         $sqliteStatements = $sqliteDriver->generateSql($plan);
         $this->assertCount(1, $sqliteStatements);
-        $this->assertEquals('DROP TABLE "old_table"', $sqliteStatements[0]['sql']);
+        $this->assertEquals('DROP TABLE IF EXISTS "old_table"', $sqliteStatements[0]['sql']);
         $this->assertTrue($sqliteStatements[0]['destructive']);
         
         // Test MySQL DROP TABLE
         $mysqlStatements = $mysqlDriver->generateSql($plan);
         $this->assertCount(1, $mysqlStatements);
-        $this->assertEquals('DROP TABLE `old_table`', $mysqlStatements[0]['sql']);
+        $this->assertEquals('DROP TABLE IF EXISTS `old_table`', $mysqlStatements[0]['sql']);
         $this->assertTrue($mysqlStatements[0]['destructive']);
     }
 }
