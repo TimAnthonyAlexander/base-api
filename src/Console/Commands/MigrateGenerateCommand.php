@@ -7,6 +7,7 @@ use BaseApi\Database\Migrations\ModelScanner;
 use BaseApi\Database\Migrations\DatabaseIntrospector;
 use BaseApi\Database\Migrations\DiffEngine;
 use BaseApi\Database\Migrations\MigrationsFile;
+use BaseApi\Database\Migrations\SqlGenerator;
 use BaseApi\App;
 
 class MigrateGenerateCommand implements Command
@@ -42,21 +43,61 @@ class MigrateGenerateCommand implements Command
             $diffEngine = new DiffEngine();
             $plan = $diffEngine->diff($modelSchema, $dbSchema);
             
+            if ($plan->isEmpty()) {
+                echo "\nNo changes detected. Database is up to date.\n";
+                return 0;
+            }
+            
+            // Generate SQL statements from the plan
+            echo "Converting to SQL statements...\n";
+            $generator = new SqlGenerator();
+            $sqlStatements = $generator->generate($plan);
+            
+            // Convert SQL statements to migration format
+            $migrations = [];
+            foreach ($sqlStatements as $statement) {
+                $table = $this->extractTableFromSql($statement['sql']);
+                $operation = $this->guessOperationFromSql($statement['sql']);
+                
+                $migrations[] = [
+                    'id' => MigrationsFile::generateMigrationId(
+                        $statement['sql'], 
+                        $table, 
+                        $operation
+                    ),
+                    'sql' => $statement['sql'],
+                    'destructive' => $statement['destructive'] ?? false,
+                    'generated_at' => date('c'),
+                    'table' => $table,
+                    'operation' => $operation,
+                    'warning' => $statement['warning'] ?? null
+                ];
+            }
+            
             // Get migrations file path
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
             $fullPath = App::basePath($migrationsFile);
             
-            // Write plan to file
-            MigrationsFile::write($fullPath, $plan->toArray());
+            // Append new migrations to file
+            $addedCount = count($migrations);
+            MigrationsFile::appendMigrations($fullPath, $migrations);
+            
+            // Check if any were actually added (after deduplication)
+            $currentMigrations = MigrationsFile::readMigrations($fullPath);
+            $actuallyAdded = array_filter($currentMigrations, function($mig) use ($migrations) {
+                return in_array($mig['id'], array_column($migrations, 'id'));
+            });
+            
+            $finalCount = count($actuallyAdded);
             
             // Print summary
-            $this->printSummary($plan);
+            $this->printSummary($migrations);
             
-            if ($plan->isEmpty()) {
-                echo "\nNo changes detected. Database is up to date.\n";
+            if ($finalCount === 0) {
+                echo "\nNo new migrations added (duplicates filtered out).\n";
             } else {
-                echo "\nMigration plan written to: {$migrationsFile}\n";
-                echo "Review the plan and run 'migrate:apply' to execute changes.\n";
+                echo "\n{$finalCount} new migrations added to: {$migrationsFile}\n";
+                echo "Run 'migrate:apply' to execute pending migrations.\n";
             }
             
             return 0;
@@ -67,81 +108,89 @@ class MigrateGenerateCommand implements Command
         }
     }
 
-    private function printSummary($plan): void
+    private function printSummary(array $migrations): void
     {
-        $operations = $plan->operations;
-        
-        if (empty($operations)) {
+        if (empty($migrations)) {
             return;
         }
         
-        $counts = [
-            'create_table' => 0,
-            'add_column' => 0,
-            'modify_column' => 0,
-            'add_index' => 0,
-            'add_fk' => 0,
-            'drop_table' => 0,
-            'drop_column' => 0,
-            'drop_index' => 0,
-            'drop_fk' => 0,
-        ];
-        
+        $counts = [];
         $destructiveCount = 0;
         
-        foreach ($operations as $op) {
-            $opType = $op['op'];
-            if (isset($counts[$opType])) {
-                $counts[$opType]++;
-            }
+        foreach ($migrations as $migration) {
+            $operation = $migration['operation'];
+            $counts[$operation] = ($counts[$operation] ?? 0) + 1;
             
-            if ($op['destructive'] ?? false) {
+            if ($migration['destructive'] ?? false) {
                 $destructiveCount++;
             }
         }
         
-        echo "\nMigration Plan Summary:\n";
-        echo "======================\n";
+        echo "\nMigration Summary:\n";
+        echo "==================\n";
         
-        if ($counts['create_table'] > 0) {
-            echo "Create tables: {$counts['create_table']}\n";
-        }
-        
-        if ($counts['add_column'] > 0) {
-            echo "Add columns: {$counts['add_column']}\n";
-        }
-        
-        if ($counts['modify_column'] > 0) {
-            echo "Modify columns: {$counts['modify_column']}\n";
-        }
-        
-        if ($counts['add_index'] > 0) {
-            echo "Add indexes: {$counts['add_index']}\n";
-        }
-        
-        if ($counts['add_fk'] > 0) {
-            echo "Add foreign keys: {$counts['add_fk']}\n";
-        }
-        
-        if ($counts['drop_table'] > 0) {
-            echo "Drop tables: {$counts['drop_table']} [DESTRUCTIVE]\n";
-        }
-        
-        if ($counts['drop_column'] > 0) {
-            echo "Drop columns: {$counts['drop_column']} [DESTRUCTIVE]\n";
-        }
-        
-        if ($counts['drop_index'] > 0) {
-            echo "Drop indexes: {$counts['drop_index']}\n";
-        }
-        
-        if ($counts['drop_fk'] > 0) {
-            echo "Drop foreign keys: {$counts['drop_fk']}\n";
+        foreach ($counts as $operation => $count) {
+            echo ucwords(str_replace('_', ' ', $operation)) . ": {$count}\n";
         }
         
         if ($destructiveCount > 0) {
             echo "\nWARNING: {$destructiveCount} destructive operations detected!\n";
             echo "Use 'migrate:apply --safe' to skip destructive changes.\n";
         }
+    }
+
+    private function extractTableFromSql(string $sql): ?string
+    {
+        // Simple regex to extract table names from common SQL patterns
+        $patterns = [
+            '/CREATE TABLE `?(\w+)`?/i',
+            '/ALTER TABLE `?(\w+)`?/i',
+            '/DROP TABLE `?(\w+)`?/i',
+        ];
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $sql, $matches)) {
+                return $matches[1];
+            }
+        }
+        
+        return null;
+    }
+
+    private function guessOperationFromSql(string $sql): string
+    {
+        $sql = strtoupper(trim($sql));
+        
+        if (strpos($sql, 'CREATE TABLE') === 0) {
+            return 'create_table';
+        }
+        if (strpos($sql, 'DROP TABLE') === 0) {
+            return 'drop_table';
+        }
+        if (strpos($sql, 'ALTER TABLE') !== false) {
+            if (strpos($sql, 'ADD COLUMN') !== false) {
+                return 'add_column';
+            }
+            if (strpos($sql, 'DROP COLUMN') !== false) {
+                return 'drop_column';
+            }
+            if (strpos($sql, 'MODIFY COLUMN') !== false || strpos($sql, 'ALTER COLUMN') !== false) {
+                return 'modify_column';
+            }
+            if (strpos($sql, 'ADD INDEX') !== false || strpos($sql, 'CREATE INDEX') !== false) {
+                return 'add_index';
+            }
+            if (strpos($sql, 'DROP INDEX') !== false) {
+                return 'drop_index';
+            }
+            if (strpos($sql, 'ADD FOREIGN KEY') !== false || strpos($sql, 'ADD CONSTRAINT') !== false) {
+                return 'add_fk';
+            }
+            if (strpos($sql, 'DROP FOREIGN KEY') !== false || strpos($sql, 'DROP CONSTRAINT') !== false) {
+                return 'drop_fk';
+            }
+        }
+        
+        return 'unknown';
     }
 }
