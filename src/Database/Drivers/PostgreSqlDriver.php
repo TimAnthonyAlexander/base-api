@@ -406,7 +406,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
     
     private function generateDropIndex(array $op): array
     {
-        $indexName = $op['index_name'];
+        $indexName = $op['index'];
         
         $sql = "DROP INDEX \"{$indexName}\"";
         

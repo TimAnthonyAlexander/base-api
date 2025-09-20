@@ -374,7 +374,7 @@ class PostgreSqlDriverTest extends TestCase
         ]);
         
         $plan->addOperation('drop_index', [
-            'index_name' => 'idx_users_email'
+            'index' => 'idx_users_email'
         ]);
         
         $plan->addOperation('drop_column', [

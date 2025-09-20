@@ -341,7 +341,7 @@ class MySqlDriver implements DatabaseDriverInterface
     private function generateDropIndex(array $op): array
     {
         $tableName = $op['table'];
-        $indexName = $op['index_name'];
+        $indexName = $op['index'];
         
         $sql = "ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`";
         
