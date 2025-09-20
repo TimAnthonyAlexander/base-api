@@ -23,7 +23,7 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run PHPStan
-        run: phpstan analyse --memory-limit=256M src
+        run: composer run phpstan
 
   phpunit:
     runs-on: ubuntu-latest
@@ -41,4 +41,4 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run PHPUnit
-        run: phpunit --colors=always --testdox tests/
+        run: composer run phpunit
