@@ -176,20 +176,25 @@ touch storage/database/database.sqlite`
 
   // Migration Errors
   {
-    id: 'migration-table-missing',
+    id: 'migration-file-missing',
     category: 'Migration',
     type: 'error',
-    title: 'Migrations Table Not Found',
-    message: 'Migration state file not found: storage/migrations.json',
-    cause: 'Migration system hasn\'t been initialized or storage directory is not writable.',
-    solution: 'Ensure storage directory exists and is writable, then run migration commands.',
+    title: 'Migration File Not Found',
+    message: 'No migrations found at storage/migrations.json',
+    cause: 'Migration system hasn\'t been initialized or no models have been created yet.',
+    solution: 'Create models and generate migrations, or ensure storage directory is writable.',
     code: `# Create storage directory structure
-mkdir -p storage/cache storage/logs  # These directories are auto-created if needed
+mkdir -p storage/
 chmod -R 755 storage/
 chown -R www-data:www-data storage/
 
-# Initialize migrations
+# Create your first model
+php bin/console make:model User
+
+# Generate migrations from your models
 php bin/console migrate:generate
+
+# Apply migrations to database
 php bin/console migrate:apply
 
 # Check migration status
@@ -212,11 +217,14 @@ class User extends BaseModel
     public int $age;  // BAD: no default value
 }
 
-# Regenerate migrations after fixing models
-php bin/console migrate:generate --force
+# Review generated migrations
+cat storage/migrations.json
 
-# Use dry-run to preview changes
-php bin/console migrate:generate --dry-run`
+# Regenerate migrations after fixing models  
+php bin/console migrate:generate
+
+# Check individual migration SQL statements
+cat storage/migrations.json | jq '.migrations[].sql'`
   },
 
   // Permission Errors

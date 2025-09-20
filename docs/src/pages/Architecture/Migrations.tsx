@@ -15,29 +15,33 @@ export default function Migrations() {
 
             <Typography paragraph>
                 BaseAPI generates database migrations automatically from your model definitions.
-                No need to write SQL or migration files manually - the framework analyzes your
-                models and creates the appropriate database schema.
+                The migration system scans your models, compares them with your current database schema,
+                and generates individual SQL migration statements that can be reviewed before applying.
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                BaseAPI scans your models and generates migration plans that can be reviewed before applying.
-                This ensures your database schema stays in sync with your code.
+                BaseAPI uses a diff-based migration system that introspects your database and compares it
+                with your model definitions to generate only the necessary changes. Each migration has a
+                unique ID and tracks whether it's been applied.
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Basic Commands
             </Typography>
 
-            <CodeBlock language="bash" code={`# Generate a migration plan from your models
+            <CodeBlock language="bash" code={`# Generate migrations from your model changes
 php bin/console migrate:generate
 
-# Review the generated migration plan
+# Review the generated migrations
 cat storage/migrations.json
 
-# Apply migrations to your database
+# Apply all pending migrations
 php bin/console migrate:apply
 
-# Check current migration status
+# Apply only non-destructive migrations (safe mode)
+php bin/console migrate:apply --safe
+
+# Check migration status
 php bin/console migrate:status`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -140,46 +144,47 @@ class Order extends BaseModel
             </Typography>
 
             <Typography paragraph>
-                BaseAPI tracks migration plans in <code>storage/migrations.json</code>. The file contains 
-                the generated migration plan and marks when it has been applied:
+                BaseAPI tracks migrations in <code>storage/migrations.json</code> and execution state in 
+                <code>storage/executed-migrations.json</code>. Each migration is a self-contained SQL 
+                statement with metadata:
             </Typography>
 
             <CodeBlock language="json" code={`{
-  "generated_at": "2024-12-01T12:00:00+00:00",
-  "plan": [
+  "version": "1.0",
+  "migrations": [
     {
-      "op": "create_table",
+      "id": "mig_a684b3eb7c1c",
+      "sql": "CREATE TABLE \\"users\\" (\\n  \\"id\\" TEXT PRIMARY KEY NOT NULL,\\n  \\"name\\" TEXT NOT NULL,\\n  \\"email\\" TEXT NOT NULL\\n)",
+      "destructive": false,
+      "generated_at": "2024-12-01T12:00:00+00:00",
       "table": "users",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "VARCHAR(36)",
-          "nullable": false,
-          "default": null,
-          "is_pk": true
-        },
-        "name": {
-          "name": "name",
-          "type": "VARCHAR(255)",
-          "nullable": false,
-          "default": null,
-          "is_pk": false
-        }
-      },
-      "destructive": false
+      "operation": "create_table",
+      "warning": null
     },
     {
-      "op": "add_index",
+      "id": "mig_471ef548fac7",
+      "sql": "CREATE UNIQUE INDEX \\"uniq_users_email\\" ON \\"users\\" (\\"email\\")",
+      "destructive": false,
+      "generated_at": "2024-12-01T12:00:00+00:00",
       "table": "users",
-      "index": {
-        "name": "idx_users_name",
-        "column": "name",
-        "type": "index"
-      },
-      "destructive": false
+      "operation": "add_index",
+      "warning": null
     }
-  ],
-  "applied_at": "2024-12-01T12:01:00+00:00"
+  ]
+}`} />
+
+            <Typography paragraph sx={{ mt: 2 }}>
+                Execution state is tracked separately in <code>storage/executed-migrations.json</code>:
+            </Typography>
+
+            <CodeBlock language="json" code={`{
+  "version": "1.0", 
+  "executed": [
+    {
+      "id": "mig_a684b3eb7c1c",
+      "executed_at": "2024-12-01T12:01:00+00:00"
+    }
+  ]
 }`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -282,55 +287,66 @@ object  -> JSONB`} />
             </Typography>
 
             <Typography paragraph>
-                BaseAPI migrations are designed to be safe and reversible:
+                BaseAPI migrations are designed with safety in mind, automatically detecting destructive operations:
             </Typography>
 
             <List>
                 <ListItem>
                     <ListItemText
-                        primary="Non-destructive Changes"
-                        secondary="Adding columns and indexes is always safe"
+                        primary="Automatic Destructive Detection"
+                        secondary="The system identifies operations that could lose data (dropping tables/columns, shrinking types)"
                     />
                 </ListItem>
                 <ListItem>
                     <ListItemText
-                        primary="Data Preservation"
-                        secondary="Existing data is preserved during schema changes"
+                        primary="Safe Mode Support"
+                        secondary="Use --safe flag to apply only non-destructive changes for production deployments"
                     />
                 </ListItem>
                 <ListItem>
                     <ListItemText
-                        primary="Foreign Key Safety"
-                        secondary="Constraints are created in proper order to avoid conflicts"
+                        primary="Individual Migration Tracking"
+                        secondary="Each migration has a unique ID and tracks its execution status independently"
                     />
                 </ListItem>
                 <ListItem>
                     <ListItemText
-                        primary="Rollback Support"
-                        secondary="Migration state is tracked for potential rollbacks"
+                        primary="Transaction Safety"
+                        secondary="Migrations are grouped by table and executed in transactions for consistency"
                     />
                 </ListItem>
             </List>
 
+            <CodeBlock language="bash" code={`# Apply only safe (non-destructive) migrations
+php bin/console migrate:apply --safe
+
+# Review what will be executed before applying
+php bin/console migrate:generate
+cat storage/migrations.json
+
+# Apply specific migrations by reviewing the execution plan
+php bin/console migrate:apply`} />
+
             <Alert severity="warning" sx={{ mt: 4 }}>
-                <strong>Production Safety:</strong> Always review generated migrations before applying
-                to production databases. Test migrations on a copy of your production data first.
+                <strong>Production Safety:</strong> Always run <code>migrate:apply --safe</code> first in production
+                to apply non-destructive changes. Review destructive operations separately and test on staging data.
             </Alert>
 
             <Alert severity="info" sx={{ mt: 2 }}>
-                <strong>Safe Mode:</strong> Use <code>migrate:apply --safe</code> to skip destructive 
-                operations like dropping tables or columns. This allows you to apply non-destructive 
-                changes safely while reviewing destructive changes separately.
+                <strong>Migration IDs:</strong> Migration IDs are generated from content hash, making them deterministic.
+                The same model changes will generate identical migration IDs, preventing duplicates across environments.
             </Alert>
 
             <Alert severity="success" sx={{ mt: 2 }}>
                 <strong>Best Practices:</strong>
                 <br />• Run <code>migrate:generate</code> after model changes
-                <br />• Review migration plans before applying
+                <br />• Review generated SQL in <code>storage/migrations.json</code> before applying
                 <br />• Use <code>--safe</code> flag for production deployments
+                <br />• Check <code>migrate:status</code> to see pending migrations
                 <br />• Test migrations on staging environments first
-                <br />• Use version control for your models
-                <br />• Backup production databases before major migrations
+                <br />• Keep migration files in version control
+                <br />• Backup production databases before applying destructive changes
+                <br />• Use deterministic migration IDs to prevent duplicates across environments
             </Alert>
         </Box>
     );

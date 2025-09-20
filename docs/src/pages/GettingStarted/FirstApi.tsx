@@ -243,12 +243,17 @@ export default function FirstApi() {
             
             <CodeBlock
               language="bash"
-              code={`# Generate migration plan from your models
+              code={`# Generate migrations from your model changes
 php bin/console migrate:generate
 
 # Apply the migrations to your database
 php bin/console migrate:apply`}
             />
+            
+            <Typography paragraph variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              The generate command scans your models, compares with your database, and creates 
+              individual SQL migration statements in <code>storage/migrations.json</code>.
+            </Typography>
           </StepContent>
         </Step>
 

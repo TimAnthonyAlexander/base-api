@@ -230,7 +230,13 @@ $router->get('/users/{id}', [UserController::class]);`} />
                             <ListItem>
                                 <ListItemText
                                     primary="migrations.json"
-                                    secondary="Migration state tracking which database migrations have been applied and which are pending."
+                                    secondary="Generated migration statements with metadata. Each migration contains SQL, operation type, and destructive status."
+                                />
+                            </ListItem>
+                            <ListItem>
+                                <ListItemText
+                                    primary="executed-migrations.json (auto-created)"
+                                    secondary="Tracks which migrations have been applied to the database with execution timestamps."
                                 />
                             </ListItem>
                             <ListItem>

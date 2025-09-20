@@ -227,15 +227,23 @@ $router->delete('/products/{id}', [
     ProductController::class
 ]);`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Step 4: Generate and Apply Migrations
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Step 4: Generate and Apply Migrations
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Generate migration plan from models
+            <CodeBlock language="bash" code={`# Generate migrations from your model changes
 php bin/console migrate:generate
+
+# Review the generated migrations (optional)
+cat storage/migrations.json
 
 # Apply migrations to create the database table
 php bin/console migrate:apply`} />
+
+            <Typography paragraph>
+                The migration system will automatically detect your Product model and generate the necessary
+                SQL statements to create the table with proper indexes and constraints.
+            </Typography>
 
       <Alert severity="success" sx={{ mt: 4 }}>
         <strong>Your CRUD API is now ready!</strong> It includes validation, error handling, 
