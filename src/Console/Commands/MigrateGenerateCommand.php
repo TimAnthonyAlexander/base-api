@@ -147,6 +147,8 @@ class MigrateGenerateCommand implements Command
             '/CREATE TABLE [`"\[]?(\w+)[`"\]]?/i',
             '/ALTER TABLE [`"\[]?(\w+)[`"\]]?/i',
             '/DROP TABLE [`"\[]?(\w+)[`"\]]?/i',
+            '/CREATE (?:UNIQUE )?INDEX .* ON [`"\[]?(\w+)[`"\]]?/i',
+            '/DROP INDEX .* ON [`"\[]?(\w+)[`"\]]?/i',
         ];
         
         foreach ($patterns as $pattern) {
@@ -167,6 +169,12 @@ class MigrateGenerateCommand implements Command
         }
         if (strpos($sql, 'DROP TABLE') === 0) {
             return 'drop_table';
+        }
+        if (strpos($sql, 'CREATE UNIQUE INDEX') === 0 || strpos($sql, 'CREATE INDEX') === 0) {
+            return 'add_index';
+        }
+        if (strpos($sql, 'DROP INDEX') === 0) {
+            return 'drop_index';
         }
         if (strpos($sql, 'ALTER TABLE') !== false) {
             if (strpos($sql, 'ADD COLUMN') !== false) {
