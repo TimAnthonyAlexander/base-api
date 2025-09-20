@@ -240,10 +240,11 @@ class ModelQuery
         }
 
         // Generate cache key from query components
+        $sqlData = $this->qb->toSql();
         $components = [
             'model' => $this->modelClass,
-            'sql' => $this->qb->toSql(),
-            'bindings' => $this->qb->getBindings(),
+            'sql' => $sqlData['sql'],
+            'bindings' => $sqlData['bindings'],
             'relations' => $this->eagerRelations,
         ];
 
