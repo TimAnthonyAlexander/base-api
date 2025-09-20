@@ -79,17 +79,17 @@ class MigrateGenerateCommand implements Command
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
             $fullPath = App::basePath($migrationsFile);
             
+            // Get existing migrations before adding new ones
+            $existingMigrations = MigrationsFile::readMigrations($fullPath);
+            $existingIds = array_column($existingMigrations, 'id');
+            
             // Append new migrations to file
-            $addedCount = count($migrations);
             MigrationsFile::appendMigrations($fullPath, $migrations);
             
-            // Check if any were actually added (after deduplication)
-            $currentMigrations = MigrationsFile::readMigrations($fullPath);
-            $actuallyAdded = array_filter($currentMigrations, function($mig) use ($migrations) {
-                return in_array($mig['id'], array_column($migrations, 'id'));
-            });
-            
-            $finalCount = count($actuallyAdded);
+            // Count how many were actually new (not duplicates)
+            $newMigrationIds = array_column($migrations, 'id');
+            $actuallyNewIds = array_diff($newMigrationIds, $existingIds);
+            $finalCount = count($actuallyNewIds);
             
             // Print summary
             $this->printSummary($migrations);
