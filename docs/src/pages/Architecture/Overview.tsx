@@ -2,102 +2,102 @@ import { Box, Typography, Alert, List, ListItem, ListItemText } from '@mui/mater
 import CodeBlock from '../../components/CodeBlock';
 
 export default function Overview() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        Architecture Overview
-      </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Understanding BaseAPI's architecture and core principles
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                Architecture Overview
+            </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Understanding BaseAPI's architecture and core principles
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI is a modern, minimal PHP framework built on PHP 8.4+ that prioritizes 
-        developer productivity and application performance. It provides everything you need to build 
-        JSON APIs quickly without unnecessary complexity.
-      </Typography>
+            <Typography>
+                BaseAPI is a modern, minimal PHP framework built on PHP 8.4+ that prioritizes
+                developer productivity and application performance. It provides everything you need to build
+                JSON APIs quickly without unnecessary complexity.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI follows convention over configuration - sensible defaults, automatic data binding, 
-        and built-in security features let you focus on building your application logic.
-      </Alert>
+            <Alert severity="info" sx={{ my: 3 }}>
+                BaseAPI follows convention over configuration - sensible defaults, automatic data binding,
+                and built-in security features let you focus on building your application logic.
+            </Alert>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Core Principles
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Core Principles
+            </Typography>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Convention over Configuration
-        </Typography>
-        <Typography>
-          BaseAPI uses sensible defaults and naming conventions to minimize configuration. 
-          Models automatically map to tables, routes follow predictable patterns, and 
-          migrations are generated from model definitions.
-        </Typography>
-      </Alert>
+            <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Convention over Configuration
+                </Typography>
+                <Typography>
+                    BaseAPI uses sensible defaults and naming conventions to minimize configuration.
+                    Models automatically map to tables, routes follow predictable patterns, and
+                    migrations are generated from model definitions.
+                </Typography>
+            </Alert>
 
-      <Alert severity="success" sx={{ mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Performance First
-        </Typography>
-        <Typography>
-          Every component is designed for minimal overhead and maximum speed. Built-in 
-          caching system, efficient routing, and optimized database queries ensure 
-          your API performs well even under load.
-        </Typography>
-      </Alert>
+            <Alert severity="success" sx={{ mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Performance First
+                </Typography>
+                <Typography>
+                    Every component is designed for minimal overhead and maximum speed. Built-in
+                    caching system, efficient routing, and optimized database queries ensure
+                    your API performs well even under load.
+                </Typography>
+            </Alert>
 
-      <Alert severity="warning" sx={{ mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Security by Default
-        </Typography>
-        <Typography>
-          CORS handling, rate limiting, input validation, and SQL injection protection 
-          are built-in and enabled by default. You don't have to remember to add security—it's already there.
-        </Typography>
-      </Alert>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Security by Default
+                </Typography>
+                <Typography>
+                    CORS handling, rate limiting, input validation, and SQL injection protection
+                    are built-in and enabled by default. You don't have to remember to add security—it's already there.
+                </Typography>
+            </Alert>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Developer Experience
-        </Typography>
-        <Typography>
-          Auto-generated OpenAPI specs and TypeScript types, comprehensive CLI tools, 
-          and clear error messages make development fast and enjoyable.
-        </Typography>
-      </Alert>
+            <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Developer Experience
+                </Typography>
+                <Typography>
+                    Auto-generated OpenAPI specs and TypeScript types, comprehensive CLI tools,
+                    and clear error messages make development fast and enjoyable.
+                </Typography>
+            </Alert>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Request Flow Diagram
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Request Flow Diagram
+            </Typography>
 
-      <Typography paragraph>
-        Every BaseAPI request follows this predictable flow:
-      </Typography>
+            <Typography>
+                Every BaseAPI request follows this predictable flow:
+            </Typography>
 
-      <Box sx={{ 
-        my: 4, 
-        p: 3, 
-        border: 1, 
-        borderColor: 'divider', 
-        borderRadius: 2,
-        backgroundColor: 'background.paper',
-        overflow: 'auto'
-      }}>
-        <Box
-          component="pre"
-          sx={{
-            m: 0,
-            fontFamily: 'monospace',
-            fontSize: '0.85rem',
-            lineHeight: 1.6,
-            color: 'text.primary',
-            whiteSpace: 'pre',
-            overflow: 'auto',
-          }}
-        >
-{`    HTTP Request
+            <Box sx={{
+                my: 4,
+                p: 3,
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 2,
+                backgroundColor: 'background.paper',
+                overflow: 'auto'
+            }}>
+                <Box
+                    component="pre"
+                    sx={{
+                        m: 0,
+                        fontFamily: 'monospace',
+                        fontSize: '0.85rem',
+                        lineHeight: 1.6,
+                        color: 'text.primary',
+                        whiteSpace: 'pre',
+                        overflow: 'auto',
+                    }}
+                >
+                    {`    HTTP Request
          │
          ▼
     ┌─────────────┐
@@ -131,86 +131,86 @@ export default function Overview() {
          │
          ▼
     HTTP Response`}
-        </Box>
-      </Box>
+                </Box>
+            </Box>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Application Lifecycle
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Application Lifecycle
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI's request processing follows these key steps:
-      </Typography>
+            <Typography>
+                BaseAPI's request processing follows these key steps:
+            </Typography>
 
-      <List sx={{ mb: 4 }}>
-        <ListItem>
-          <ListItemText
-            primary="1. Application Bootstrap"
-            secondary="App::boot() loads .env, config files, creates DI container, and registers service providers"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="2. Request Handling"
-            secondary="Kernel::handle() builds Request object from PHP globals, matches routes, and creates middleware pipeline"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="3. Pipeline Execution"
-            secondary="Middleware executes in order, ending with controller resolution and method invocation"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="4. Response Delivery"
-            secondary="Controller returns JsonResponse, kernel sets headers and outputs response body"
-          />
-        </ListItem>
-      </List>
+            <List sx={{ mb: 4 }}>
+                <ListItem>
+                    <ListItemText
+                        primary="1. Application Bootstrap"
+                        secondary="App::boot() loads .env, config files, creates DI container, and registers service providers"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="2. Request Handling"
+                        secondary="Kernel::handle() builds Request object from PHP globals, matches routes, and creates middleware pipeline"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="3. Pipeline Execution"
+                        secondary="Middleware executes in order, ending with controller resolution and method invocation"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="4. Response Delivery"
+                        secondary="Controller returns JsonResponse, kernel sets headers and outputs response body"
+                    />
+                </ListItem>
+            </List>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Core Components
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Core Components
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI's architecture consists of a few key components working together:
-      </Typography>
+            <Typography>
+                BaseAPI's architecture consists of a few key components working together:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="App Class"
-            secondary="Central bootstrap point that loads config, creates DI container, and provides static access to core services"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="HTTP Kernel"
-            secondary="Handles request/response cycle, route matching, and middleware pipeline execution"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Router"
-            secondary="Fast route matching with parameter extraction and middleware support"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Controllers"
-            secondary="HTTP request handlers with automatic data binding, validation, and dependency injection"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Models"
-            secondary="Active Record ORM with relationships, caching, and automatic migrations"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="App Class"
+                        secondary="Central bootstrap point that loads config, creates DI container, and provides static access to core services"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="HTTP Kernel"
+                        secondary="Handles request/response cycle, route matching, and middleware pipeline execution"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Router"
+                        secondary="Fast route matching with parameter extraction and middleware support"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Controllers"
+                        secondary="HTTP request handlers with automatic data binding, validation, and dependency injection"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Models"
+                        secondary="Active Record ORM with relationships, caching, and automatic migrations"
+                    />
+                </ListItem>
+            </List>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 // Simple controller example
 class UserController extends Controller
@@ -234,54 +234,54 @@ class UserController extends Controller
     }
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Key Features
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Key Features
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI provides essential features for modern API development:
-      </Typography>
+            <Typography>
+                BaseAPI provides essential features for modern API development:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="Convention over Configuration"
-            secondary="Sensible defaults, automatic migrations, and predictable file organization minimize setup"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Built-in Security"
-            secondary="CORS, rate limiting, input validation, and SQL injection protection enabled by default"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="High Performance"
-            secondary="Fast routing, query caching, and minimal memory footprint for production workloads"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Developer Experience"
-            secondary="Auto-generated OpenAPI specs, TypeScript types, and comprehensive CLI tools"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Dependency Injection"
-            secondary="Automatic constructor injection with container-managed service lifecycles"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Convention over Configuration"
+                        secondary="Sensible defaults, automatic migrations, and predictable file organization minimize setup"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Built-in Security"
+                        secondary="CORS, rate limiting, input validation, and SQL injection protection enabled by default"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="High Performance"
+                        secondary="Fast routing, query caching, and minimal memory footprint for production workloads"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Developer Experience"
+                        secondary="Auto-generated OpenAPI specs, TypeScript types, and comprehensive CLI tools"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Dependency Injection"
+                        secondary="Automatic constructor injection with container-managed service lifecycles"
+                    />
+                </ListItem>
+            </List>
 
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Why BaseAPI?</strong>
-        <br />• Get a working API in minutes, not hours
-        <br />• Security and performance built-in from day one
-        <br />• Simple, predictable patterns that scale
-        <br />• Focus on your business logic, not framework complexity
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 4 }}>
+                <strong>Why BaseAPI?</strong>
+                <br />• Get a working API in minutes, not hours
+                <br />• Security and performance built-in from day one
+                <br />• Simple, predictable patterns that scale
+                <br />• Focus on your business logic, not framework complexity
+            </Alert>
+        </Box>
+    );
 }

@@ -4,35 +4,35 @@ import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
 export default function Container() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        Dependency Injection Container
-      </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Understanding BaseAPI's powerful DI container with auto-wiring
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                Dependency Injection Container
+            </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Understanding BaseAPI's powerful DI container with auto-wiring
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI includes a built-in dependency injection container that automatically resolves 
-        dependencies and manages service lifecycles. Controllers and services receive their 
-        dependencies through constructor injection without manual configuration.
-      </Typography>
+            <Typography>
+                BaseAPI includes a built-in dependency injection container that automatically resolves
+                dependencies and manages service lifecycles. Controllers and services receive their
+                dependencies through constructor injection without manual configuration.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI's DI container uses auto-wiring based on type hints, making dependency injection 
-        seamless and reducing boilerplate code.
-      </Alert>
+            <Alert severity="info" sx={{ my: 3 }}>
+                BaseAPI's DI container uses auto-wiring based on type hints, making dependency injection
+                seamless and reducing boilerplate code.
+            </Alert>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Automatic Dependency Injection
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Automatic Dependency Injection
+            </Typography>
 
-      <Typography paragraph>
-        Controllers automatically receive dependencies through constructor injection:
-      </Typography>
+            <Typography>
+                Controllers automatically receive dependencies through constructor injection:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 namespace App\\Controllers;
 
@@ -62,15 +62,15 @@ class UserController extends Controller
     }
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Container Methods
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Container Methods
+            </Typography>
 
-      <Typography paragraph>
-        Access the container directly when needed:
-      </Typography>
+            <Typography>
+                Access the container directly when needed:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 // Access the container globally
 $container = \\BaseApi\\App::container();
@@ -91,15 +91,15 @@ class SomeController extends Controller
     }
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Binding Services
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Binding Services
+            </Typography>
 
-      <Typography paragraph>
-        Register services in the container using various binding methods:
-      </Typography>
+            <Typography>
+                Register services in the container using various binding methods:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 $container = App::container();
 
@@ -125,15 +125,15 @@ $container->when(EmailService::class)
     ->needs(ApiClient::class)
     ->give(EmailApiClient::class);`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Auto-Wiring
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Auto-Wiring
+            </Typography>
 
-      <Typography paragraph>
-        The container automatically resolves dependencies based on type hints:
-      </Typography>
+            <Typography>
+                The container automatically resolves dependencies based on type hints:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 class EmailService
 {
@@ -164,36 +164,36 @@ class NotificationController extends Controller
     ) {}
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Service Lifecycle Management
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Service Lifecycle Management
+            </Typography>
 
-      <Typography paragraph>
-        The container manages different service lifecycles:
-      </Typography>
+            <Typography>
+                The container manages different service lifecycles:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="Transient Services"
-            secondary="New instance created every time (default behavior)"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Singleton Services"
-            secondary="Single shared instance across the application"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Instance Services"
-            secondary="Pre-configured instance registered in container"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Transient Services"
+                        secondary="New instance created every time (default behavior)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Singleton Services"
+                        secondary="Single shared instance across the application"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Instance Services"
+                        secondary="Pre-configured instance registered in container"
+                    />
+                </ListItem>
+            </List>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 // Transient (new instance each time)
 $container->bind(TransientService::class);
@@ -207,15 +207,15 @@ $container->singleton(Logger::class);
 $config = new Config($configArray);
 $container->instance(Config::class, $config);`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Interface to Implementation Binding
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Interface to Implementation Binding
+            </Typography>
 
-      <Typography paragraph>
-        Bind interfaces to concrete implementations for flexible architecture:
-      </Typography>
+            <Typography>
+                Bind interfaces to concrete implementations for flexible architecture:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 // Define interface
 interface CacheInterface 
@@ -242,56 +242,56 @@ class ProductController extends Controller
     ) {}
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Container Resolution Process
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Container Resolution Process
+            </Typography>
 
-      <Typography paragraph>
-        Understanding how the container resolves dependencies:
-      </Typography>
+            <Typography>
+                Understanding how the container resolves dependencies:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="1. Check for Explicit Binding"
-            secondary="Look for registered bindings or singletons"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="2. Attempt Auto-Wiring"
-            secondary="Use reflection to analyze constructor parameters"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="3. Resolve Dependencies"
-            secondary="Recursively resolve all constructor dependencies"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="4. Create Instance"
-            secondary="Instantiate the class with resolved dependencies"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="5. Cache if Singleton"
-            secondary="Store instance for future requests if registered as singleton"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="1. Check for Explicit Binding"
+                        secondary="Look for registered bindings or singletons"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="2. Attempt Auto-Wiring"
+                        secondary="Use reflection to analyze constructor parameters"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="3. Resolve Dependencies"
+                        secondary="Recursively resolve all constructor dependencies"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="4. Create Instance"
+                        secondary="Instantiate the class with resolved dependencies"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="5. Cache if Singleton"
+                        secondary="Store instance for future requests if registered as singleton"
+                    />
+                </ListItem>
+            </List>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Container in Testing
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Container in Testing
+            </Typography>
 
-      <Typography paragraph>
-        Mock dependencies for testing by binding test implementations:
-      </Typography>
+            <Typography>
+                Mock dependencies for testing by binding test implementations:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 
 // In your test
 class UserControllerTest extends TestCase
@@ -316,20 +316,20 @@ class UserControllerTest extends TestCase
     }
 }`} />
 
-      <Callout type="tip" title="Performance Note">
-        The container caches reflection information and resolved singletons for optimal performance. 
-        Auto-wiring adds minimal overhead to your application.
-      </Callout>
+            <Callout type="tip" title="Performance Note">
+                The container caches reflection information and resolved singletons for optimal performance.
+                Auto-wiring adds minimal overhead to your application.
+            </Callout>
 
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Container Best Practices:</strong>
-        <br />• Use constructor injection for required dependencies
-        <br />• Register expensive services as singletons
-        <br />• Bind interfaces to implementations for flexibility
-        <br />• Use the container's make() method sparingly
-        <br />• Mock dependencies in tests using instance binding
-        <br />• Avoid circular dependencies
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 4 }}>
+                <strong>Container Best Practices:</strong>
+                <br />• Use constructor injection for required dependencies
+                <br />• Register expensive services as singletons
+                <br />• Bind interfaces to implementations for flexibility
+                <br />• Use the container's make() method sparingly
+                <br />• Mock dependencies in tests using instance binding
+                <br />• Avoid circular dependencies
+            </Alert>
+        </Box>
+    );
 }

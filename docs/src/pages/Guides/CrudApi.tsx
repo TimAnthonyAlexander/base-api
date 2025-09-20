@@ -3,38 +3,38 @@ import { Box, Typography, Alert } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 
 export default function CRUDAPI() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        Building CRUD APIs
-      </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Complete guide to building RESTful CRUD APIs with BaseAPI
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                Building CRUD APIs
+            </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Complete guide to building RESTful CRUD APIs with BaseAPI
+            </Typography>
 
-      <Typography paragraph>
-        This guide walks through creating a complete CRUD (Create, Read, Update, Delete) API 
-        using BaseAPI. We'll build a Product API with proper validation, error handling, 
-        and best practices.
-      </Typography>
+            <Typography>
+                This guide walks through creating a complete CRUD (Create, Read, Update, Delete) API
+                using BaseAPI. We'll build a Product API with proper validation, error handling,
+                and best practices.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI follows REST conventions and automatically handles parameter binding, validation, 
-        and response formatting for clean, maintainable APIs.
-      </Alert>
+            <Alert severity="info" sx={{ my: 3 }}>
+                BaseAPI follows REST conventions and automatically handles parameter binding, validation,
+                and response formatting for clean, maintainable APIs.
+            </Alert>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Step 1: Create the Model
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Step 1: Create the Model
+            </Typography>
 
-      <Typography paragraph>
-        Start by defining your data structure with a BaseAPI model:
-      </Typography>
+            <Typography>
+                Start by defining your data structure with a BaseAPI model:
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Generate the Product model
+            <CodeBlock language="bash" code={`# Generate the Product model
 php bin/console make:model Product`} />
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 // app/Models/Product.php
 
 namespace App\\Models;
@@ -59,18 +59,18 @@ class Product extends BaseModel
     ];
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Step 2: Create the Controller
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Step 2: Create the Controller
+            </Typography>
 
-      <Typography paragraph>
-        Generate a controller to handle HTTP requests:
-      </Typography>
+            <Typography>
+                Generate a controller to handle HTTP requests:
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Generate the Product controller
+            <CodeBlock language="bash" code={`# Generate the Product controller
 php bin/console make:controller ProductController`} />
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 // app/Controllers/ProductController.php
 
 namespace App\\Controllers;
@@ -184,15 +184,15 @@ class ProductController extends Controller
     }
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Step 3: Define Routes
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Step 3: Define Routes
+            </Typography>
 
-      <Typography paragraph>
-        Add routes to connect URLs to your controller:
-      </Typography>
+            <Typography>
+                Add routes to connect URLs to your controller:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 // routes/api.php
 
 use BaseApi\\App;
@@ -240,15 +240,15 @@ cat storage/migrations.json
 # Apply migrations to create the database table
 php bin/console migrate:apply`} />
 
-            <Typography paragraph>
+            <Typography>
                 The migration system will automatically detect your Product model and generate the necessary
                 SQL statements to create the table with proper indexes and constraints.
             </Typography>
 
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Your CRUD API is now ready!</strong> It includes validation, error handling, 
-        authentication, rate limiting, and automatic pagination.
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 4 }}>
+                <strong>Your CRUD API is now ready!</strong> It includes validation, error handling,
+                authentication, rate limiting, and automatic pagination.
+            </Alert>
+        </Box>
+    );
 }

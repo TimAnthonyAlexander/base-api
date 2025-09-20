@@ -9,11 +9,11 @@ export default function Migrations() {
             <Typography variant="h1" gutterBottom>
                 Migrations
             </Typography>
-            <Typography variant="h5" color="text.secondary" paragraph>
+            <Typography variant="h5" color="text.secondary">
                 Automatic database migrations in BaseAPI.
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI generates database migrations automatically from your model definitions.
                 The migration system scans your models, compares them with your current database schema,
                 and generates individual SQL migration statements that can be reviewed before applying.
@@ -26,26 +26,25 @@ export default function Migrations() {
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-                Basic Commands
+                Commands
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate migrations from your model changes
-php bin/console migrate:generate
+php bin/console migrate:generate`} />
 
-# Review the generated migrations
-cat storage/migrations.json
+            <CodeBlock language="bash" code={`# Apply generated migrations (all)
+php bin/console migrate:apply`} />
 
-# Apply all pending migrations
-php bin/console migrate:apply
-
-# Apply only non-destructive migrations (safe mode)
-php bin/console migrate:apply --safe`} />
+            <Typography sx={{ mt: 2 }}>
+                These migrations are stored in <code>storage/migrations.json</code> by default.
+                Executed migrations get added to <code>storage/executed-migrations.json</code>.
+            </Typography>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Model to Database Mapping
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI automatically creates database tables and columns based on your model properties.
                 All models extend BaseModel and automatically include <code>id</code>, <code>created_at</code>,
                 and <code>updated_at</code> columns:
@@ -87,7 +86,7 @@ class Product extends BaseModel
                 Relationships & Foreign Keys
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI automatically creates foreign key constraints in two ways:
             </Typography>
 
@@ -140,7 +139,7 @@ class Order extends BaseModel
                 Migration State Management
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI tracks migrations in <code>storage/migrations.json</code> and execution state in
                 <code>storage/executed-migrations.json</code>. Each migration is a self-contained SQL
                 statement with metadata:
@@ -170,7 +169,7 @@ class Order extends BaseModel
   ]
 }`} />
 
-            <Typography paragraph sx={{ mt: 2 }}>
+            <Typography sx={{ mt: 2 }}>
                 Execution state is tracked separately in <code>storage/executed-migrations.json</code>:
             </Typography>
 
@@ -188,7 +187,7 @@ class Order extends BaseModel
                 Custom Column Definitions
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 You can customize column definitions when needed:
             </Typography>
 
@@ -218,7 +217,7 @@ class User extends BaseModel
                 PHP Type to Database Column Mapping
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI automatically maps PHP property types to appropriate database column types
                 based on your database driver:
             </Typography>
@@ -254,7 +253,7 @@ object  -> JSONB`} />
                 Database Drivers
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI supports multiple database drivers with appropriate SQL generation:
             </Typography>
 
@@ -283,7 +282,7 @@ object  -> JSONB`} />
                 Safe Migration Practices
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI migrations are designed with safety in mind, automatically detecting destructive operations:
             </Typography>
 

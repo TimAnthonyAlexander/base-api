@@ -3,37 +3,37 @@ import { Box, Typography, Alert } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 
 export default function Controllers() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        Controllers
-      </Typography>
-      
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Building controllers to handle HTTP requests in BaseAPI.
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                Controllers
+            </Typography>
 
-      <Typography paragraph>
-        Controllers in BaseAPI are classes that handle HTTP requests and return responses. 
-        They automatically receive dependency injection, request parameter binding, and 
-        provide convenient methods for validation and response generation.
-      </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Building controllers to handle HTTP requests in BaseAPI.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        Controllers use method-based routing: <code>get()</code>, <code>post()</code>, <code>put()</code>, 
-        <code>patch()</code>, <code>delete()</code>, <code>head()</code> methods correspond to HTTP methods.
-      </Alert>
+            <Typography>
+                Controllers in BaseAPI are classes that handle HTTP requests and return responses.
+                They automatically receive dependency injection, request parameter binding, and
+                provide convenient methods for validation and response generation.
+            </Typography>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Basic Controller Structure
-      </Typography>
+            <Alert severity="info" sx={{ my: 3 }}>
+                Controllers use method-based routing: <code>get()</code>, <code>post()</code>, <code>put()</code>,
+                <code>patch()</code>, <code>delete()</code>, <code>head()</code> methods correspond to HTTP methods.
+            </Alert>
 
-      <Typography paragraph>
-        All controllers extend the base <code>Controller</code> class and define methods 
-        corresponding to HTTP verbs they handle.
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Basic Controller Structure
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <Typography>
+                All controllers extend the base <code>Controller</code> class and define methods
+                corresponding to HTTP verbs they handle.
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
 
 namespace App\\Controllers;
 
@@ -96,15 +96,15 @@ class UserController extends Controller
 }
 `} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        JsonResponse Methods
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                JsonResponse Methods
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI provides a comprehensive set of JsonResponse helper methods for common API responses:
-      </Typography>
+            <Typography>
+                BaseAPI provides a comprehensive set of JsonResponse helper methods for common API responses:
+            </Typography>
 
-      <CodeBlock language="php" code={`// Success responses
+            <CodeBlock language="php" code={`// Success responses
 JsonResponse::ok($data)           // 200 with data wrapper
 JsonResponse::created($data)      // 201 for created resources  
 JsonResponse::success($data)      // 200 with success flag and meta
@@ -123,17 +123,17 @@ JsonResponse::unprocessable($message, $details) // 422
 // Other
 JsonResponse::noContent()         // 204 empty response`} />
 
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Best Practices:</strong>
-        <br />• Keep controllers focused on HTTP concerns
-        <br />• Move business logic to service classes
-        <br />• Use validation for all input
-        <br />• Return appropriate HTTP status codes
-        <br />• Handle errors gracefully
-        <br />• Use dependency injection for services
-        <br />• Use apiQuery() for paginated list endpoints
-        <br />• Use paginated() response for API lists
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 4 }}>
+                <strong>Best Practices:</strong>
+                <br />• Keep controllers focused on HTTP concerns
+                <br />• Move business logic to service classes
+                <br />• Use validation for all input
+                <br />• Return appropriate HTTP status codes
+                <br />• Handle errors gracefully
+                <br />• Use dependency injection for services
+                <br />• Use apiQuery() for paginated list endpoints
+                <br />• Use paginated() response for API lists
+            </Alert>
+        </Box>
+    );
 }

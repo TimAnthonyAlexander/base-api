@@ -431,7 +431,7 @@ export default function CommonErrors() {
                 Comprehensive reference for BaseAPI errors with causes and solutions
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 This catalog contains specific error messages you might encounter with BaseAPI,
                 their root causes, and step-by-step solutions. Use the search to find your specific error.
             </Typography>
@@ -512,7 +512,7 @@ export default function CommonErrors() {
                                         <Typography variant="h6" gutterBottom color="error.main">
                                             Root Cause
                                         </Typography>
-                                        <Typography paragraph>
+                                        <Typography>
                                             {error.cause}
                                         </Typography>
                                     </Box>
@@ -522,7 +522,7 @@ export default function CommonErrors() {
                                         <Typography variant="h6" gutterBottom color="success.main">
                                             Solution
                                         </Typography>
-                                        <Typography paragraph>
+                                        <Typography>
                                             {error.solution}
                                         </Typography>
                                     </Box>

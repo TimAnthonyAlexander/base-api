@@ -4,83 +4,83 @@ import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
 export default function ProductionDeployment() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        Production Deployment
-      </Typography>
-      
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Complete guide for deploying BaseAPI applications to production environments.
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                Production Deployment
+            </Typography>
 
-      <Typography paragraph>
-        This guide covers everything you need to deploy BaseAPI applications to production, including
-        web server configuration, PHP optimization, environment management, and performance tuning.
-      </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Complete guide for deploying BaseAPI applications to production environments.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI is designed for high-performance production deployment with minimal configuration.
-        Follow this guide to ensure optimal performance and security.
-      </Alert>
+            <Typography>
+                This guide covers everything you need to deploy BaseAPI applications to production, including
+                web server configuration, PHP optimization, environment management, and performance tuning.
+            </Typography>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Server Requirements
-      </Typography>
+            <Alert severity="info" sx={{ my: 3 }}>
+                BaseAPI is designed for high-performance production deployment with minimal configuration.
+                Follow this guide to ensure optimal performance and security.
+            </Alert>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="PHP 8.4 or higher"
-            secondary="With OPcache, FPM, and required extensions (mbstring, json, pdo)"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Web Server"
-            secondary="NGINX (recommended) or Apache with mod_rewrite"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Database"
-            secondary="MySQL 8.0+, PostgreSQL 13+, or SQLite 3.35+"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Cache (Recommended)"
-            secondary="Redis 6.0+ for optimal caching performance"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="SSL Certificate"
-            secondary="HTTPS is required for production APIs"
-          />
-        </ListItem>
-      </List>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Server Requirements
+            </Typography>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        NGINX Configuration
-      </Typography>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="PHP 8.4 or higher"
+                        secondary="With OPcache, FPM, and required extensions (mbstring, json, pdo)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Web Server"
+                        secondary="NGINX (recommended) or Apache with mod_rewrite"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Database"
+                        secondary="MySQL 8.0+, PostgreSQL 13+, or SQLite 3.35+"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Cache (Recommended)"
+                        secondary="Redis 6.0+ for optimal caching performance"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="SSL Certificate"
+                        secondary="HTTPS is required for production APIs"
+                    />
+                </ListItem>
+            </List>
 
-      <Typography paragraph>
-        NGINX is the recommended web server for BaseAPI production deployments due to its excellent
-        performance with PHP-FPM and ability to handle high concurrent loads.
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                NGINX Configuration
+            </Typography>
 
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandIcon />}>
-          <Typography variant="h6" fontWeight={600}>
-            Complete NGINX Virtual Host
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CodeBlock
-            language="nginx"
-            title="/etc/nginx/sites-available/baseapi"
-            code={`# BaseAPI Production NGINX Configuration
+            <Typography>
+                NGINX is the recommended web server for BaseAPI production deployments due to its excellent
+                performance with PHP-FPM and ability to handle high concurrent loads.
+            </Typography>
+
+            <Accordion defaultExpanded>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        Complete NGINX Virtual Host
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <CodeBlock
+                        language="nginx"
+                        title="/etc/nginx/sites-available/baseapi"
+                        code={`# BaseAPI Production NGINX Configuration
 server {
     listen 80;
     listen [::]:80;
@@ -184,42 +184,42 @@ server {
         deny all;
     }
 }`}
-          />
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Enable the site and restart NGINX:
-          </Typography>
-          
-          <CodeBlock
-            language="bash"
-            code={`# Enable the site
+                    />
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Enable the site and restart NGINX:
+                    </Typography>
+
+                    <CodeBlock
+                        language="bash"
+                        code={`# Enable the site
 sudo ln -s /etc/nginx/sites-available/baseapi /etc/nginx/sites-enabled/
 sudo nginx -t  # Test configuration
 sudo systemctl reload nginx`}
-          />
-        </AccordionDetails>
-      </Accordion>
+                    />
+                </AccordionDetails>
+            </Accordion>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        PHP-FPM Configuration
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                PHP-FPM Configuration
+            </Typography>
 
-      <Typography paragraph>
-        PHP-FPM (FastCGI Process Manager) is essential for production PHP performance.
-        Proper configuration can dramatically improve your API's response times and throughput.
-      </Typography>
+            <Typography>
+                PHP-FPM (FastCGI Process Manager) is essential for production PHP performance.
+                Proper configuration can dramatically improve your API's response times and throughput.
+            </Typography>
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandIcon />}>
-          <Typography variant="h6" fontWeight={600}>
-            PHP-FPM Pool Configuration
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CodeBlock
-            language="ini"
-            title="/etc/php/8.4/fpm/pool.d/baseapi.conf"
-            code={`; BaseAPI Production PHP-FPM Pool Configuration
+            <Accordion>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        PHP-FPM Pool Configuration
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <CodeBlock
+                        language="ini"
+                        title="/etc/php/8.4/fpm/pool.d/baseapi.conf"
+                        code={`; BaseAPI Production PHP-FPM Pool Configuration
 [baseapi]
 
 ; Pool user and group
@@ -281,21 +281,21 @@ php_admin_value[display_startup_errors] = Off
 ; Session configuration
 php_admin_value[session.save_handler] = redis
 php_admin_value[session.save_path] = "tcp://127.0.0.1:6379"`}
-          />
-        </AccordionDetails>
-      </Accordion>
+                    />
+                </AccordionDetails>
+            </Accordion>
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandIcon />}>
-          <Typography variant="h6" fontWeight={600}>
-            System PHP Configuration
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CodeBlock
-            language="ini"
-            title="/etc/php/8.4/fpm/conf.d/99-baseapi-production.ini"
-            code={`; BaseAPI Production PHP Configuration
+            <Accordion>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        System PHP Configuration
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <CodeBlock
+                        language="ini"
+                        title="/etc/php/8.4/fpm/conf.d/99-baseapi-production.ini"
+                        code={`; BaseAPI Production PHP Configuration
 
 ; Error handling
 error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT
@@ -344,40 +344,40 @@ session.cache_limiter = nocache
 
 ; Disable functions that aren't needed for APIs
 disable_functions = exec,passthru,shell_exec,system,proc_open,popen,parse_ini_file,show_source`}
-          />
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Restart PHP-FPM after configuration changes:
-          </Typography>
-          
-          <CodeBlock
-            language="bash"
-            code={`sudo systemctl restart php8.4-fpm
+                    />
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        Restart PHP-FPM after configuration changes:
+                    </Typography>
+
+                    <CodeBlock
+                        language="bash"
+                        code={`sudo systemctl restart php8.4-fpm
 sudo systemctl status php8.4-fpm  # Verify it's running`}
-          />
-        </AccordionDetails>
-      </Accordion>
+                    />
+                </AccordionDetails>
+            </Accordion>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Environment Management
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Environment Management
+            </Typography>
 
-      <Typography paragraph>
-        Production environments require secure handling of configuration and secrets.
-        Never commit sensitive data to version control.
-      </Typography>
+            <Typography>
+                Production environments require secure handling of configuration and secrets.
+                Never commit sensitive data to version control.
+            </Typography>
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandIcon />}>
-          <Typography variant="h6" fontWeight={600}>
-            Production Environment Variables
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CodeBlock
-            language="bash"
-            title="Production .env"
-            code={`########################################
+            <Accordion>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        Production Environment Variables
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <CodeBlock
+                        language="bash"
+                        title="Production .env"
+                        code={`########################################
 # Production Environment Configuration
 ########################################
 
@@ -428,45 +428,45 @@ MAIL_PASSWORD=your-mail-password
 
 # Optional: Monitoring
 SENTRY_DSN=your-sentry-dsn-here`}
-          />
-          
-          <Callout type="warning" title="Security Best Practices">
-            <List sx={{ mt: 1 }}>
-              <ListItem disableGutters>
-                <ListItemText primary="• Use a secrets management system (AWS Secrets Manager, HashiCorp Vault)" />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText primary="• Set restrictive file permissions on .env (600 or 640)" />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText primary="• Use environment-specific .env files (.env.production)" />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText primary="• Never commit .env files to version control" />
-              </ListItem>
-              <ListItem disableGutters>
-                <ListItemText primary="• Use systemd environment files for service configuration" />
-              </ListItem>
-            </List>
-          </Callout>
-        </AccordionDetails>
-      </Accordion>
+                    />
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandIcon />}>
-          <Typography variant="h6" fontWeight={600}>
-            Systemd Service Configuration
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography paragraph>
-            For production services, consider using systemd environment files instead of .env:
-          </Typography>
-          
-          <CodeBlock
-            language="ini"
-            title="/etc/systemd/system/baseapi.service"
-            code={`[Unit]
+                    <Callout type="warning" title="Security Best Practices">
+                        <List sx={{ mt: 1 }}>
+                            <ListItem disableGutters>
+                                <ListItemText primary="• Use a secrets management system (AWS Secrets Manager, HashiCorp Vault)" />
+                            </ListItem>
+                            <ListItem disableGutters>
+                                <ListItemText primary="• Set restrictive file permissions on .env (600 or 640)" />
+                            </ListItem>
+                            <ListItem disableGutters>
+                                <ListItemText primary="• Use environment-specific .env files (.env.production)" />
+                            </ListItem>
+                            <ListItem disableGutters>
+                                <ListItemText primary="• Never commit .env files to version control" />
+                            </ListItem>
+                            <ListItem disableGutters>
+                                <ListItemText primary="• Use systemd environment files for service configuration" />
+                            </ListItem>
+                        </List>
+                    </Callout>
+                </AccordionDetails>
+            </Accordion>
+
+            <Accordion>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        Systemd Service Configuration
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <Typography>
+                        For production services, consider using systemd environment files instead of .env:
+                    </Typography>
+
+                    <CodeBlock
+                        language="ini"
+                        title="/etc/systemd/system/baseapi.service"
+                        code={`[Unit]
 Description=BaseAPI Application
 After=network.target mysql.service redis.service
 Requires=mysql.service redis.service
@@ -485,12 +485,12 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target`}
-          />
-          
-          <CodeBlock
-            language="bash"
-            title="/etc/baseapi/environment"
-            code={`# BaseAPI Environment File (systemd)
+                    />
+
+                    <CodeBlock
+                        language="bash"
+                        title="/etc/baseapi/environment"
+                        code={`# BaseAPI Environment File (systemd)
 APP_ENV=production
 APP_DEBUG=false
 DB_HOST=127.0.0.1
@@ -500,11 +500,11 @@ DB_PASSWORD=secure-password
 CACHE_DRIVER=redis
 REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=redis-password`}
-          />
-          
-          <CodeBlock
-            language="bash"
-            code={`# Set secure permissions
+                    />
+
+                    <CodeBlock
+                        language="bash"
+                        code={`# Set secure permissions
 sudo chmod 640 /etc/baseapi/environment
 sudo chown root:www-data /etc/baseapi/environment
 
@@ -512,23 +512,23 @@ sudo chown root:www-data /etc/baseapi/environment
 sudo systemctl daemon-reload
 sudo systemctl enable baseapi.service
 sudo systemctl start baseapi.service`}
-          />
-        </AccordionDetails>
-      </Accordion>
+                    />
+                </AccordionDetails>
+            </Accordion>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Redis Configuration
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Redis Configuration
+            </Typography>
 
-      <Typography paragraph>
-        Redis provides high-performance caching and session storage for BaseAPI applications.
-        Proper Redis configuration is crucial for production performance.
-      </Typography>
+            <Typography>
+                Redis provides high-performance caching and session storage for BaseAPI applications.
+                Proper Redis configuration is crucial for production performance.
+            </Typography>
 
-      <CodeBlock
-        language="bash"
-        title="/etc/redis/redis.conf (key settings)"
-        code={`# Network
+            <CodeBlock
+                language="bash"
+                title="/etc/redis/redis.conf (key settings)"
+                code={`# Network
 bind 127.0.0.1
 port 6379
 timeout 300
@@ -554,94 +554,94 @@ renamed-command CONFIG CONFIG_b83k92
 # Performance
 tcp-keepalive 300
 tcp-backlog 511`}
-      />
+            />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Deployment Checklist
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Deployment Checklist
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="✅ Server Setup"
-            secondary="PHP 8.4+, NGINX/Apache, database server installed and configured"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ SSL Certificate"
-            secondary="Valid SSL certificate installed and HTTPS redirect configured"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ Environment Configuration"
-            secondary="Production .env file with secure credentials and APP_DEBUG=false"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ Database Setup"
-            secondary="Production database created, migrations applied, user permissions set"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ Cache Configuration"
-            secondary="Redis installed and configured, cache driver set to redis"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ File Permissions"
-            secondary="storage/ directory writable, .env file secure (600/640 permissions)"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ Web Server Config"
-            secondary="NGINX/Apache virtual host configured with security headers"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ PHP Optimization"
-            secondary="OPcache enabled, production PHP-FPM settings applied"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ Monitoring"
-            secondary="Log files accessible, monitoring/alerting configured"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="✅ Backups"
-            secondary="Database and application backups automated"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Server Setup"
+                        secondary="PHP 8.4+, NGINX/Apache, database server installed and configured"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ SSL Certificate"
+                        secondary="Valid SSL certificate installed and HTTPS redirect configured"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Environment Configuration"
+                        secondary="Production .env file with secure credentials and APP_DEBUG=false"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Database Setup"
+                        secondary="Production database created, migrations applied, user permissions set"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Cache Configuration"
+                        secondary="Redis installed and configured, cache driver set to redis"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ File Permissions"
+                        secondary="storage/ directory writable, .env file secure (600/640 permissions)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Web Server Config"
+                        secondary="NGINX/Apache virtual host configured with security headers"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ PHP Optimization"
+                        secondary="OPcache enabled, production PHP-FPM settings applied"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Monitoring"
+                        secondary="Log files accessible, monitoring/alerting configured"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="✅ Backups"
+                        secondary="Database and application backups automated"
+                    />
+                </ListItem>
+            </List>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Performance Tuning
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Performance Tuning
+            </Typography>
 
-      <Typography paragraph>
-        Additional optimizations for high-traffic production deployments:
-      </Typography>
+            <Typography>
+                Additional optimizations for high-traffic production deployments:
+            </Typography>
 
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandIcon />}>
-          <Typography variant="h6" fontWeight={600}>
-            System-Level Optimizations
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <CodeBlock
-            language="bash"
-            title="/etc/sysctl.d/99-baseapi.conf"
-            code={`# Network optimizations
+            <Accordion>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        System-Level Optimizations
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <CodeBlock
+                        language="bash"
+                        title="/etc/sysctl.d/99-baseapi.conf"
+                        code={`# Network optimizations
 net.core.somaxconn = 1024
 net.ipv4.tcp_max_syn_backlog = 1024
 net.ipv4.tcp_tw_reuse = 1
@@ -649,69 +649,69 @@ net.ipv4.tcp_fin_timeout = 30
 
 # File descriptor limits
 fs.file-max = 100000`}
-          />
-          
-          <CodeBlock
-            language="bash"
-            title="/etc/security/limits.d/baseapi.conf"
-            code={`# File descriptor limits for web server
+                    />
+
+                    <CodeBlock
+                        language="bash"
+                        title="/etc/security/limits.d/baseapi.conf"
+                        code={`# File descriptor limits for web server
 www-data soft nofile 65536
 www-data hard nofile 65536`}
-          />
-        </AccordionDetails>
-      </Accordion>
+                    />
+                </AccordionDetails>
+            </Accordion>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Monitoring and Maintenance
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Monitoring and Maintenance
+            </Typography>
 
-      <Typography paragraph>
-        Essential monitoring for production BaseAPI deployments:
-      </Typography>
+            <Typography>
+                Essential monitoring for production BaseAPI deployments:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="Application Logs"
-            secondary="Monitor storage/logs/ for errors and performance issues"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Web Server Access Logs"
-            secondary="Track API usage patterns and response times"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="PHP-FPM Status"
-            secondary="Monitor process pool usage and performance metrics"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Database Performance"
-            secondary="Monitor query performance and connection pool usage"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Redis Metrics"
-            secondary="Track cache hit rates and memory usage"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="System Resources"
-            secondary="CPU, memory, disk usage, and network metrics"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Application Logs"
+                        secondary="Monitor storage/logs/ for errors and performance issues"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Web Server Access Logs"
+                        secondary="Track API usage patterns and response times"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="PHP-FPM Status"
+                        secondary="Monitor process pool usage and performance metrics"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Database Performance"
+                        secondary="Monitor query performance and connection pool usage"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Redis Metrics"
+                        secondary="Track cache hit rates and memory usage"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="System Resources"
+                        secondary="CPU, memory, disk usage, and network metrics"
+                    />
+                </ListItem>
+            </List>
 
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Production Deployment Complete!</strong> Your BaseAPI application is now configured 
-        for high-performance production use with security best practices, caching, and monitoring.
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 4 }}>
+                <strong>Production Deployment Complete!</strong> Your BaseAPI application is now configured
+                for high-performance production use with security best practices, caching, and monitoring.
+            </Alert>
+        </Box>
+    );
 }

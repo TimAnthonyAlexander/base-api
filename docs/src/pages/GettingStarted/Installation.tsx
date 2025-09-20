@@ -114,7 +114,7 @@ export default function Installation() {
                                 </Typography>
                             </StepLabel>
                             <StepContent>
-                                <Typography paragraph color="text.secondary">
+                                <Typography color="text.secondary">
                                     {step.content}
                                 </Typography>
                                 {step.code && (
@@ -142,7 +142,7 @@ export default function Installation() {
                     What's Included
                 </Typography>
 
-                <Typography paragraph>
+                <Typography>
                     The BaseAPI template comes with everything you need to start building:
                 </Typography>
 
@@ -171,7 +171,7 @@ export default function Installation() {
                     Next Steps
                 </Typography>
 
-                <Typography paragraph>
+                <Typography>
                     Now that BaseAPI is installed, you're ready to start building your API:
                 </Typography>
 

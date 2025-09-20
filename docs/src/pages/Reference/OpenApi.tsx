@@ -4,35 +4,35 @@ import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
 export default function OpenAPI() {
-  return (
-    <Box>
-      <Typography variant="h1" gutterBottom>
-        OpenAPI Specification
-      </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
-        Automatic OpenAPI 3.0 specification generation from your BaseAPI code
-      </Typography>
+    return (
+        <Box>
+            <Typography variant="h1" gutterBottom>
+                OpenAPI Specification
+            </Typography>
+            <Typography variant="h5" color="text.secondary" paragraph>
+                Automatic OpenAPI 3.0 specification generation from your BaseAPI code
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI automatically generates OpenAPI (Swagger) specifications from your controllers, models, 
-        and routes. This provides comprehensive API documentation, enables frontend code generation, 
-        and facilitates API testing and integration.
-      </Typography>
+            <Typography>
+                BaseAPI automatically generates OpenAPI (Swagger) specifications from your controllers, models,
+                and routes. This provides comprehensive API documentation, enables frontend code generation,
+                and facilitates API testing and integration.
+            </Typography>
 
-      <Alert severity="info" sx={{ my: 3 }}>
-        BaseAPI generates OpenAPI specs by analyzing your routes, controllers, models, and validation rules. 
-        No manual documentation required - your code is the source of truth.
-      </Alert>
+            <Alert severity="info" sx={{ my: 3 }}>
+                BaseAPI generates OpenAPI specs by analyzing your routes, controllers, models, and validation rules.
+                No manual documentation required - your code is the source of truth.
+            </Alert>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Generating OpenAPI Specs
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Generating OpenAPI Specs
+            </Typography>
 
-      <Typography paragraph>
-        Use the BaseAPI CLI to generate OpenAPI specifications:
-      </Typography>
+            <Typography>
+                Use the BaseAPI CLI to generate OpenAPI specifications:
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Generate OpenAPI specification only
+            <CodeBlock language="bash" code={`# Generate OpenAPI specification only
 php bin/console types:generate --openapi
 
 # Generate both OpenAPI and TypeScript types
@@ -44,67 +44,67 @@ php bin/console types:generate --openapi --output-openapi custom-api.json
 # Generate for specific version
 php bin/console types:generate --openapi --version "1.2.0"`} />
 
-      <Typography paragraph>
-        This generates an <code>openapi.json</code> file in your project root containing the complete 
-        API specification.
-      </Typography>
+            <Typography>
+                This generates an <code>openapi.json</code> file in your project root containing the complete
+                API specification.
+            </Typography>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        What Gets Generated
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                What Gets Generated
+            </Typography>
 
-      <Typography paragraph>
-        BaseAPI analyzes your code and generates comprehensive OpenAPI documentation:
-      </Typography>
+            <Typography>
+                BaseAPI analyzes your code and generates comprehensive OpenAPI documentation:
+            </Typography>
 
-      <List>
-        <ListItem>
-          <ListItemText
-            primary="API Routes"
-            secondary="All defined routes with HTTP methods, paths, and parameters"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Request/Response Schemas"
-            secondary="Data structures based on controller properties and model definitions"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Validation Rules"
-            secondary="Parameter validation requirements from controller validation rules"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Error Responses"
-            secondary="Standard error response formats (400, 401, 404, 422, 500)"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Model Schemas"
-            secondary="Data models with property types and relationships"
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary="Authentication"
-            secondary="Security schemes for protected endpoints"
-          />
-        </ListItem>
-      </List>
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="API Routes"
+                        secondary="All defined routes with HTTP methods, paths, and parameters"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Request/Response Schemas"
+                        secondary="Data structures based on controller properties and model definitions"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Validation Rules"
+                        secondary="Parameter validation requirements from controller validation rules"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Error Responses"
+                        secondary="Standard error response formats (400, 401, 404, 422, 500)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Model Schemas"
+                        secondary="Data models with property types and relationships"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Authentication"
+                        secondary="Security schemes for protected endpoints"
+                    />
+                </ListItem>
+            </List>
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Example Generated Specification
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Example Generated Specification
+            </Typography>
 
-      <Typography paragraph>
-        Here's what BaseAPI generates for a typical controller:
-      </Typography>
+            <Typography>
+                Here's what BaseAPI generates for a typical controller:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 // Controller
 class UserController extends Controller
 {
@@ -130,7 +130,7 @@ class UserController extends Controller
     }
 }`} />
 
-      <CodeBlock language="json" code={`{
+            <CodeBlock language="json" code={`{
   "openapi": "3.0.3",
   "info": {
     "title": "BaseAPI Application",
@@ -305,19 +305,19 @@ class UserController extends Controller
   }
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Using Generated Specifications
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Using Generated Specifications
+            </Typography>
 
-      <Typography paragraph>
-        The generated OpenAPI specification can be used for various purposes:
-      </Typography>
+            <Typography>
+                The generated OpenAPI specification can be used for various purposes:
+            </Typography>
 
-      <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-        API Documentation
-      </Typography>
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                API Documentation
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Serve interactive documentation with Swagger UI
+            <CodeBlock language="bash" code={`# Serve interactive documentation with Swagger UI
 npx swagger-ui-serve openapi.json
 
 # Or use online Swagger Editor
@@ -326,11 +326,11 @@ npx swagger-ui-serve openapi.json
 # Generate static documentation
 npx redoc-cli openapi.json --output docs.html`} />
 
-      <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-        Client Code Generation
-      </Typography>
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Client Code Generation
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Generate TypeScript client
+            <CodeBlock language="bash" code={`# Generate TypeScript client
 npx @openapitools/openapi-generator-cli generate \\
   -i openapi.json \\
   -g typescript-fetch \\
@@ -348,11 +348,11 @@ npx @openapitools/openapi-generator-cli generate \\
   -g php \\
   -o ./php-client`} />
 
-      <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-        API Testing
-      </Typography>
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                API Testing
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Test with Postman
+            <CodeBlock language="bash" code={`# Test with Postman
 # Import openapi.json into Postman to create collection
 
 # Test with Insomnia
@@ -362,15 +362,15 @@ npx @openapitools/openapi-generator-cli generate \\
 npm install -g dredd
 dredd openapi.json http://localhost:7879`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Customizing Generated Specs
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Customizing Generated Specs
+            </Typography>
 
-      <Typography paragraph>
-        You can customize the generated OpenAPI specification using PHP attributes:
-      </Typography>
+            <Typography>
+                You can customize the generated OpenAPI specification using PHP attributes:
+            </Typography>
 
-      <CodeBlock language="php" code={`<?php
+            <CodeBlock language="php" code={`<?php
 use BaseApi\\Http\\Attributes\\OpenAPI;
 
 #[OpenAPI\\Operation(
@@ -406,15 +406,15 @@ class UserController extends Controller
     }
 }`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Configuration Options
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Configuration Options
+            </Typography>
 
-      <Typography paragraph>
-        Configure OpenAPI generation in your environment or CLI options:
-      </Typography>
+            <Typography>
+                Configure OpenAPI generation in your environment or CLI options:
+            </Typography>
 
-      <CodeBlock language="bash" code={`# Environment variables for OpenAPI generation
+            <CodeBlock language="bash" code={`# Environment variables for OpenAPI generation
 OPENAPI_TITLE="My API"
 OPENAPI_VERSION="2.1.0"
 OPENAPI_DESCRIPTION="My awesome API built with BaseAPI"
@@ -427,15 +427,15 @@ OPENAPI_LICENSE_URL="https://opensource.org/licenses/MIT"
 OPENAPI_SERVER_URL="https://api.example.com"
 OPENAPI_SERVER_DESCRIPTION="Production server"`} />
 
-      <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-        Integration with CI/CD
-      </Typography>
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Integration with CI/CD
+            </Typography>
 
-      <Typography paragraph>
-        Automate OpenAPI spec generation in your deployment pipeline:
-      </Typography>
+            <Typography>
+                Automate OpenAPI spec generation in your deployment pipeline:
+            </Typography>
 
-      <CodeBlock language="yaml" code={`# GitHub Actions example
+            <CodeBlock language="yaml" code={`# GitHub Actions example
 name: Generate API Docs
 on:
   push:
@@ -463,20 +463,20 @@ jobs:
           npx swagger-ui-serve openapi.json --port 3000 &
           # Deploy to your docs hosting service`} />
 
-      <Callout type="tip" title="Keep Specs Updated">
-        Run <code>types:generate</code> after making changes to controllers or models. 
-        Consider adding this to your development workflow or CI/CD pipeline.
-      </Callout>
+            <Callout type="tip" title="Keep Specs Updated">
+                Run <code>types:generate</code> after making changes to controllers or models.
+                Consider adding this to your development workflow or CI/CD pipeline.
+            </Callout>
 
-      <Alert severity="success" sx={{ mt: 4 }}>
-        <strong>Best Practices:</strong>
-        <br />• Generate specs after code changes
-        <br />• Use meaningful controller and method names
-        <br />• Add validation rules for better parameter documentation
-        <br />• Include example values in validation attributes
-        <br />• Version your API specifications
-        <br />• Integrate generation into CI/CD pipeline
-      </Alert>
-    </Box>
-  );
+            <Alert severity="success" sx={{ mt: 4 }}>
+                <strong>Best Practices:</strong>
+                <br />• Generate specs after code changes
+                <br />• Use meaningful controller and method names
+                <br />• Add validation rules for better parameter documentation
+                <br />• Include example values in validation attributes
+                <br />• Version your API specifications
+                <br />• Integrate generation into CI/CD pipeline
+            </Alert>
+        </Box>
+    );
 }

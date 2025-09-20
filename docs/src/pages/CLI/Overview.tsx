@@ -12,7 +12,7 @@ export default function CLIOverview() {
                 BaseAPI's powerful command-line interface for development and deployment
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI includes a comprehensive CLI tool that handles development tasks like code generation,
                 database migrations, cache management, and deployment operations. The CLI is built for
                 developer productivity and automation.
@@ -27,7 +27,7 @@ export default function CLIOverview() {
                 Getting Started
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 Run the console without arguments to see all available commands:
             </Typography>
 
@@ -44,7 +44,7 @@ php bin/console --version`} />
                 Development Workflow
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 Common CLI commands for daily development:
             </Typography>
 
@@ -70,7 +70,7 @@ php bin/console types:generate --openapi --typescript`} />
                 Complete Command Reference
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 BaseAPI provides a comprehensive CLI with commands for every aspect of development and deployment:
             </Typography>
 
@@ -400,7 +400,7 @@ php bin/console types:generate --openapi --typescript`} />
                 Global Options
             </Typography>
 
-            <Typography paragraph>
+            <Typography>
                 These options work with any command:
             </Typography>
 
