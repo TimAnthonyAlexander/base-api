@@ -29,22 +29,6 @@ export const components: Components<Theme> = {
       },
     },
   },
-  MuiTableCell: {
-    styleOverrides: {
-      root: {
-        fontFamily: [
-          'SFMono-Regular',
-          'Menlo',
-          'Monaco',
-          'Consolas',
-          '"Liberation Mono"',
-          '"Courier New"',
-          'monospace',
-        ].join(','),
-        fontSize: '0.875rem',
-      },
-    },
-  },
   MuiButton: {
     styleOverrides: {
       root: {
@@ -115,6 +99,15 @@ export const components: Components<Theme> = {
   MuiTableCell: {
     styleOverrides: {
       root: ({ theme }) => ({
+        fontFamily: [
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          '"Liberation Mono"',
+          '"Courier New"',
+          'monospace',
+        ].join(','),
         borderBottom: `1px solid ${theme.palette.divider}`,
         fontSize: '0.875rem',
       }),
