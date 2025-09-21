@@ -9,7 +9,7 @@ const queueEnvVars = [
         default: 'database',
         description: 'Default queue driver',
         type: 'enum' as const,
-        options: ['sync', 'database', 'redis'],
+        options: ['sync', 'database'],
     },
     {
         key: 'QUEUE_DB_CONNECTION',
@@ -66,13 +66,13 @@ export default function QueueConfiguration() {
             </Typography>
 
             <Typography>
-                The BaseAPI queue system is highly configurable, supporting different drivers, worker settings, 
-                and deployment scenarios. Configuration is managed through environment variables and the 
+                The BaseAPI queue system is highly configurable, supporting different drivers, worker settings,
+                and deployment scenarios. Configuration is managed through environment variables and the
                 application's config files.
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                Queue configuration follows BaseAPI's unified configuration pattern - environment variables 
+                Queue configuration follows BaseAPI's unified configuration pattern - environment variables
                 override application config which extends framework defaults.
             </Alert>
 
@@ -165,21 +165,6 @@ QUEUE_WORKER_MEMORY=128`} />
                     />
                 </ListItem>
             </List>
-
-            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-                Redis Driver (High Performance) - Planned
-            </Typography>
-
-            <Typography>
-                High-performance queue driver using Redis (coming in future release):
-            </Typography>
-
-            <CodeBlock language="bash" code={`# Future Redis configuration
-QUEUE_DRIVER=redis
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-REDIS_PASSWORD=your_password
-REDIS_QUEUE_DB=1`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Application Configuration
@@ -431,7 +416,7 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
             </List>
 
             <Callout type="warning" title="Production Deployment">
-                Always test queue configuration in staging before deploying to production. Monitor worker 
+                Always test queue configuration in staging before deploying to production. Monitor worker
                 performance and adjust settings based on actual usage patterns.
             </Callout>
 
@@ -466,7 +451,7 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
             </Alert>
 
             <Callout type="tip" title="Framework Configuration">
-                BaseAPI's queue system includes sensible defaults in the framework configuration. 
+                BaseAPI's queue system includes sensible defaults in the framework configuration.
                 You only need to override settings that differ from the defaults in your application config.
             </Callout>
         </Box>

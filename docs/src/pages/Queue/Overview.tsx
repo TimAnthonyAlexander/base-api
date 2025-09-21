@@ -115,7 +115,7 @@ class SendWelcomeEmailJob extends Job
     
     public function __construct(
         private string $userEmail,
-        private string $userName
+        private string $userName,
     ) {}
     
     public function handle(): void
@@ -181,12 +181,6 @@ dispatch_later(new SendWelcomeEmailJob('user@example.com', 'John'))
                             <TableCell>Production, single server</TableCell>
                             <TableCell>Database table</TableCell>
                             <TableCell>Good</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>redis</code></TableCell>
-                            <TableCell>High performance, distributed</TableCell>
-                            <TableCell>Redis server</TableCell>
-                            <TableCell>Excellent (planned)</TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
