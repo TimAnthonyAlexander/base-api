@@ -103,12 +103,12 @@ fi
 print_step "PHPUnit Tests"
 
 if command -v composer > /dev/null 2>&1; then
-    if composer phpunit-simple > /dev/null 2>&1; then
+    if composer phpunit > /dev/null 2>&1; then
         print_success "All PHPUnit tests passed"
     else
         print_error "Some PHPUnit tests failed"
         echo -e "${YELLOW}Running PHPUnit to show failures:${NC}"
-        composer phpunit-simple
+        composer phpunit
         echo ""
     fi
 else
