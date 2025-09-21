@@ -719,7 +719,7 @@ class QueryBuilder
             $sql .= ' OFFSET ' . $this->offsetCount;
         }
 
-        if ($this->forUpdate) {
+        if ($this->forUpdate && $this->supportsForUpdate()) {
             $sql .= ' FOR UPDATE';
         }
 
@@ -855,6 +855,17 @@ class QueryBuilder
     private function camelToSnake(string $input): string
     {
         return strtolower((string) preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
+    }
+
+    /**
+     * Check if the current database driver supports FOR UPDATE
+     */
+    private function supportsForUpdate(): bool
+    {
+        $driverName = $this->connection->getDriver()->getName();
+        
+        // SQLite doesn't support FOR UPDATE, MySQL and PostgreSQL do
+        return in_array($driverName, ['mysql', 'postgresql', 'pgsql'], true);
     }
 
     /**
