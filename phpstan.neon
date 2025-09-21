@@ -1,0 +1,39 @@
+parameters:
+  level: 6
+  paths:
+    - src
+  
+  # Ignore patterns for generated or vendor files
+  excludePaths:
+    - src/Console/Commands/stubs
+    - tests/temp
+  
+  # Additional checks for better code quality
+  checkGenericClassInNonGenericObjectType: true
+  checkMissingCallableSignature: true
+  checkTooWideReturnTypesInProtectedAndPublicMethods: true
+  checkUninitializedProperties: true
+  checkDynamicProperties: false
+  
+  # Type coverage settings
+  reportUnmatchedIgnoredErrors: false
+  
+  # Memory limit
+  memoryLimitFile: 256M
+  
+  # Bootstrap file if needed
+  # bootstrapFiles:
+  #  - tests/bootstrap.php
+  
+  # Stub files for better type inference
+  stubFiles: []
+  
+  ignoreErrors:
+    -
+      identifier: missingType.iterableValue
+
+# Rules configuration
+rules: []
+
+# Service configuration for better analysis
+services: []

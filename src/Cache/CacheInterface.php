@@ -46,7 +46,7 @@ interface CacheInterface
      * 
      * @param string $key Cache key
      * @param int $ttl Time to live in seconds
-     * @param callable $callback Callback to execute if cache miss
+     * @param callable(): mixed $callback Callback to execute if cache miss
      * @return mixed The cached value or callback result
      */
     public function remember(string $key, int $ttl, callable $callback): mixed;
@@ -81,7 +81,7 @@ interface CacheInterface
     /**
      * Create a tagged cache instance for invalidation support.
      * 
-     * @param array $tags Array of tags to associate with cache entries
+     * @param array<string> $tags Array of tags to associate with cache entries
      * @return TaggedCache Tagged cache instance
      */
     public function tags(array $tags): TaggedCache;

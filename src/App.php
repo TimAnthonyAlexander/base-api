@@ -38,6 +38,7 @@ class App
 
     private static ?ContainerInterface $container = null;
 
+    /** @var array<object> */
     private static array $serviceProviders = [];
 
     public static function boot(?string $basePath = null): void
@@ -198,7 +199,16 @@ class App
         return self::$queue;
     }
 
-    public static function registerProvider($provider): void
+    public static function connection(): Connection
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+
+        return self::$connection;
+    }
+
+    public static function registerProvider(object|string $provider): void
     {
         if (is_string($provider)) {
             $provider = new $provider();

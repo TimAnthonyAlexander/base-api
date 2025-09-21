@@ -68,6 +68,7 @@ class Cache
 
     /**
      * Get a cached value or store the result of a callback.
+     * @param callable(): mixed $callback
      */
     public static function remember(string $key, int $ttl, callable $callback): mixed
     {
@@ -100,6 +101,7 @@ class Cache
 
     /**
      * Create a tagged cache instance.
+     * @param array<string> $tags
      */
     public static function tags(array $tags): TaggedCache
     {
@@ -108,6 +110,7 @@ class Cache
 
     /**
      * Register a custom cache driver.
+     * @param callable(): mixed $callback
      */
     public static function extend(string $driver, callable $callback): void
     {
@@ -138,6 +141,8 @@ class Cache
 
     /**
      * Get multiple cache values.
+     * @param array<string> $keys
+     * @return array<string, mixed>
      */
     public static function many(array $keys): array
     {
@@ -157,6 +162,7 @@ class Cache
 
     /**
      * Store multiple cache values.
+     * @param array<string, mixed> $values
      */
     public static function putMany(array $values, ?int $ttl = null): bool
     {
@@ -200,6 +206,7 @@ class Cache
 
     /**
      * Get cache statistics.
+     * @return array<string, mixed>
      */
     public static function stats(?string $driver = null): array
     {
@@ -229,7 +236,7 @@ class Cache
     /**
      * Generate a cache key from components.
      */
-    public static function key(...$components): string
+    public static function key(mixed ...$components): string
     {
         $parts = [];
         

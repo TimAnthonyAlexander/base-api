@@ -15,8 +15,10 @@ use BaseApi\Cache\Stores\RedisStore;
  */
 class CacheManager implements CacheInterface
 {
+    /** @var array<string, CacheInterface> */
     private array $stores = [];
 
+    /** @var array<string, callable> */
     private array $customDrivers = [];
 
     private ?string $defaultDriver = null;
