@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Alert } from '@mui/material';
+import { Box, Typography, Alert } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 
 export default function FileStorage() {
