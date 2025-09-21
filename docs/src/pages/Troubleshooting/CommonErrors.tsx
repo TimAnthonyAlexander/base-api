@@ -17,7 +17,8 @@ import {
     Search as SearchIcon,
     Error as ErrorIcon,
     Warning as WarningIcon,
-    Info as InfoIcon
+    Info as InfoIcon,
+    Check as CheckIcon
 } from '@mui/icons-material';
 import { useState, useMemo } from 'react';
 import CodeBlock from '../../components/CodeBlock';
@@ -424,20 +425,36 @@ export default function CommonErrors() {
 
     return (
         <Box>
-            <Typography variant="h1" gutterBottom>
-                Error Catalog
-            </Typography>
-            <Typography variant="h5" color="text.secondary" paragraph>
-                Comprehensive reference for BaseAPI errors with causes and solutions
-            </Typography>
-
-            <Typography>
-                This catalog contains specific error messages you might encounter with BaseAPI,
-                their root causes, and step-by-step solutions. Use the search to find your specific error.
-            </Typography>
+            {/* Header Section */}
+            <Box sx={{ mb: 6 }}>
+                <Typography variant="h1" gutterBottom sx={{ 
+                    background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 2
+                }}>
+                    Error Catalog
+                </Typography>
+                <Typography variant="h5" color="text.secondary" paragraph sx={{ mb: 3, maxWidth: '800px' }}>
+                    Comprehensive reference for BaseAPI errors with causes and solutions
+                </Typography>
+                <Typography color="text.secondary" sx={{ maxWidth: '700px', lineHeight: 1.7 }}>
+                    Find specific error messages you might encounter, understand their root causes, 
+                    and get step-by-step solutions. Use the search to quickly locate your issue.
+                </Typography>
+            </Box>
 
             {/* Search and Filter */}
-            <Box sx={{ mb: 4 }}>
+            <Box sx={{ 
+                mb: 6, 
+                p: 3, 
+                borderRadius: 3, 
+                border: theme => `1px solid ${theme.palette.divider}`,
+                background: theme => theme.palette.mode === 'dark'
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%)'
+                    : 'linear-gradient(135deg, rgba(0, 0, 0, 0.01) 0%, rgba(0, 0, 0, 0.02) 100%)'
+            }}>
                 <TextField
                     fullWidth
                     placeholder="Search errors by message, cause, or solution..."
@@ -446,19 +463,23 @@ export default function CommonErrors() {
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
-                                <SearchIcon />
+                                <SearchIcon sx={{ color: 'primary.main' }} />
                             </InputAdornment>
                         ),
                     }}
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 3 }}
                 />
 
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mr: 1, fontWeight: 500 }}>
+                        Categories:
+                    </Typography>
                     <Chip
-                        label="All Categories"
+                        label="All"
                         onClick={() => setSelectedCategory(null)}
                         color={selectedCategory === null ? 'primary' : 'default'}
                         variant={selectedCategory === null ? 'filled' : 'outlined'}
+                        sx={{ fontWeight: 500 }}
                     />
                     {categories.map(category => (
                         <Chip
@@ -467,6 +488,7 @@ export default function CommonErrors() {
                             onClick={() => setSelectedCategory(category)}
                             color={selectedCategory === category ? 'primary' : 'default'}
                             variant={selectedCategory === category ? 'filled' : 'outlined'}
+                            sx={{ fontWeight: 500 }}
                         />
                     ))}
                 </Box>
@@ -484,45 +506,132 @@ export default function CommonErrors() {
                     </Typography>
 
                     {filteredErrors.map((error) => (
-                        <Accordion key={error.id} sx={{ mb: 1 }}>
-                            <AccordionSummary expandIcon={<ExpandIcon />}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                                    {getErrorIcon(error.type)}
-                                    <Box sx={{ flexGrow: 1 }}>
-                                        <Typography variant="h6" component="div">
+                        <Accordion key={error.id}>
+                            <AccordionSummary 
+                                expandIcon={<ExpandIcon />}
+                                sx={{
+                                    '&:hover': {
+                                        '& .error-title': {
+                                            color: 'primary.main'
+                                        }
+                                    }
+                                }}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, width: '100%' }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        minWidth: 40,
+                                        height: 40,
+                                        borderRadius: 2,
+                                        background: error.type === 'error' ? 'rgba(244, 67, 54, 0.1)' 
+                                                 : error.type === 'warning' ? 'rgba(255, 152, 0, 0.1)'
+                                                 : 'rgba(33, 150, 243, 0.1)',
+                                        mt: 0.5
+                                    }}>
+                                        {getErrorIcon(error.type)}
+                                    </Box>
+                                    <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                        <Typography 
+                                            variant="h6" 
+                                            component="div" 
+                                            className="error-title"
+                                            sx={{ 
+                                                fontWeight: 600, 
+                                                mb: 1,
+                                                transition: 'color 0.2s ease',
+                                                lineHeight: 1.3
+                                            }}
+                                        >
                                             {error.title}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                                        <Typography 
+                                            variant="body2" 
+                                            color="text.secondary" 
+                                            sx={{ 
+                                                fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                                                fontSize: '0.85rem',
+                                                lineHeight: 1.4,
+                                                background: theme => theme.palette.mode === 'dark' 
+                                                    ? 'rgba(255, 255, 255, 0.04)' 
+                                                    : 'rgba(0, 0, 0, 0.04)',
+                                                px: 2,
+                                                py: 1,
+                                                borderRadius: 1,
+                                                wordBreak: 'break-word'
+                                            }}
+                                        >
                                             {error.message}
                                         </Typography>
                                     </Box>
-                                    <Chip
-                                        label={error.category}
-                                        size="small"
-                                        color="primary"
-                                        variant="outlined"
-                                    />
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                                        <Chip
+                                            label={error.category}
+                                            size="small"
+                                            color="primary"
+                                            variant="outlined"
+                                            sx={{ fontWeight: 500 }}
+                                        />
+                                        <Chip
+                                            label={error.type.toUpperCase()}
+                                            size="small"
+                                            color={error.type === 'error' ? 'error' : error.type === 'warning' ? 'warning' : 'info'}
+                                            variant="filled"
+                                            sx={{ fontSize: '0.7rem', height: 20 }}
+                                        />
+                                    </Box>
                                 </Box>
                             </AccordionSummary>
 
                             <AccordionDetails>
-                                <Box sx={{ '& > *:not(:last-child)': { mb: 3 } }}>
-                                    {/* Cause */}
-                                    <Box>
-                                        <Typography variant="h6" gutterBottom color="error.main">
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    {/* Cause Section */}
+                                    <Box sx={{ 
+                                        p: 3, 
+                                        borderRadius: 2, 
+                                        border: theme => `1px solid rgba(244, 67, 54, 0.2)`,
+                                        background: theme => theme.palette.mode === 'dark'
+                                            ? 'rgba(244, 67, 54, 0.05)'
+                                            : 'rgba(244, 67, 54, 0.02)'
+                                    }}>
+                                        <Typography variant="h6" gutterBottom sx={{ 
+                                            color: 'error.main', 
+                                            fontWeight: 600,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                            mb: 2
+                                        }}>
+                                            <ErrorIcon sx={{ fontSize: '1.2rem' }} />
                                             Root Cause
                                         </Typography>
-                                        <Typography>
+                                        <Typography sx={{ lineHeight: 1.7, color: 'text.secondary' }}>
                                             {error.cause}
                                         </Typography>
                                     </Box>
 
-                                    {/* Solution */}
-                                    <Box>
-                                        <Typography variant="h6" gutterBottom color="success.main">
+                                    {/* Solution Section */}
+                                    <Box sx={{ 
+                                        p: 3, 
+                                        borderRadius: 2, 
+                                        border: theme => `1px solid rgba(76, 175, 80, 0.2)`,
+                                        background: theme => theme.palette.mode === 'dark'
+                                            ? 'rgba(76, 175, 80, 0.05)'
+                                            : 'rgba(76, 175, 80, 0.02)'
+                                    }}>
+                                        <Typography variant="h6" gutterBottom sx={{ 
+                                            color: 'success.main', 
+                                            fontWeight: 600,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                            mb: 2
+                                        }}>
+                                            <CheckIcon sx={{ fontSize: '1.2rem' }} />
                                             Solution
                                         </Typography>
-                                        <Typography>
+                                        <Typography sx={{ lineHeight: 1.7, color: 'text.secondary' }}>
                                             {error.solution}
                                         </Typography>
                                     </Box>
@@ -530,23 +639,48 @@ export default function CommonErrors() {
                                     {/* Code Example */}
                                     {error.code && (
                                         <Box>
-                                            <Typography variant="h6" gutterBottom>
+                                            <Typography variant="h6" gutterBottom sx={{ 
+                                                fontWeight: 600,
+                                                mb: 2,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 1
+                                            }}>
+                                                <Box sx={{ 
+                                                    width: 6, 
+                                                    height: 6, 
+                                                    borderRadius: '50%', 
+                                                    background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)' 
+                                                }} />
                                                 Code Example
                                             </Typography>
-                                            <CodeBlock
-                                                language="bash"
-                                                code={error.code}
-                                            />
+                                            <Box sx={{ 
+                                                border: theme => `1px solid ${theme.palette.divider}`,
+                                                borderRadius: 2,
+                                                overflow: 'hidden'
+                                            }}>
+                                                <CodeBlock
+                                                    language="bash"
+                                                    code={error.code}
+                                                />
+                                            </Box>
                                         </Box>
                                     )}
 
                                     {/* Related Errors */}
                                     {error.relatedErrors && (
                                         <Box>
-                                            <Typography variant="h6" gutterBottom>
+                                            <Typography variant="h6" gutterBottom sx={{ 
+                                                fontWeight: 600,
+                                                mb: 2,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: 1
+                                            }}>
+                                                <InfoIcon sx={{ fontSize: '1.2rem', color: 'info.main' }} />
                                                 Related Errors
                                             </Typography>
-                                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                                                 {error.relatedErrors.map(relatedId => {
                                                     const relatedError = ERROR_CATALOG.find(e => e.id === relatedId);
                                                     return relatedError ? (
@@ -556,10 +690,17 @@ export default function CommonErrors() {
                                                             size="small"
                                                             variant="outlined"
                                                             onClick={() => {
-                                                                // Scroll to related error
                                                                 document.getElementById(relatedId)?.scrollIntoView({ behavior: 'smooth' });
                                                             }}
-                                                            sx={{ cursor: 'pointer' }}
+                                                            sx={{ 
+                                                                cursor: 'pointer',
+                                                                fontWeight: 500,
+                                                                '&:hover': {
+                                                                    background: 'primary.main',
+                                                                    color: 'white',
+                                                                    borderColor: 'primary.main'
+                                                                }
+                                                            }}
                                                         />
                                                     ) : null;
                                                 })}
@@ -574,52 +715,71 @@ export default function CommonErrors() {
             )}
 
             {/* Quick Help Section */}
-            <Box sx={{ mt: 6 }}>
-                <Typography variant="h2" gutterBottom>
+            <Box sx={{ 
+                mt: 8, 
+                p: 4, 
+                borderRadius: 3, 
+                background: theme => theme.palette.mode === 'dark'
+                    ? 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(156, 39, 176, 0.05) 100%)'
+                    : 'linear-gradient(135deg, rgba(33, 150, 243, 0.02) 0%, rgba(156, 39, 176, 0.02) 100%)',
+                border: theme => `1px solid ${theme.palette.divider}`
+            }}>
+                <Typography variant="h2" gutterBottom sx={{ 
+                    mb: 3,
+                    background: 'linear-gradient(135deg, #2196f3 0%, #9c27b0 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                }}>
                     Quick Debugging Steps
                 </Typography>
 
-                <List>
-                    <ListItem>
-                        <ListItemText
-                            primary="1. Enable Debug Mode"
-                            secondary="Set APP_DEBUG=true in .env for detailed error messages and stack traces"
-                        />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText
-                            primary="2. Check Application Logs"
-                            secondary="Review logs in storage/logs/app.log for detailed error information"
-                        />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText
-                            primary="3. Verify File Permissions"
-                            secondary="Ensure storage/ directory is writable by web server (755 or 775 permissions)"
-                        />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText
-                            primary="4. Clear Cache"
-                            secondary="Run 'php bin/console cache:clear' to clear any cached configuration or data"
-                        />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText
-                            primary="5. Check System Requirements"
-                            secondary="Verify PHP version (8.4+), required extensions, and database connectivity"
-                        />
-                    </ListItem>
-                    <ListItem>
-                        <ListItemText
-                            primary="6. Review Configuration"
-                            secondary="Double-check .env file settings, especially database and cache configuration"
-                        />
-                    </ListItem>
-                </List>
+                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' } }}>
+                    {[
+                        { title: '1. Enable Debug Mode', desc: 'Set APP_DEBUG=true in .env for detailed error messages and stack traces' },
+                        { title: '2. Check Application Logs', desc: 'Review logs in storage/logs/app.log for detailed error information' },
+                        { title: '3. Verify File Permissions', desc: 'Ensure storage/ directory is writable by web server (755 or 775 permissions)' },
+                        { title: '4. Clear Cache', desc: 'Run \'php bin/console cache:clear\' to clear any cached configuration or data' },
+                        { title: '5. Check System Requirements', desc: 'Verify PHP version (8.4+), required extensions, and database connectivity' },
+                        { title: '6. Review Configuration', desc: 'Double-check .env file settings, especially database and cache configuration' }
+                    ].map((step, index) => (
+                        <Box key={index} sx={{ 
+                            p: 3, 
+                            borderRadius: 2, 
+                            background: theme => theme.palette.mode === 'dark'
+                                ? 'rgba(255, 255, 255, 0.02)'
+                                : 'rgba(255, 255, 255, 0.7)',
+                            border: theme => `1px solid ${theme.palette.divider}`,
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: theme => theme.palette.mode === 'dark'
+                                    ? '0 4px 20px rgba(0, 0, 0, 0.3)'
+                                    : '0 4px 20px rgba(0, 0, 0, 0.1)'
+                            }
+                        }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
+                                {step.title}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                                {step.desc}
+                            </Typography>
+                        </Box>
+                    ))}
+                </Box>
 
-                <Alert severity="info" sx={{ mt: 3 }}>
-                    <Typography>
+                <Alert 
+                    severity="info" 
+                    sx={{ 
+                        mt: 4, 
+                        borderRadius: 2,
+                        border: theme => `1px solid rgba(33, 150, 243, 0.2)`,
+                        background: theme => theme.palette.mode === 'dark'
+                            ? 'rgba(33, 150, 243, 0.05)'
+                            : 'rgba(33, 150, 243, 0.02)'
+                    }}
+                >
+                    <Typography sx={{ fontWeight: 500 }}>
                         <strong>Still having issues?</strong> Check the FAQ section for
                         additional help, or search for your specific error message in this catalog using Ctrl+F.
                     </Typography>

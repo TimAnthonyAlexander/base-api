@@ -217,6 +217,113 @@ export const components: Components<Theme> = {
       }),
     },
   },
+  MuiAccordion: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        border: `1px solid ${theme.palette.divider}`,
+        borderRadius: '12px !important',
+        boxShadow: 'none',
+        background: theme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%)'
+          : 'linear-gradient(135deg, rgba(0, 0, 0, 0.01) 0%, rgba(0, 0, 0, 0.02) 100%)',
+        overflow: 'hidden',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        marginBottom: '12px !important',
+        
+        '&:before': {
+          display: 'none',
+        },
+        
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 8px 32px rgba(0, 0, 0, 0.3)'
+            : '0 8px 32px rgba(0, 0, 0, 0.08)',
+          borderColor: theme.palette.primary.main + '40',
+        },
+        
+        '&.Mui-expanded': {
+          margin: '0 0 12px 0 !important',
+          transform: 'translateY(-1px)',
+          borderColor: theme.palette.primary.main + '60',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 4px 24px rgba(0, 0, 0, 0.2)'
+            : '0 4px 24px rgba(0, 0, 0, 0.06)',
+        },
+      }),
+    },
+  },
+  MuiAccordionSummary: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        padding: '16px 24px',
+        minHeight: '72px !important',
+        
+        '&.Mui-expanded': {
+          minHeight: '72px !important',
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          background: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.03)'
+            : 'rgba(0, 0, 0, 0.02)',
+        },
+        
+        '& .MuiAccordionSummary-expandIconWrapper': {
+          color: theme.palette.primary.main,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          
+          '&.Mui-expanded': {
+            transform: 'rotate(180deg)',
+            color: theme.palette.primary.dark,
+          },
+        },
+      }),
+      content: {
+        margin: '0 !important',
+        
+        '&.Mui-expanded': {
+          margin: '0 !important',
+        },
+      },
+    },
+  },
+  MuiAccordionDetails: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        padding: '24px',
+        background: theme.palette.mode === 'dark'
+          ? 'rgba(255, 255, 255, 0.01)'
+          : 'rgba(0, 0, 0, 0.01)',
+      }),
+    },
+  },
+  MuiTextField: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        '& .MuiOutlinedInput-root': {
+          borderRadius: 12,
+          background: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.02)'
+            : 'rgba(0, 0, 0, 0.02)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          
+          '&:hover': {
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(255, 255, 255, 0.04)'
+              : 'rgba(0, 0, 0, 0.03)',
+          },
+          
+          '&.Mui-focused': {
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(33, 150, 243, 0.05)'
+              : 'rgba(33, 150, 243, 0.02)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 0 0 3px rgba(33, 150, 243, 0.2)'
+              : '0 0 0 3px rgba(33, 150, 243, 0.1)',
+          },
+        },
+      }),
+    },
+  },
   MuiPaper: {
     styleOverrides: {
       root: {
