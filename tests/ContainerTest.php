@@ -1,5 +1,7 @@
 <?php
 
+namespace BaseApi\Tests;
+
 use PHPUnit\Framework\TestCase;
 use BaseApi\Container\Container;
 use BaseApi\Container\ContainerException;
