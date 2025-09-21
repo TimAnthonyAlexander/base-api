@@ -190,12 +190,14 @@ class SqliteDriver implements DatabaseDriverInterface
         // For SQLite, collect foreign keys for new tables since they must be defined in CREATE TABLE
         $tableFks = [];
         foreach ($addFks as $op) {
-            $tableName = $op['table'];
+            $tableName = $op['table'] ?? '';
             if (!isset($tableFks[$tableName])) {
                 $tableFks[$tableName] = [];
             }
 
-            $tableFks[$tableName][] = $op['fk'];
+            if (isset($op['fk'])) {
+                $tableFks[$tableName][] = $op['fk'];
+            }
         }
         
         foreach ($createTables as $op) {

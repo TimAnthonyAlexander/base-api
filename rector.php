@@ -11,6 +11,7 @@ use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPromotedPropertyRector;
 use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php74\Rector\Property\TypedPropertyRector;
 use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
+use Rector\DeadCode\Rector\StaticCall\RemoveParentCallWithoutParentRector;
 
 return RectorConfig::configure()
     ->withPaths([
@@ -41,6 +42,9 @@ return RectorConfig::configure()
         ],
         RemoveUnusedPromotedPropertyRector::class => [
             __DIR__ . '/tests/ContainerTest.php',
+        ],
+        RemoveParentCallWithoutParentRector::class => [
+            __DIR__ . '/src/Database/Relations', // Keep model instance static method calls
         ],
     ])
     ->withSets([

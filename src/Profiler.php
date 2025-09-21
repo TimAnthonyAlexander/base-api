@@ -16,8 +16,10 @@ class Profiler
 
     private array $memorySnapshots = [];
 
+    /** @var array<array{method: string, url: string, headers: array, body: mixed, timestamp: float}> */
     private array $requests = [];
 
+    /** @var array<array{status: int, headers: array, body_size: int, timestamp: float}> */
     private array $responses = [];
 
     public function __construct(private bool $enabled = false)
@@ -83,6 +85,7 @@ class Profiler
 
     /**
      * Profile a callable and return its result
+     * @param callable(): mixed $callback
      */
     public function profile(string $name, callable $callback, array $metadata = []): mixed
     {
@@ -193,16 +196,32 @@ class Profiler
     }
 
     /**
+     * Get all logged requests
+     */
+    public function getRequests(): array
+    {
+        return $this->requests;
+    }
+
+    /**
+     * Get all logged responses
+     */
+    public function getResponses(): array
+    {
+        return $this->responses;
+    }
+
+    /**
      * Log request information
      */
-    public function logRequest($request): void
+    public function logRequest(mixed $request): void
     {
         if (!$this->enabled) {
             return;
         }
 
         $this->requests[] = [
-            'method' => is_object($request) && method_exists($request, 'method') ? $request->method : 'UNKNOWN',
+            'method' => is_object($request) && property_exists($request, 'method') ? $request->method : 'UNKNOWN',
             'url' => is_object($request) && method_exists($request, 'url') ? $request->url() : 'UNKNOWN',
             'headers' => is_object($request) && property_exists($request, 'headers') ? $request->headers : [],
             'body' => is_object($request) && method_exists($request, 'body') ? $request->body() : null,
@@ -213,7 +232,7 @@ class Profiler
     /**
      * Log response information
      */
-    public function logResponse($response): void
+    public function logResponse(mixed $response): void
     {
         if (!$this->enabled) {
             return;

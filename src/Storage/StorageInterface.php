@@ -2,6 +2,7 @@
 
 namespace BaseApi\Storage;
 
+use BaseApi\Storage\Exceptions\FileNotFoundException;
 use BaseApi\Http\UploadedFile;
 
 /**
@@ -44,10 +45,10 @@ interface StorageInterface
 
     /**
      * Get the content of a file.
-     * 
+     *
      * @param string $path File path
      * @return string File content
-     * @throws \BaseApi\Storage\Exceptions\FileNotFoundException If file doesn't exist
+     * @throws FileNotFoundException If file doesn't exist
      */
     public function get(string $path): string;
 

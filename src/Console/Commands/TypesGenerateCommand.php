@@ -151,6 +151,11 @@ HELP;
             public function __construct(private array &$routes)
             {
             }
+            
+            public function getRoutes(): array 
+            {
+                return $this->routes;
+            }
 
             public function get(string $path, array $pipeline): void
             {
