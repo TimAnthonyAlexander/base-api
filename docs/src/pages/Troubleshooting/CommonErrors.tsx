@@ -2,9 +2,6 @@ import {
     Box,
     Typography,
     Alert,
-    List,
-    ListItem,
-    ListItemText,
     Accordion,
     AccordionSummary,
     AccordionDetails,
@@ -590,7 +587,7 @@ export default function CommonErrors() {
                                     <Box sx={{ 
                                         p: 3, 
                                         borderRadius: 2, 
-                                        border: theme => `1px solid rgba(244, 67, 54, 0.2)`,
+                                        border: '1px solid rgba(244, 67, 54, 0.2)',
                                         background: theme => theme.palette.mode === 'dark'
                                             ? 'rgba(244, 67, 54, 0.05)'
                                             : 'rgba(244, 67, 54, 0.02)'
@@ -615,7 +612,7 @@ export default function CommonErrors() {
                                     <Box sx={{ 
                                         p: 3, 
                                         borderRadius: 2, 
-                                        border: theme => `1px solid rgba(76, 175, 80, 0.2)`,
+                                        border: '1px solid rgba(76, 175, 80, 0.2)',
                                         background: theme => theme.palette.mode === 'dark'
                                             ? 'rgba(76, 175, 80, 0.05)'
                                             : 'rgba(76, 175, 80, 0.02)'
@@ -773,7 +770,7 @@ export default function CommonErrors() {
                     sx={{ 
                         mt: 4, 
                         borderRadius: 2,
-                        border: theme => `1px solid rgba(33, 150, 243, 0.2)`,
+                        border: '1px solid rgba(33, 150, 243, 0.2)',
                         background: theme => theme.palette.mode === 'dark'
                             ? 'rgba(33, 150, 243, 0.05)'
                             : 'rgba(33, 150, 243, 0.02)'
