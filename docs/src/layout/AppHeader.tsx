@@ -98,29 +98,6 @@ export default function AppHeader({
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
-                    {/* Version Selector */}
-                    <FormControl size="small">
-                        <Select
-                            value={currentVersion.version}
-                            variant="outlined"
-                            sx={{
-                                minWidth: 80,
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                },
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    border: '1px solid',
-                                    borderColor: 'divider',
-                                },
-                            }}
-                        >
-                            {VERSIONS.map((version) => (
-                                <MenuItem key={version.version} value={version.version}>
-                                    {version.label}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
 
                     {/* Dark Mode Toggle */}
                     <IconButton
@@ -129,16 +106,6 @@ export default function AppHeader({
                         aria-label="toggle dark mode"
                     >
                         {darkMode ? <LightMode /> : <DarkMode />}
-                    </IconButton>
-
-                    {/* Community Link */}
-                    <IconButton
-                        color="inherit"
-                        component={Link}
-                        to="/community"
-                        aria-label="Community and support"
-                    >
-                        <CommunityIcon />
                     </IconButton>
 
                     {/* GitHub Link */}
