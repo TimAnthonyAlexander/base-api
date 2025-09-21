@@ -36,15 +36,15 @@ export default function ProcessingJobs() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Basic worker - processes default queue
-./mason queue:work
+./mason queue:work`} />
 
-# Process specific queue
-./mason queue:work --queue=emails
+            <CodeBlock language="bash" code={`# Process specific queue
+./mason queue:work --queue=emails`} />
 
-# Custom sleep time when no jobs available
-./mason queue:work --sleep=5
+            <CodeBlock language="bash" code={`# Custom sleep time when no jobs available
+./mason queue:work --sleep=5`} />
 
-# Limit memory usage and job count
+            <CodeBlock language="bash" code={`# Limit memory usage and job count
 ./mason queue:work --max-jobs=1000 --memory=128`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -83,12 +83,12 @@ export default function ProcessingJobs() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Process high priority queue
-./mason queue:work --queue=high --sleep=1
+./mason queue:work --queue=high --sleep=1`} />
 
-# Process email queue
-./mason queue:work --queue=emails --sleep=3
+            <CodeBlock language="bash" code={`# Process email queue
+./mason queue:work --queue=emails --sleep=3`} />
 
-# Process default queue
+            <CodeBlock language="bash" code={`# Process default queue
 ./mason queue:work --queue=default --sleep=5`} />
 
             <Typography>
@@ -191,9 +191,9 @@ kill -INT <worker_pid>`} />
             </Typography>
 
             <CodeBlock language="bash" code={`# Retry specific failed job by ID
-./mason queue:retry --id=job_uuid_here
+./mason queue:retry --id=job_uuid_here`} />
 
-# View failed jobs (would require additional implementation)
+            <CodeBlock language="bash" code={`# View failed jobs (would require additional implementation)
 ./mason queue:failed`} />
 
             <Typography>
