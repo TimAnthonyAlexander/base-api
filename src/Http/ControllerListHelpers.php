@@ -10,6 +10,7 @@ class ControllerListHelpers
     /**
      * Apply pagination parameters from request
      *
+     * @param QueryBuilder|ModelQuery<\BaseApi\Models\BaseModel> $q
      * @return array [$q, $page, $perPage, $withTotal]
      */
     public static function applyPagination(QueryBuilder|ModelQuery $q, Request $req, int $maxPerPage): array
@@ -24,6 +25,7 @@ class ControllerListHelpers
     /**
      * Apply sort parameter from request
      * Supports sort=name,-createdAt format
+     * @param QueryBuilder|ModelQuery<\BaseApi\Models\BaseModel> $q
      */
     public static function applySort(QueryBuilder|ModelQuery $q, ?string $sort): void
     {
@@ -62,6 +64,7 @@ class ControllerListHelpers
     /**
      * Apply filter parameters from request
      * Supports filter[field]=value format
+     * @param QueryBuilder|ModelQuery<\BaseApi\Models\BaseModel> $q
      */
     public static function applyFilters(QueryBuilder|ModelQuery $q, array $filters): void
     {
@@ -88,6 +91,7 @@ class ControllerListHelpers
     /**
      * Apply all common list parameters (pagination, sort, filter) from request
      *
+     * @param QueryBuilder|ModelQuery<\BaseApi\Models\BaseModel> $q
      * @return array [$q, $page, $perPage, $withTotal]
      */
     public static function applyListParams(QueryBuilder|ModelQuery $q, Request $req, int $maxPerPage): array

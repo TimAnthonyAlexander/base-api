@@ -121,6 +121,9 @@ class Kernel
         );
     }
 
+    /**
+     * @return callable(Request): Response
+     */
     private function buildPipeline(Request $request): callable
     {
         // Try to match route
@@ -168,6 +171,9 @@ class Kernel
         return $this->createPipeline($middlewareStack, $pathParams, $route);
     }
 
+    /**
+     * @return callable(Request): Response
+     */
     private function createPipeline(array $middlewareStack, array $pathParams, ?Route $route): callable
     {
         $pipeline = fn(Request $request): Response =>

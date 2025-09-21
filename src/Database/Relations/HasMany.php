@@ -22,7 +22,7 @@ class HasMany extends Relation
         }
 
         // Default to parentTable_id (e.g. 'users' becomes 'user_id')
-        $parentTable = null;
+        $parentTable = $this->parent::table();
         $singularTable = BaseModel::singularize($parentTable);
         return $singularTable . '_id';
     }

@@ -51,6 +51,7 @@ class ModelQuery
 
     /**
      * Add OR WHERE clause
+     * @return ModelQuery<T>
      */
     public function orWhere(string $column, string $operator, mixed $value): self
     {
@@ -61,6 +62,9 @@ class ModelQuery
     /**
      * Add WHERE IS NULL clause
      */
+    /**
+     * @return ModelQuery<T>
+     */
     public function whereNull(string $column): self
     {
         $this->qb->whereNull($column);
@@ -69,6 +73,9 @@ class ModelQuery
 
     /**
      * Add WHERE IS NOT NULL clause
+     */
+    /**
+     * @return ModelQuery<T>
      */
     public function whereNotNull(string $column): self
     {
@@ -79,6 +86,9 @@ class ModelQuery
     /**
      * Add ORDER BY clause
      */
+    /**
+     * @return ModelQuery<T>
+     */
     public function orderBy(string $column, string $direction = 'asc'): self
     {
         $this->qb->orderBy($column, $direction);
@@ -87,6 +97,9 @@ class ModelQuery
 
     /**
      * Set LIMIT
+     */
+    /**
+     * @return ModelQuery<T>
      */
     public function limit(int $count): self
     {
@@ -97,6 +110,9 @@ class ModelQuery
     /**
      * Set OFFSET  
      */
+    /**
+     * @return ModelQuery<T>
+     */
     public function offset(int $count): self
     {
         $this->qb->offset($count);
@@ -105,6 +121,9 @@ class ModelQuery
 
     /**
      * Specify relations to eager load
+     */
+    /**
+     * @return ModelQuery<T>
      */
     public function with(array $relations): self
     {
@@ -192,6 +211,9 @@ class ModelQuery
     /**
      * Cache query results with optional TTL and custom key.
      */
+    /**
+     * @return ModelQuery<T>
+     */
     public function cache(?int $ttl = null, ?string $key = null): self
     {
         $this->cacheTtl = $ttl;
@@ -204,6 +226,9 @@ class ModelQuery
     /**
      * Cache query results with tags for invalidation.
      */
+    /**
+     * @return ModelQuery<T>
+     */
     public function cacheWithTags(array $tags, int $ttl = 300): self
     {
         $this->cacheTags = $tags;
@@ -215,6 +240,9 @@ class ModelQuery
 
     /**
      * Disable caching for this query.
+     */
+    /**
+     * @return ModelQuery<T>
      */
     public function noCache(): self
     {

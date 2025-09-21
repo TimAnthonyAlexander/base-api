@@ -17,7 +17,7 @@ abstract class BaseMiddleware implements Middleware
      * Handle the request.
      * 
      * @param Request $req The request
-     * @param callable $next The next middleware
+     * @param callable(Request): Response $next The next middleware
      * @return Response The response
      */
     #[Override]

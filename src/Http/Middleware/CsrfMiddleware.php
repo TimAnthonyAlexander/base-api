@@ -10,6 +10,9 @@ use BaseApi\Http\Response;
 
 final class CsrfMiddleware
 {
+    /**
+     * @param callable(Request): Response $next
+     */
     public function handle(Request $req, callable $next): Response
     {
         $method = strtoupper($req->method);
@@ -21,7 +24,7 @@ final class CsrfMiddleware
         $expected = $session['csrf_token'] ?? bin2hex(random_bytes(32));
         $req->session['csrf_token'] = $expected;
 
-        $provided = $req->headers['X-CSRF-Token'] ?: ($req->rawBody['csrf_token'] ?? '');
+        $provided = $req->headers['X-CSRF-Token'] ?: ($req->body['csrf_token'] ?? '');
         if (!hash_equals($expected, $provided)) {
             return JsonResponse::unauthorized('invalid CSRF token');
         }

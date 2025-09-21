@@ -199,6 +199,7 @@ class QueryBuilder
 
     /**
      * Add a grouped WHERE clause: WHERE (callback conditions)
+     * @param callable(self): void $callback
      */
     public function whereGroup(callable $callback): self
     {
@@ -219,6 +220,7 @@ class QueryBuilder
 
     /**
      * Add a grouped OR WHERE clause: OR (callback conditions)
+     * @param callable(self): void $callback
      */
     public function orWhereGroup(callable $callback): self
     {
@@ -883,7 +885,7 @@ class QueryBuilder
 
         try {
             $profiler = App::profiler();
-            if ($profiler && $profiler->isEnabled()) {
+            if ($profiler->isEnabled()) {
                 $duration = (hrtime(true) - $startTime) / 1_000_000; // Convert to milliseconds
                 $profiler->logQuery($sql, $this->bindings, $duration, $exception);
             }
