@@ -9,18 +9,12 @@ export default function FileStorage() {
                 File Storage
             </Typography>
 
-            <Typography variant="body1" paragraph>
+            <Typography variant="body1">
                 BaseAPI includes a simple yet powerful file storage system that abstracts the local filesystem,
                 providing a consistent API for file operations across
                 different storage backends.
             </Typography>
 
-            <Admonition type="tip" title="KISS Principle">
-                The storage system follows BaseAPI's KISS principles - it covers 90% of use cases with a clean,
-                simple interface while remaining extensible for advanced scenarios.
-            </Admonition>
-
-            {/* Basic Usage */}
             <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 4 }}>
                 Basic File Upload
             </Typography>
