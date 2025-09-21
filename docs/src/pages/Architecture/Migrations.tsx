@@ -107,7 +107,7 @@ class Order extends BaseModel
 
             <Typography>
                 BaseAPI tracks migrations in <code>storage/migrations.json</code> and execution state in
-                <code>storage/executed-migrations.json</code>. Each migration is a self-contained SQL
+                <code>storage/executed-migrations.json</code>. <br />Each migration is a self-contained SQL
                 statement with metadata:
             </Typography>
 
@@ -148,6 +148,10 @@ class Order extends BaseModel
     }
   ]
 }`} />
+
+            <Typography sx={{ mt: 2 }}>
+                The <code>storage/executed-migrations.json</code> file is not git-tracked, as every system can have a different migration execution state.
+            </Typography>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Custom Column Definitions
@@ -280,13 +284,12 @@ object  -> JSONB`} />
             </List>
 
             <CodeBlock language="bash" code={`# Apply only safe (non-destructive) migrations
-php bin/console migrate:apply --safe
+php bin/console migrate:apply --safe`} />
 
-# Review what will be executed before applying
-php bin/console migrate:generate
-cat storage/migrations.json
+            <CodeBlock language="bash" code={`# Review what will be executed before applying
+php bin/console migrate:generate`} />
 
-# Apply specific migrations by reviewing the execution plan
+            <CodeBlock language="bash" code={`# Apply specific migrations by reviewing the execution plan
 php bin/console migrate:apply`} />
 
             <Alert severity="warning" sx={{ mt: 4 }}>
