@@ -28,11 +28,11 @@ export default function CreatingJobs() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate a job class
-./mason make:job SendWelcomeEmailJob
+./mason make:job SendWelcomeEmailJob`} />
 
-# Jobs are created in app/Jobs/ directory
-ls app/Jobs/
-# SendWelcomeEmailJob.php`} />
+            <Typography>
+                Jobs are created in the <code>app/Jobs/</code> directory by default.
+            </Typography>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Basic Job Structure
