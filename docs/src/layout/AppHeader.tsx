@@ -4,9 +4,6 @@ import {
     Typography,
     IconButton,
     Box,
-    Select,
-    MenuItem,
-    FormControl,
     Link as MuiLink,
 } from '@mui/material';
 import {
@@ -14,10 +11,8 @@ import {
     DarkMode,
     LightMode,
     GitHub,
-    Forum as CommunityIcon,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { VERSIONS, getCurrentVersion } from '../data/versions';
 import Search from './Search';
 
 interface AppHeaderProps {
@@ -35,8 +30,6 @@ export default function AppHeader({
     onToggleDarkMode,
     showMenuButton,
 }: AppHeaderProps) {
-    const currentVersion = getCurrentVersion();
-
     return (
         <AppBar
             position="fixed"
