@@ -30,6 +30,8 @@ export default function AppHeader({
     onToggleDarkMode,
     showMenuButton,
 }: AppHeaderProps) {
+    const isMobile = window.innerWidth < 1024;
+
     return (
         <AppBar
             position="fixed"
@@ -72,16 +74,18 @@ export default function AppHeader({
                         alignItems: 'center',
                     }}
                 >
-                    <img
-                        src="/appstore.png"
-                        alt="Base API Logo"
-                        style={{
-                            height: 40,
-                            verticalAlign: 'middle',
-                            marginRight: 8,
-                            borderRadius: 8,
-                        }}
-                    />
+                    {!isMobile &&
+                        <img
+                            src="/appstore.png"
+                            alt="Base API Logo"
+                            style={{
+                                height: 40,
+                                verticalAlign: 'middle',
+                                marginRight: 8,
+                                borderRadius: 8,
+                            }}
+                        />
+                    }
                     BaseAPI
                 </Typography>
 
