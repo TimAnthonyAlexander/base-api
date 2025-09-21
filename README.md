@@ -1,6 +1,6 @@
 # BaseAPI
 
-![BaseAPI Logo](baseapi.png)
+<img src="baseapi.png" alt="BaseAPI Logo" width="200"/>
 
 A tiny, KISS-first PHP 8.4+ framework for building REST APIs.
 
