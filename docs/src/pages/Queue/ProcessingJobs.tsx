@@ -260,7 +260,31 @@ class RetryableJob extends Job
             </Typography>
 
             <Typography>
-                Use Supervisor to keep queue workers running in production:
+                Supervisor is a process control system for UNIX-like operating systems that monitors and manages 
+                processes. In production environments, it's essential for keeping queue workers running continuously, 
+                automatically restarting them if they crash or stop unexpectedly.
+            </Typography>
+
+            <Callout type="info" title="Why Supervisor?">
+                Without a process manager, if your queue worker crashes or the server restarts, your background 
+                job processing stops completely. Supervisor ensures your workers stay running 24/7, automatically 
+                handles restarts, and can scale workers across multiple processes.
+            </Callout>
+
+            <Typography>
+                Install Supervisor on Ubuntu/Debian:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Install Supervisor
+sudo apt update
+sudo apt install supervisor
+
+# Enable and start the service
+sudo systemctl enable supervisor
+sudo systemctl start supervisor`} />
+
+            <Typography>
+                Create a Supervisor configuration file for BaseAPI queue workers:
             </Typography>
 
             <CodeBlock language="ini" code={`[program:baseapi-queue-worker]
@@ -275,28 +299,195 @@ redirect_stderr=true
 stdout_logfile=/path/to/your/app/storage/logs/worker.log
 stopwaitsecs=3600`} />
 
+            <Typography>
+                Save this configuration to <code>/etc/supervisor/conf.d/baseapi-worker.conf</code>. Each configuration 
+                option serves a specific purpose:
+            </Typography>
+
+            <TableContainer component={Paper} sx={{ my: 3 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell><strong>Option</strong></TableCell>
+                            <TableCell><strong>Purpose</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell><code>[program:baseapi-queue-worker]</code></TableCell>
+                            <TableCell>Defines the program name for Supervisor to manage</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>process_name</code></TableCell>
+                            <TableCell>Names each process (e.g., baseapi-queue-worker_00, _01, _02)</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>command</code></TableCell>
+                            <TableCell>The exact command to run the queue worker with options</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>directory</code></TableCell>
+                            <TableCell>Working directory where the command should execute</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>autostart=true</code></TableCell>
+                            <TableCell>Starts workers automatically when Supervisor starts</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>autorestart=true</code></TableCell>
+                            <TableCell>Restarts workers if they crash or exit unexpectedly</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>user=www-data</code></TableCell>
+                            <TableCell>Runs workers under the web server user (secure permissions)</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>numprocs=3</code></TableCell>
+                            <TableCell>Spawns 3 worker processes for parallel job processing</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>redirect_stderr=true</code></TableCell>
+                            <TableCell>Sends error output to the same log file as standard output</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>stdout_logfile</code></TableCell>
+                            <TableCell>File path where all worker output is logged</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>stopwaitsecs=3600</code></TableCell>
+                            <TableCell>Waits 1 hour for graceful shutdown before force killing</TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Typography>
+                After creating the configuration file, manage your workers with:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Update Supervisor with new configuration
+sudo supervisorctl reread
+sudo supervisorctl update
+
+# Start the workers
+sudo supervisorctl start baseapi-queue-worker:*
+
+# Check worker status
+sudo supervisorctl status
+
+# Restart all workers
+sudo supervisorctl restart baseapi-queue-worker:*
+
+# Stop all workers
+sudo supervisorctl stop baseapi-queue-worker:*
+
+# View worker logs
+sudo supervisorctl tail baseapi-queue-worker:baseapi-queue-worker_00`} />
+
+            <Callout type="tip" title="How Supervisor Works with BaseAPI">
+                Here's the complete workflow: 1) You deploy your BaseAPI app, 2) Supervisor starts your configured 
+                queue workers automatically, 3) Workers continuously poll the database for jobs using 
+                <code>queue:work</code>, 4) If a worker crashes, Supervisor immediately restarts it, 5) Your 
+                background jobs keep processing without interruption.
+            </Callout>
+
             <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
                 Multiple Worker Configuration
             </Typography>
 
             <Typography>
-                Run different workers for different queue priorities:
+                For high-traffic applications, you can configure different Supervisor programs for different queue 
+                priorities and types. This allows you to allocate more resources to critical jobs:
             </Typography>
 
-            <CodeBlock language="ini" code={`# High priority worker
+            <CodeBlock language="ini" code={`# High priority worker - processes urgent notifications
 [program:baseapi-high-queue]
 command=php /path/to/app/mason queue:work --queue=high --sleep=1
+directory=/path/to/app
+autostart=true
+autorestart=true
+user=www-data
 numprocs=2
+redirect_stderr=true
+stdout_logfile=/path/to/app/storage/logs/high-worker.log
 
-# Email worker
+# Email worker - handles email sending
 [program:baseapi-email-queue]
 command=php /path/to/app/mason queue:work --queue=emails --sleep=3
+directory=/path/to/app
+autostart=true
+autorestart=true
+user=www-data
 numprocs=2
+redirect_stderr=true
+stdout_logfile=/path/to/app/storage/logs/email-worker.log
 
-# Default queue worker
+# Default queue worker - processes general background tasks
 [program:baseapi-default-queue]
 command=php /path/to/app/mason queue:work --queue=default --sleep=5
-numprocs=1`} />
+directory=/path/to/app
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/path/to/app/storage/logs/default-worker.log`} />
+
+            <Typography>
+                This configuration creates dedicated workers for different job types:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="High Priority Queue (2 workers)"
+                        secondary="Processes urgent jobs with minimal sleep time for fast response"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Email Queue (2 workers)"
+                        secondary="Handles email sending with moderate sleep time and separate logging"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Default Queue (1 worker)"
+                        secondary="Processes general background tasks with longer sleep time"
+                    />
+                </ListItem>
+            </List>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Supervisor Troubleshooting
+            </Typography>
+
+            <Typography>
+                Common issues and solutions when using Supervisor with BaseAPI:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Check if Supervisor is running
+sudo systemctl status supervisor
+
+# View Supervisor logs
+sudo tail -f /var/log/supervisor/supervisord.log
+
+# Check worker status and recent restarts
+sudo supervisorctl status
+
+# View detailed worker output
+sudo supervisorctl tail -f baseapi-queue-worker:baseapi-queue-worker_00
+
+# If workers aren't starting, check configuration
+sudo supervisorctl avail
+
+# Restart Supervisor daemon if needed
+sudo systemctl restart supervisor`} />
+
+            <Alert severity="info" sx={{ mt: 3 }}>
+                <strong>File Permissions:</strong> Ensure your application files are readable by the <code>www-data</code> user, 
+                and that log directories exist with proper write permissions. Common permission issues prevent workers from starting.
+            </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Performance Optimization
