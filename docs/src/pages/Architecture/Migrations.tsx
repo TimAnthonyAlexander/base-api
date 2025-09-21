@@ -77,14 +77,12 @@ php bin/console migrate:apply`} />
 
 class Order extends BaseModel
 {
-    public string $user_id = '';     // Creates FK to users.id
-    public string $product_id = '';  // Creates FK to products.id
-    public int $quantity = 1;
-    public float $total = 0.0;
-    
     // Relationship definitions
     public ?User $user = null;
     public ?Product $product = null;
+    public int $quantity = 1;
+    public float $total = 0.0;
+    
     
     public function user(): BelongsTo
     {

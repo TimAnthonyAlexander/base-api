@@ -65,6 +65,41 @@ abstract class BaseModel implements \JsonSerializable
             ->where($column, $operator, $value);
     }
 
+    public static function whereEQ(string $column, mixed $value): QueryBuilder
+    {
+        return static::where($column, '=', $value);
+    }
+
+    public static function whereNEQ(string $column, mixed $value): QueryBuilder
+    {
+        return static::where($column, '!=', $value);
+    }
+
+    public static function whereLT(string $column, mixed $value): QueryBuilder
+    {
+        return static::where($column, '<', $value);
+    }
+
+    public static function whereLTE(string $column, mixed $value): QueryBuilder
+    {
+        return static::where($column, '<=', $value);
+    }
+
+    public static function whereGT(string $column, mixed $value): QueryBuilder
+    {
+        return static::where($column, '>', $value);
+    }
+
+    public static function whereGTE(string $column, mixed $value): QueryBuilder
+    {
+        return static::where($column, '>=', $value);
+    }
+
+    public static function whereLike(string $column, string $value): QueryBuilder
+    {
+        return static::where($column, 'LIKE', $value);
+    }
+
     public static function whereConditions(array $conditions): QueryBuilder
     {
         $qb = App::db()->qb()->table(static::table());
@@ -182,7 +217,7 @@ abstract class BaseModel implements \JsonSerializable
     {
         // Start with base query
         $query = static::with([]);
-        
+
         // Parse eager loading from 'with' parameter
         $withParam = $request->query['with'] ?? '';
         if (!empty($withParam)) {
@@ -191,14 +226,14 @@ abstract class BaseModel implements \JsonSerializable
                 $query = static::with($relations);
             }
         }
-        
+
         // Apply pagination, sorting, and filtering
         [$query, $page, $perPage, $withTotal] = \BaseApi\Http\ControllerListHelpers::applyListParams(
-            $query, 
-            $request, 
+            $query,
+            $request,
             $maxPerPage
         );
-        
+
         // Always include total count for API responses
         return $query->paginate($page, $perPage, $maxPerPage, true);
     }
@@ -206,18 +241,18 @@ abstract class BaseModel implements \JsonSerializable
     public function save(): bool
     {
         $result = false;
-        
+
         if (empty($this->id)) {
             $result = $this->insert();
         } else {
             $result = $this->update();
         }
-        
+
         // Invalidate cache after successful save
         if ($result) {
             $this->invalidateCache();
         }
-        
+
         return $result;
     }
 
@@ -233,7 +268,7 @@ abstract class BaseModel implements \JsonSerializable
             ->delete();
 
         $result = $affected > 0;
-        
+
         // Invalidate cache after successful delete
         if ($result) {
             $this->invalidateCache();
@@ -421,28 +456,28 @@ abstract class BaseModel implements \JsonSerializable
             'people' => 'person',
             'children' => 'child',
         ];
-        
+
         if (isset($irregulars[$plural])) {
             return $irregulars[$plural];
         }
-        
+
         // Handle regular patterns
         if (str_ends_with($plural, 'ies')) {
             return substr($plural, 0, -3) . 'y';
         }
-        
+
         if (str_ends_with($plural, 'ves')) {
             return substr($plural, 0, -3) . 'f';
         }
-        
+
         if (str_ends_with($plural, 'ses') || str_ends_with($plural, 'shes') || str_ends_with($plural, 'ches')) {
             return substr($plural, 0, -2);
         }
-        
+
         if (str_ends_with($plural, 's') && !str_ends_with($plural, 'ss')) {
             return substr($plural, 0, -1);
         }
-        
+
         return $plural; // No change if can't singularize
     }
 
@@ -457,14 +492,14 @@ abstract class BaseModel implements \JsonSerializable
             if ($property->isStatic()) {
                 continue;
             }
-            
+
             $name = $property->getName();
-            
+
             // Skip uninitialized typed properties (including relationships)
             if ($property->hasType() && !$property->isInitialized($this)) {
                 continue;
             }
-            
+
             $data[$name] = $property->getValue($this);
         }
 
@@ -518,19 +553,19 @@ abstract class BaseModel implements \JsonSerializable
     {
         $tableName = static::table();
         $modelClass = static::class;
-        
+
         // Generate cache tags for this model
         $tags = [
             'model:' . $tableName,
             'model:' . $modelClass,
         ];
-        
+
         // Add instance-specific tag if ID exists
         if (!empty($this->id)) {
             $tags[] = 'model:' . $tableName . ':' . $this->id;
             $tags[] = 'model:' . $modelClass . ':' . $this->id;
         }
-        
+
         // Invalidate tagged cache entries
         foreach ($tags as $tag) {
             Cache::tags([$tag])->flush();
@@ -544,17 +579,17 @@ abstract class BaseModel implements \JsonSerializable
     {
         $tableName = static::table();
         $modelClass = static::class;
-        
+
         $tags = [
             'model:' . $tableName,
             'model:' . $modelClass,
         ];
-        
+
         if (!empty($this->id)) {
             $tags[] = 'model:' . $tableName . ':' . $this->id;
             $tags[] = 'model:' . $modelClass . ':' . $this->id;
         }
-        
+
         return $tags;
     }
 
@@ -565,13 +600,13 @@ abstract class BaseModel implements \JsonSerializable
     {
         $qb = App::db()->qb()->table(static::table());
         $modelQuery = new ModelQuery($qb, static::class);
-        
+
         // Auto-tag with model information
         $tags = [
             'model:' . static::table(),
             'model:' . static::class,
         ];
-        
+
         return $modelQuery->cacheWithTags($tags, $ttl);
     }
 
@@ -618,9 +653,9 @@ abstract class BaseModel implements \JsonSerializable
             if ($property->isStatic()) {
                 continue;
             }
-            
+
             $name = $property->getName();
-            
+
             // Skip relationship properties (BaseModel subclasses)
             if ($property->hasType()) {
                 $type = $property->getType();
@@ -631,12 +666,12 @@ abstract class BaseModel implements \JsonSerializable
                     }
                 }
             }
-            
+
             // Skip uninitialized typed properties
             if ($property->hasType() && !$property->isInitialized($this)) {
                 continue;
             }
-            
+
             $value = $property->getValue($this);
 
             // Skip timestamps for insert (let DB handle them)
@@ -663,9 +698,9 @@ abstract class BaseModel implements \JsonSerializable
             if ($property->isStatic()) {
                 continue;
             }
-            
+
             $name = $property->getName();
-            
+
             // Skip relationship properties (BaseModel subclasses)
             if ($property->hasType()) {
                 $type = $property->getType();
@@ -676,12 +711,12 @@ abstract class BaseModel implements \JsonSerializable
                     }
                 }
             }
-            
+
             // Skip uninitialized typed properties
             if ($property->hasType() && !$property->isInitialized($this)) {
                 continue;
             }
-            
+
             $value = $property->getValue($this);
 
             // Skip id and created_at for updates

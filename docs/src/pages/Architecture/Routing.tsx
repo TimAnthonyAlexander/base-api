@@ -176,7 +176,6 @@ $router->post(
                 <strong>Routing Best Practices:</strong>
                 <br />• Use RESTful conventions: GET for retrieval, POST for creation
                 <br />• Place specific routes before general patterns
-                <br />• Use clear parameter names: <code>{'{userId}'}</code> not <code>{'{id}'}</code>
                 <br />• Apply middleware only where needed to avoid overhead
                 <br />• Group related routes together for maintainability
             </Alert>
