@@ -6,7 +6,7 @@ import EnvTable from '../../components/EnvTable';
 const queueEnvVars = [
     {
         key: 'QUEUE_DRIVER',
-        default: 'database',
+        default: 'sync',
         description: 'Default queue driver',
         type: 'enum' as const,
         options: ['sync', 'database'],
@@ -38,6 +38,12 @@ const queueEnvVars = [
         key: 'QUEUE_WORKER_MEMORY',
         default: '128',
         description: 'Memory limit in MB before worker restart',
+        type: 'number' as const,
+    },
+    {
+        key: 'QUEUE_WORKER_TIMEOUT',
+        default: '60',
+        description: 'Job execution timeout in seconds (planned feature)',
         type: 'number' as const,
     },
     {
@@ -95,17 +101,18 @@ export default function QueueConfiguration() {
             </Typography>
 
             <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-                Sync Driver (Development)
+                Sync Driver (Development - Default)
             </Typography>
 
             <Typography>
-                Executes jobs immediately for development and testing:
+                The default driver that executes jobs immediately for development and testing:
             </Typography>
 
-            <CodeBlock language="bash" code={`# .env for development
+            <CodeBlock language="bash" code={`# .env for development (default behavior)
 QUEUE_DRIVER=sync
 
-# Jobs execute immediately - no background processing`} />
+# Jobs execute immediately - no background processing
+# This is the default if no QUEUE_DRIVER is set`} />
 
             <List>
                 <ListItem>
@@ -181,7 +188,7 @@ return [
 
     'queue' => [
         // Default queue driver
-        'default' => $_ENV['QUEUE_DRIVER'] ?? 'database',
+        'default' => env('QUEUE_DRIVER', 'sync'),
 
         // Driver configurations
         'drivers' => [
@@ -192,29 +199,23 @@ return [
             'database' => [
                 'driver' => 'database',
                 'table' => 'jobs',
-                'connection' => $_ENV['QUEUE_DB_CONNECTION'] ?? 'default',
-            ],
-
-            // Future Redis driver
-            'redis' => [
-                'driver' => 'redis',
-                'connection' => 'queue',
-                'prefix' => $_ENV['QUEUE_REDIS_PREFIX'] ?? 'baseapi_queue:',
+                'connection' => env('QUEUE_DB_CONNECTION', 'default'),
             ],
         ],
 
         // Worker configuration
         'worker' => [
-            'sleep' => (int)($_ENV['QUEUE_WORKER_SLEEP'] ?? 3),
-            'max_jobs' => (int)($_ENV['QUEUE_WORKER_MAX_JOBS'] ?? 1000),
-            'max_time' => (int)($_ENV['QUEUE_WORKER_MAX_TIME'] ?? 3600),
-            'memory_limit' => (int)($_ENV['QUEUE_WORKER_MEMORY'] ?? 128),
+            'sleep' => env('QUEUE_WORKER_SLEEP', 3),
+            'max_jobs' => env('QUEUE_WORKER_MAX_JOBS', 1000),
+            'max_time' => env('QUEUE_WORKER_MAX_TIME', 3600),
+            'memory_limit' => env('QUEUE_WORKER_MEMORY', 128),
+            'timeout' => env('QUEUE_WORKER_TIMEOUT', 60), // Planned feature
         ],
 
         // Failed job handling
         'failed' => [
-            'retention_days' => (int)($_ENV['QUEUE_FAILED_RETENTION'] ?? 30),
-            'cleanup_enabled' => $_ENV['QUEUE_FAILED_CLEANUP'] ?? true,
+            'retention_days' => env('QUEUE_FAILED_RETENTION', 30),
+            'cleanup_enabled' => env('QUEUE_FAILED_CLEANUP', true),
         ],
     ],
 ];`} />
@@ -229,7 +230,8 @@ return [
 
             <CodeBlock language="bash" code={`# .env.local - Development
 QUEUE_DRIVER=sync
-# No worker settings needed - jobs execute immediately`} />
+# No worker settings needed - jobs execute immediately
+# Worker settings are ignored when using sync driver`} />
 
             <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
                 Staging Settings
@@ -252,6 +254,7 @@ QUEUE_WORKER_SLEEP=3
 QUEUE_WORKER_MAX_JOBS=1000
 QUEUE_WORKER_MAX_TIME=3600
 QUEUE_WORKER_MEMORY=128
+QUEUE_WORKER_TIMEOUT=60
 QUEUE_FAILED_RETENTION=30
 QUEUE_FAILED_CLEANUP=true`} />
 
@@ -264,22 +267,23 @@ QUEUE_FAILED_CLEANUP=true`} />
             </Typography>
 
             <CodeBlock language="sql" code={`CREATE TABLE jobs (
-    id VARCHAR(36) PRIMARY KEY,
-    queue VARCHAR(255) DEFAULT 'default',
-    payload LONGTEXT NOT NULL,
-    status ENUM('pending', 'processing', 'completed', 'failed') DEFAULT 'pending',
-    attempts INT DEFAULT 0,
-    error TEXT NULL,
+    id TEXT PRIMARY KEY,
+    queue TEXT NOT NULL DEFAULT 'default',
+    payload TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    attempts INTEGER NOT NULL DEFAULT 0,
+    error TEXT,
     run_at DATETIME NOT NULL,
-    started_at DATETIME NULL,
-    completed_at DATETIME NULL,
-    failed_at DATETIME NULL,
-    created_at DATETIME NOT NULL
+    started_at DATETIME,
+    completed_at DATETIME,
+    failed_at DATETIME,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Performance indexes
+-- Performance indexes (automatically created)
 CREATE INDEX jobs_queue_status_run_at_index ON jobs (queue, status, run_at);
-CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
+CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);
+CREATE INDEX jobs_status_index ON jobs (status);`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Worker Performance Tuning
@@ -317,6 +321,12 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
                             <TableCell>64-128 MB</TableCell>
                             <TableCell>128-256 MB</TableCell>
                             <TableCell>256-512 MB</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>QUEUE_WORKER_TIMEOUT</code></TableCell>
+                            <TableCell>60-120 seconds</TableCell>
+                            <TableCell>60-300 seconds</TableCell>
+                            <TableCell>300-600 seconds</TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell>Number of Workers</TableCell>
@@ -413,6 +423,12 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
                         secondary="Reduce number of workers or increase QUEUE_WORKER_SLEEP"
                     />
                 </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Configuration Options Not Working"
+                        secondary="Some options like QUEUE_WORKER_TIMEOUT are planned but not yet implemented"
+                    />
+                </ListItem>
             </List>
 
             <Callout type="warning" title="Production Deployment">
@@ -442,12 +458,14 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
 
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Configuration Best Practices:</strong>
-                <br />• Use <code>sync</code> driver for development and testing
+                <br />• Use <code>sync</code> driver for development and testing (default)
                 <br />• Use <code>database</code> driver for production deployments
-                <br />• Set memory and time limits appropriate for your server
+                <br />• Set timeout values appropriate for your longest-running jobs
+                <br />• Set memory and time limits appropriate for your server resources
                 <br />• Monitor worker performance and adjust settings accordingly
                 <br />• Use environment-specific configuration files
                 <br />• Test configuration changes in staging first
+                <br />• Essential database indexes are created automatically by <code>queue:install</code>
             </Alert>
 
             <Callout type="tip" title="Framework Configuration">

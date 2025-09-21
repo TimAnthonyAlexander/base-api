@@ -17,11 +17,10 @@ return [
     | The default queue driver to use when none is specified. Available drivers:
     | - 'sync': Execute jobs immediately (good for development/testing)
     | - 'database': Store jobs in database (recommended for production)
-    | - 'redis': Store jobs in Redis (high performance, requires Redis)
     |
     */
-    'default' => env('QUEUE_DRIVER', 'sync'),
-    
+    'default' => $_ENV['QUEUE_DRIVER'] ?? 'sync',
+
     /*
     |--------------------------------------------------------------------------
     | Queue Drivers
@@ -35,20 +34,14 @@ return [
         'sync' => [
             'driver' => 'sync',
         ],
-        
+
         'database' => [
             'driver' => 'database',
             'table' => 'jobs',
-            'connection' => env('QUEUE_DB_CONNECTION', 'default'),
-        ],
-        
-        'redis' => [
-            'driver' => 'redis',
-            'connection' => 'queue',
-            'prefix' => env('QUEUE_REDIS_PREFIX', 'baseapi_queue:'),
+            'connection' => $_ENV['QUEUE_DB_CONNECTION'] ?? 'default',
         ],
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Worker Configuration
@@ -60,21 +53,21 @@ return [
     */
     'worker' => [
         // Default sleep time in seconds between queue checks
-        'sleep' => env('QUEUE_WORKER_SLEEP', 3),
-        
+        'sleep' => $_ENV['QUEUE_WORKER_SLEEP'] ?? 3,
+
         // Maximum number of jobs to process before restarting worker
-        'max_jobs' => env('QUEUE_WORKER_MAX_JOBS', 1000),
-        
+        'max_jobs' => $_ENV['QUEUE_WORKER_MAX_JOBS'] ?? 1000,
+
         // Maximum time in seconds before restarting worker
-        'max_time' => env('QUEUE_WORKER_MAX_TIME', 3600),
-        
+        'max_time' => $_ENV['QUEUE_WORKER_MAX_TIME'] ?? 3600,
+
         // Memory limit in MB before restarting worker
-        'memory_limit' => env('QUEUE_WORKER_MEMORY', 128),
-        
+        'memory_limit' => $_ENV['QUEUE_WORKER_MEMORY'] ?? 128,
+
         // Default timeout for job execution in seconds
-        'timeout' => env('QUEUE_WORKER_TIMEOUT', 60),
+        'timeout' => $_ENV['QUEUE_WORKER_TIMEOUT'] ?? 60,
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Failed Job Configuration
@@ -85,12 +78,12 @@ return [
     */
     'failed' => [
         // Number of days to retain failed jobs before cleanup
-        'retention_days' => env('QUEUE_FAILED_RETENTION', 30),
-        
+        'retention_days' => $_ENV['QUEUE_FAILED_RETENTION'] ?? 30,
+
         // Whether to enable automatic cleanup of old failed jobs
-        'cleanup_enabled' => env('QUEUE_FAILED_CLEANUP', true),
+        'cleanup_enabled' => $_ENV['QUEUE_FAILED_CLEANUP'] ?? true,
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Batch Configuration
@@ -102,7 +95,7 @@ return [
     'batches' => [
         // Table to store batch information
         'table' => 'job_batches',
-        
+
         // Default batch timeout in seconds
         'timeout' => 3600,
     ],
