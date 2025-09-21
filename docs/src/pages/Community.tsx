@@ -21,7 +21,6 @@ import {
     BugReport as BugIcon,
     Lightbulb as FeatureIcon,
     Book as DocsIcon,
-    School as LearningIcon
 } from '@mui/icons-material';
 
 const communityResources = [
