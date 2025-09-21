@@ -13,7 +13,9 @@ final class CsrfMiddleware
     public function handle(Request $req, callable $next): Response
     {
         $method = strtoupper($req->method);
-        if (in_array($method, ['GET', 'HEAD', 'OPTIONS'])) return $next($req);
+        if (in_array($method, ['GET', 'HEAD', 'OPTIONS'])) {
+            return $next($req);
+        }
 
         $session = $req->session;
         $expected = $session['csrf_token'] ?? bin2hex(random_bytes(32));
@@ -23,6 +25,7 @@ final class CsrfMiddleware
         if (!hash_equals($expected, $provided)) {
             return JsonResponse::unauthorized('invalid CSRF token');
         }
+
         return $next($req);
     }
 }

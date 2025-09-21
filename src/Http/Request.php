@@ -5,20 +5,35 @@ namespace BaseApi\Http;
 class Request
 {
     public string $method;
+
     public string $path;
+
     public array $headers;
+
     public array $query;
+
     public array $body;
+
     public ?string $rawBody;
+
     public array $files;
+
     public array $cookies;
+
     public array $session;
+
     public ?array $user = null;
+
     public string $requestId;
+
     public array $pathParams = [];
+
     public array $allowedMethods = [];
+
     public ?string $routePattern = null;
+
     public ?string $routeMethod = null;
+
     public ?float $startTime = null;
 
     public function __construct(

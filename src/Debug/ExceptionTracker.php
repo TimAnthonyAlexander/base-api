@@ -2,16 +2,16 @@
 
 namespace BaseApi\Debug;
 
+use Throwable;
+
 class ExceptionTracker
 {
     private array $exceptions = [];
-    private bool $enabled = false;
     private array $sensitiveFields = ['password', 'token', 'secret', 'key', 'auth'];
 
-    public function __construct(bool $enabled = false, array $sensitiveFields = [])
+    public function __construct(private bool $enabled = false, array $sensitiveFields = [])
     {
-        $this->enabled = $enabled;
-        if (!empty($sensitiveFields)) {
+        if ($sensitiveFields !== []) {
             $this->sensitiveFields = $sensitiveFields;
         }
     }
@@ -34,7 +34,7 @@ class ExceptionTracker
     /**
      * Log an exception with context information
      */
-    public function logException(\Throwable $exception, array $context = []): void
+    public function logException(Throwable $exception, array $context = []): void
     {
         if (!$this->enabled) {
             return;
@@ -45,7 +45,7 @@ class ExceptionTracker
         
         $this->exceptions[] = [
             'message' => $exception->getMessage(),
-            'class' => get_class($exception),
+            'class' => $exception::class,
             'code' => $exception->getCode(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
@@ -75,7 +75,7 @@ class ExceptionTracker
             'total_exceptions' => count($this->exceptions),
             'unique_exception_types' => count($exceptionClasses),
             'exception_types' => $exceptionClasses,
-            'most_common_exception' => !empty($exceptionClasses) ? array_keys($exceptionClasses, max($exceptionClasses))[0] : null,
+            'most_common_exception' => $exceptionClasses === [] ? null : array_keys($exceptionClasses, max($exceptionClasses))[0],
         ];
     }
 
@@ -107,7 +107,7 @@ class ExceptionTracker
         $fieldLower = strtolower($fieldName);
         
         foreach ($this->sensitiveFields as $sensitive) {
-            if (str_contains($fieldLower, strtolower($sensitive))) {
+            if (str_contains($fieldLower, strtolower((string) $sensitive))) {
                 return true;
             }
         }

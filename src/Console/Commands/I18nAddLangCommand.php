@@ -2,6 +2,9 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\App;
 use BaseApi\Support\I18n;
@@ -9,19 +12,22 @@ use BaseApi\Support\Translation\TranslationProviderFactory;
 
 class I18nAddLangCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'i18n:add-lang';
     }
     
+    #[Override]
     public function description(): string
     {
         return 'Add new language(s) to the translation system';
     }
     
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
-        if (empty($args)) {
+        if ($args === []) {
             echo "Usage: php bin/console i18n:add-lang <lang1> [lang2] [lang3] [options]\n";
             echo "Options:\n";
             echo "  --seed    Copy default locale values to aid translators\n";
@@ -33,7 +39,7 @@ class I18nAddLangCommand implements Command
         $auto = in_array('--auto', $args);
         
         // Filter out option flags to get language codes
-        $languages = array_filter($args, fn($arg) => !str_starts_with($arg, '--'));
+        $languages = array_filter($args, fn($arg): bool => !str_starts_with((string) $arg, '--'));
         
         // Load the complete i18n config
         $configPath = App::basePath('config/i18n.php');
@@ -49,21 +55,21 @@ class I18nAddLangCommand implements Command
     
     private function addLanguage(string $language, string $defaultLocale, bool $seed, bool $auto): void
     {
-        echo "Adding language: {$language}\n";
+        echo sprintf('Adding language: %s%s', $language, PHP_EOL);
         
         // Create language directory
-        $languageDir = App::basePath("translations/{$language}");
+        $languageDir = App::basePath('translations/' . $language);
         if (!is_dir($languageDir)) {
             mkdir($languageDir, 0755, true);
-            echo "  ✅ Created directory: {$languageDir}\n";
+            echo sprintf('  ✅ Created directory: %s%s', $languageDir, PHP_EOL);
         } else {
-            echo "  ℹ️  Directory already exists: {$languageDir}\n";
+            echo sprintf('  ℹ️  Directory already exists: %s%s', $languageDir, PHP_EOL);
         }
         
         // Get all namespaces from default locale
         $namespaces = I18n::getAvailableNamespaces($defaultLocale);
         
-        if (empty($namespaces)) {
+        if ($namespaces === []) {
             echo "  ⚠️  No translation files found in default locale ({$defaultLocale})\n";
             return;
         }
@@ -75,17 +81,17 @@ class I18nAddLangCommand implements Command
             try {
                 $provider = TranslationProviderFactory::create();
                 if ($provider && !$provider->supportsLanguagePair($defaultLocale, $language)) {
-                    echo "  ⚠️  Provider doesn't support {$defaultLocale} -> {$language}\n";
+                    echo sprintf("  ⚠️  Provider doesn't support %s -> %s%s", $defaultLocale, $language, PHP_EOL);
                     $provider = null;
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 echo "  ⚠️  Translation provider error: " . $e->getMessage() . "\n";
                 $provider = null;
             }
         }
         
         foreach ($namespaces as $namespace) {
-            echo "  Processing namespace: {$namespace}\n";
+            echo sprintf('  Processing namespace: %s%s', $namespace, PHP_EOL);
             
             // Load default translations
             $defaultTranslations = $i18n->loadTranslations($defaultLocale, $namespace);
@@ -104,14 +110,11 @@ class I18nAddLangCommand implements Command
                     try {
                         $translated = $provider->translate($value, $defaultLocale, $language);
                         $newTranslations[$token] = $translated;
-                        echo "    ✨ Auto-translated: {$token}\n";
-                    } catch (\Exception $e) {
-                        if ($seed) {
-                            $newTranslations[$token] = $value;
-                        } else {
-                            $newTranslations[$token] = '';
-                        }
-                        echo "    ⚠️  Failed to auto-translate {$token}: " . $e->getMessage() . "\n";
+                        echo sprintf('    ✨ Auto-translated: %s%s', $token, PHP_EOL);
+                    } catch (Exception $e) {
+                        $newTranslations[$token] = $seed ? $value : '';
+
+                        echo sprintf('    ⚠️  Failed to auto-translate %s: ', $token) . $e->getMessage() . "\n";
                     }
                 } elseif ($seed) {
                     // Copy default value

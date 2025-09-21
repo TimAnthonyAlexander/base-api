@@ -2,24 +2,29 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\App;
 
 class MakeControllerCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'make:controller';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Create a new controller class';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
-        if (empty($args)) {
+        if ($args === []) {
             echo "Error: Controller name is required\n";
             echo "Usage: console make:controller <Name>\n";
             return 1;
@@ -27,7 +32,7 @@ class MakeControllerCommand implements Command
 
         $name = $this->sanitizeName($args[0]);
         
-        if (empty($name)) {
+        if ($name === '' || $name === '0') {
             echo "Error: Invalid controller name. Use only letters, numbers, and underscores.\n";
             return 1;
         }
@@ -37,7 +42,7 @@ class MakeControllerCommand implements Command
             $name .= 'Controller';
         }
 
-        $filePath = App::basePath("app/Controllers/{$name}.php");
+        $filePath = App::basePath(sprintf('app/Controllers/%s.php', $name));
         
         // Create Controllers directory if it doesn't exist
         $controllersDir = dirname($filePath);

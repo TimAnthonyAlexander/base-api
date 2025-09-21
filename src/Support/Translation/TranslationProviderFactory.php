@@ -24,22 +24,15 @@ class TranslationProviderFactory
             return null;
         }
         
-        if (self::$instance !== null) {
+        if (self::$instance instanceof TranslationProvider) {
             return self::$instance;
         }
         
-        switch (strtolower($provider)) {
-            case 'deepl':
-                self::$instance = new DeepLProvider();
-                break;
-                
-            case 'openai':
-                self::$instance = new OpenAIProvider();
-                break;
-                
-            default:
-                throw new TranslationException("Unknown translation provider: {$provider}");
-        }
+        self::$instance = match (strtolower((string) $provider)) {
+            'deepl' => new DeepLProvider(),
+            'openai' => new OpenAIProvider(),
+            default => throw new TranslationException('Unknown translation provider: ' . $provider),
+        };
         
         return self::$instance;
     }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace BaseApi\Http;
 
+use Override;
+
 final class SecurityHeadersMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $request, callable $next): Response
     {
         $response = $next($request);
@@ -28,11 +31,12 @@ final class SecurityHeadersMiddleware implements Middleware
 
     private function hasHeader(Response $response, string $name): bool
     {
-        foreach ($response->headers as $k => $_) {
+        foreach (array_keys($response->headers) as $k) {
             if (strcasecmp($k, $name) === 0) {
                 return true;
             }
         }
+
         return false;
     }
 }

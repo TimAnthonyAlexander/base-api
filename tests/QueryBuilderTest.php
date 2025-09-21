@@ -2,18 +2,20 @@
 
 namespace BaseApi\Tests;
 
+use Override;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use BaseApi\Database\QueryBuilder;
 use BaseApi\Database\Connection;
 use BaseApi\Database\DbException;
-use BaseApi\Database\PaginatedResult;
 
 class QueryBuilderTest extends TestCase
 {
     private MockObject $connectionMock;
+
     private QueryBuilder $queryBuilder;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->connectionMock = $this->createMock(Connection::class);
@@ -23,7 +25,7 @@ class QueryBuilderTest extends TestCase
     public function testTableMethod(): void
     {
         $result = $this->queryBuilder->table('users');
-        
+
         $this->assertInstanceOf(QueryBuilder::class, $result);
         $this->assertSame($this->queryBuilder, $result); // Should return same instance for fluent interface
     }
@@ -41,9 +43,9 @@ class QueryBuilderTest extends TestCase
 
         // Set new table should reset state
         $this->queryBuilder->table('posts');
-        
+
         $sqlArray = $this->queryBuilder->toSql();
-        
+
         // Should not contain previous query parts
         $this->assertStringContainsString('SELECT * FROM `posts`', $sqlArray['sql']);
         $this->assertStringNotContainsString('WHERE', $sqlArray['sql']);
@@ -55,27 +57,27 @@ class QueryBuilderTest extends TestCase
     public function testSelectWithSingleColumn(): void
     {
         $this->queryBuilder->table('users')->select('name');
-        
+
         $sqlArray = $this->queryBuilder->toSql();
-        
+
         $this->assertStringContainsString('SELECT `name` FROM `users`', $sqlArray['sql']);
     }
 
     public function testSelectWithMultipleColumns(): void
     {
         $this->queryBuilder->table('users')->select(['name', 'email', 'created_at']);
-        
+
         $sqlArray = $this->queryBuilder->toSql();
-        
+
         $this->assertStringContainsString('SELECT `name`, `email`, `created_at` FROM `users`', $sqlArray['sql']);
     }
 
     public function testSelectWithAsterisk(): void
     {
         $this->queryBuilder->table('users')->select('*');
-        
+
         $sqlArray = $this->queryBuilder->toSql();
-        
+
         $this->assertStringContainsString('SELECT * FROM `users`', $sqlArray['sql']);
     }
 
@@ -209,7 +211,7 @@ class QueryBuilderTest extends TestCase
         $this->queryBuilder
             ->table('users')
             ->where('status', '=', 'active')
-            ->whereGroup(function (QueryBuilder $q) {
+            ->whereGroup(function (QueryBuilder $q): void {
                 $q->where('role', '=', 'admin')->orWhere('role', '=', 'moderator');
             });
 
@@ -224,7 +226,7 @@ class QueryBuilderTest extends TestCase
         $this->queryBuilder
             ->table('users')
             ->where('status', '=', 'active')
-            ->orWhereGroup(function (QueryBuilder $q) {
+            ->orWhereGroup(function (QueryBuilder $q): void {
                 $q->where('role', '=', 'admin')->where('permissions', 'LIKE', '%manage%');
             });
 
@@ -373,7 +375,7 @@ class QueryBuilderTest extends TestCase
             ->select(['users.name', 'users.email', 'posts.title'])
             ->join('posts', 'users.id', '=', 'posts.user_id')
             ->where('users.status', '=', 'active')
-            ->whereGroup(function (QueryBuilder $q) {
+            ->whereGroup(function (QueryBuilder $q): void {
                 $q->where('posts.published', '=', true)
                   ->orWhere('posts.scheduled_at', '<=', date('Y-m-d H:i:s'));
             })
@@ -418,7 +420,7 @@ class QueryBuilderTest extends TestCase
     public function testUpdateReturnsZeroWithEmptyData(): void
     {
         $result = $this->queryBuilder->table('users')->update([]);
-        
+
         $this->assertEquals(0, $result);
     }
 

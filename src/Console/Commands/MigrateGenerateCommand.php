@@ -2,6 +2,9 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Database\Migrations\ModelScanner;
 use BaseApi\Database\Migrations\DatabaseIntrospector;
@@ -12,17 +15,20 @@ use BaseApi\App;
 
 class MigrateGenerateCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'migrate:generate';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Generate migration plan from model changes';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         try {
             echo "Scanning models...\n";
@@ -97,21 +103,21 @@ class MigrateGenerateCommand implements Command
             if ($finalCount === 0) {
                 echo "\nNo new migrations added (duplicates filtered out).\n";
             } else {
-                echo "\n{$finalCount} new migrations added to: {$migrationsFile}\n";
+                echo sprintf('%s%d new migrations added to: %s%s', PHP_EOL, $finalCount, $migrationsFile, PHP_EOL);
                 echo "Run 'migrate:apply' to execute pending migrations.\n";
             }
             
             return 0;
             
-        } catch (\Exception $e) {
-            echo "Error: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
 
     private function printSummary(array $migrations): void
     {
-        if (empty($migrations)) {
+        if ($migrations === []) {
             return;
         }
         
@@ -131,7 +137,7 @@ class MigrateGenerateCommand implements Command
         echo "==================\n";
         
         foreach ($counts as $operation => $count) {
-            echo ucwords(str_replace('_', ' ', $operation)) . ": {$count}\n";
+            echo ucwords(str_replace('_', ' ', $operation)) . sprintf(': %d%s', $count, PHP_EOL);
         }
         
         if ($destructiveCount > 0) {
@@ -151,56 +157,66 @@ class MigrateGenerateCommand implements Command
             '/CREATE (?:UNIQUE )?INDEX .* ON [`"\[]?(\w+)[`"\]]?/i',
             '/DROP INDEX .* ON [`"\[]?(\w+)[`"\]]?/i',
         ];
-        
+
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $sql, $matches)) {
                 return $matches[1];
             }
         }
-        
+
         return 'unknown';  // Return fallback instead of null
     }
 
     private function guessOperationFromSql(string $sql): string
     {
         $sql = strtoupper(trim($sql));
-        
-        if (strpos($sql, 'CREATE TABLE') === 0) {
+
+        if (str_starts_with($sql, 'CREATE TABLE')) {
             return 'create_table';
         }
-        if (strpos($sql, 'DROP TABLE') === 0) {
+
+        if (str_starts_with($sql, 'DROP TABLE')) {
             return 'drop_table';
         }
-        if (strpos($sql, 'CREATE UNIQUE INDEX') === 0 || strpos($sql, 'CREATE INDEX') === 0) {
+
+        if (str_starts_with($sql, 'CREATE UNIQUE INDEX') || str_starts_with($sql, 'CREATE INDEX')) {
             return 'add_index';
         }
-        if (strpos($sql, 'DROP INDEX') === 0) {
+
+        if (str_starts_with($sql, 'DROP INDEX')) {
             return 'drop_index';
         }
-        if (strpos($sql, 'ALTER TABLE') !== false) {
-            if (strpos($sql, 'ADD COLUMN') !== false) {
+
+        if (str_contains($sql, 'ALTER TABLE')) {
+            if (str_contains($sql, 'ADD COLUMN')) {
                 return 'add_column';
             }
-            if (strpos($sql, 'DROP COLUMN') !== false) {
+
+            if (str_contains($sql, 'DROP COLUMN')) {
                 return 'drop_column';
             }
-            if (strpos($sql, 'MODIFY COLUMN') !== false || strpos($sql, 'ALTER COLUMN') !== false) {
+
+            if (str_contains($sql, 'MODIFY COLUMN') || str_contains($sql, 'ALTER COLUMN')) {
                 return 'modify_column';
             }
-            if (strpos($sql, 'ADD INDEX') !== false || strpos($sql, 'CREATE INDEX') !== false) {
+
+            if (str_contains($sql, 'ADD INDEX') || str_contains($sql, 'CREATE INDEX')) {
                 return 'add_index';
             }
-            if (strpos($sql, 'DROP INDEX') !== false) {
+
+            if (str_contains($sql, 'DROP INDEX')) {
                 return 'drop_index';
             }
-            if (strpos($sql, 'ADD FOREIGN KEY') !== false || strpos($sql, 'ADD CONSTRAINT') !== false) {
+
+            if (str_contains($sql, 'ADD FOREIGN KEY') || str_contains($sql, 'ADD CONSTRAINT')) {
                 return 'add_fk';
             }
-            if (strpos($sql, 'DROP FOREIGN KEY') !== false || strpos($sql, 'DROP CONSTRAINT') !== false) {
+
+            if (str_contains($sql, 'DROP FOREIGN KEY') || str_contains($sql, 'DROP CONSTRAINT')) {
                 return 'drop_fk';
             }
         }
-        
+
         return 'unknown';
     }
 }

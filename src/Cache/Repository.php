@@ -2,6 +2,8 @@
 
 namespace BaseApi\Cache;
 
+use Override;
+use Exception;
 use BaseApi\Cache\Stores\StoreInterface;
 
 /**
@@ -12,41 +14,41 @@ use BaseApi\Cache\Stores\StoreInterface;
  */
 class Repository implements CacheInterface
 {
-    private StoreInterface $store;
-    private string $prefix;
-
-    public function __construct(StoreInterface $store, string $prefix = '')
+    public function __construct(private readonly StoreInterface $store, private readonly string $prefix = '')
     {
-        $this->store = $store;
-        $this->prefix = $prefix;
     }
 
+    #[Override]
     public function get(string $key, mixed $default = null): mixed
     {
         $value = $this->store->get($this->prefixedKey($key));
-        return $value !== null ? $value : $default;
+        return $value ?? $default;
     }
 
+    #[Override]
     public function put(string $key, mixed $value, ?int $ttl = null): bool
     {
         try {
             $this->store->put($this->prefixedKey($key), $value, $ttl);
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }
 
+    #[Override]
     public function forget(string $key): bool
     {
         return $this->store->forget($this->prefixedKey($key));
     }
 
+    #[Override]
     public function flush(): bool
     {
         return $this->store->flush();
     }
 
+    #[Override]
     public function remember(string $key, int $ttl, callable $callback): mixed
     {
         $value = $this->get($key);
@@ -61,21 +63,25 @@ class Repository implements CacheInterface
         return $value;
     }
 
+    #[Override]
     public function forever(string $key, mixed $value): bool
     {
         return $this->put($key, $value, null);
     }
 
+    #[Override]
     public function increment(string $key, int $value = 1): int
     {
         return $this->store->increment($this->prefixedKey($key), $value);
     }
 
+    #[Override]
     public function decrement(string $key, int $value = 1): int
     {
         return $this->store->decrement($this->prefixedKey($key), $value);
     }
 
+    #[Override]
     public function tags(array $tags): TaggedCache
     {
         return new TaggedCache($this->store, $tags);
@@ -205,10 +211,10 @@ class Repository implements CacheInterface
     {
         // Use store's prefix if available, otherwise use repository prefix
         $storePrefix = $this->store->getPrefix();
-        if ($storePrefix) {
+        if ($storePrefix !== '' && $storePrefix !== '0') {
             return $storePrefix . ':' . $key;
         }
         
-        return $this->prefix ? $this->prefix . ':' . $key : $key;
+        return $this->prefix !== '' && $this->prefix !== '0' ? $this->prefix . ':' . $key : $key;
     }
 }

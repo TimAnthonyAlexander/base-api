@@ -2,6 +2,8 @@
 
 namespace BaseApi\Tests;
 
+use Override;
+use ReflectionClass;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Http\JsonResponse;
 use BaseApi\Http\Response;
@@ -10,16 +12,18 @@ use BaseApi\Logger;
 
 class JsonResponseTest extends TestCase
 {
+    #[Override]
     protected function setUp(): void
     {
         // Reset the Logger's request ID for testing
         Logger::setRequestId('test-request-id-123');
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         // Reset the Logger's request ID - use reflection to reset static property
-        $reflection = new \ReflectionClass(Logger::class);
+        $reflection = new ReflectionClass(Logger::class);
         $requestIdProperty = $reflection->getProperty('requestId');
         $requestIdProperty->setAccessible(true);
         $requestIdProperty->setValue(null, null);
@@ -54,7 +58,7 @@ class JsonResponseTest extends TestCase
         $this->assertEquals(200, $response->status);
         $this->assertEquals('application/json; charset=utf-8', $response->headers['Content-Type']);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($payload, $decodedBody['data']);
     }
 
@@ -64,7 +68,7 @@ class JsonResponseTest extends TestCase
         $response = JsonResponse::ok($payload, 201);
 
         $this->assertEquals(201, $response->status);
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($payload, $decodedBody['data']);
     }
 
@@ -74,7 +78,7 @@ class JsonResponseTest extends TestCase
         $response = JsonResponse::created($payload);
 
         $this->assertEquals(201, $response->status);
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($payload, $decodedBody['data']);
     }
 
@@ -95,7 +99,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(400, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($message, $decodedBody['error']);
         $this->assertEquals($errors, $decodedBody['errors']);
         $this->assertEquals('test-request-id-123', $decodedBody['requestId']);
@@ -108,7 +112,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(400, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($message, $decodedBody['error']);
         $this->assertArrayNotHasKey('errors', $decodedBody);
         $this->assertEquals('test-request-id-123', $decodedBody['requestId']);
@@ -120,7 +124,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(401, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals('Unauthorized', $decodedBody['error']);
         $this->assertEquals('test-request-id-123', $decodedBody['requestId']);
     }
@@ -132,7 +136,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(401, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($message, $decodedBody['error']);
     }
 
@@ -142,7 +146,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(404, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals('Not Found', $decodedBody['error']);
         $this->assertEquals('test-request-id-123', $decodedBody['requestId']);
     }
@@ -154,7 +158,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(404, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($message, $decodedBody['error']);
     }
 
@@ -164,7 +168,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(500, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals('Server Error', $decodedBody['error']);
         $this->assertEquals('test-request-id-123', $decodedBody['requestId']);
     }
@@ -177,7 +181,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals($status, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($message, $decodedBody['error']);
     }
 
@@ -188,7 +192,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(200, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertTrue($decodedBody['success']);
         $this->assertEquals($data, $decodedBody['data']);
         $this->assertArrayHasKey('meta', $decodedBody);
@@ -204,7 +208,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(201, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertTrue($decodedBody['success']);
         $this->assertEquals($data, $decodedBody['data']);
         $this->assertEquals('value', $decodedBody['meta']['custom']);
@@ -218,7 +222,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(202, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertTrue($decodedBody['success']);
         $this->assertEquals($data, $decodedBody['data']);
     }
@@ -231,7 +235,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(422, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertFalse($decodedBody['success']);
         $this->assertEquals($message, $decodedBody['error']);
         $this->assertEquals($errors, $decodedBody['errors']);
@@ -246,7 +250,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(422, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals('Validation failed', $decodedBody['error']);
     }
 
@@ -256,7 +260,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(403, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertFalse($decodedBody['success']);
         $this->assertEquals('Forbidden', $decodedBody['error']);
         $this->assertEquals('test-request-id-123', $decodedBody['meta']['request_id']);
@@ -269,7 +273,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(403, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($message, $decodedBody['error']);
     }
 
@@ -280,7 +284,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(422, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertFalse($decodedBody['success']);
         $this->assertEquals($message, $decodedBody['error']);
         $this->assertEquals('test-request-id-123', $decodedBody['meta']['request_id']);
@@ -295,7 +299,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(422, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals($details, $decodedBody['details']);
     }
 
@@ -308,7 +312,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(200, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertTrue($decodedBody['success']);
         $this->assertEquals($data, $decodedBody['data']);
         
@@ -332,7 +336,7 @@ class JsonResponseTest extends TestCase
 
         $this->assertEquals(200, $response->status);
         
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         $this->assertEquals('value', $decodedBody['meta']['custom']);
         
         // Should also contain pagination headers
@@ -345,14 +349,14 @@ class JsonResponseTest extends TestCase
     {
         $originalData = ['id' => 1, 'name' => 'Test'];
         $response = JsonResponse::success($originalData);
-        
+
         $additionalMeta = ['custom' => 'value', 'another' => 'meta'];
         $newResponse = $response->withMeta($additionalMeta);
 
         // Original response should be unchanged
         $this->assertNotSame($response, $newResponse);
-        
-        $newDecodedBody = json_decode($newResponse->body, true);
+
+        $newDecodedBody = json_decode((string) $newResponse->body, true);
         $this->assertEquals('value', $newDecodedBody['meta']['custom']);
         $this->assertEquals('meta', $newDecodedBody['meta']['another']);
         $this->assertArrayHasKey('timestamp', $newDecodedBody['meta']); // Original meta should be preserved
@@ -366,7 +370,7 @@ class JsonResponseTest extends TestCase
         $meta = ['custom' => 'value'];
         $newResponse = $response->withMeta($meta);
 
-        $newDecodedBody = json_decode($newResponse->body, true);
+        $newDecodedBody = json_decode((string) $newResponse->body, true);
         $this->assertEquals('value', $newDecodedBody['meta']['custom']);
     }
 
@@ -405,13 +409,13 @@ class JsonResponseTest extends TestCase
     public function testGetCurrentRequestIdWhenNotSet(): void
     {
         // Reset using reflection since setRequestId doesn't accept null
-        $reflection = new \ReflectionClass(Logger::class);
+        $reflection = new ReflectionClass(Logger::class);
         $requestIdProperty = $reflection->getProperty('requestId');
         $requestIdProperty->setAccessible(true);
         $requestIdProperty->setValue(null, null);
         
         $response = JsonResponse::badRequest('Test error');
-        $decodedBody = json_decode($response->body, true);
+        $decodedBody = json_decode((string) $response->body, true);
         
         $this->assertNull($decodedBody['requestId']);
     }

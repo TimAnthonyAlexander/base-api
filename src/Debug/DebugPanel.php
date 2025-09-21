@@ -6,11 +6,8 @@ use BaseApi\App;
 
 class DebugPanel
 {
-    private bool $enabled = false;
-
-    public function __construct(bool $enabled = false)
+    public function __construct(private readonly bool $enabled = false)
     {
-        $this->enabled = $enabled;
     }
 
     public function isEnabled(): bool
@@ -38,7 +35,7 @@ class DebugPanel
         $profiler = App::profiler();
         $summary = $profiler->getSummary();
         
-        if (empty($summary)) {
+        if ($summary === []) {
             return '';
         }
 
@@ -49,9 +46,8 @@ class DebugPanel
         $html .= $this->renderMemory($summary);
         $html .= $this->renderExceptions($summary);
         $html .= $this->renderWarnings($summary);
-        $html .= '</div>';
 
-        return $html;
+        return $html . '</div>';
     }
 
     /**
@@ -182,9 +178,7 @@ class DebugPanel
             <div>Queries: <strong>%d</strong></div>
         </div>', ($request['query_count'] ?? 0) > 20 ? 'warning' : '', $request['query_count'] ?? 0);
         
-        $html .= '</div></div>';
-        
-        return $html;
+        return $html . '</div></div>';
     }
 
     /**
@@ -202,7 +196,7 @@ class DebugPanel
         $html = '<div class="debug-section">';
         $html .= sprintf('<h3>SQL Queries (%d) %s</h3>', 
             count($queries), 
-            !empty($slowQueries) ? sprintf('<span style="color: #ed8936;">(%d slow)</span>', count($slowQueries)) : ''
+            empty($slowQueries) ? '' : sprintf('<span style="color: #ed8936;">(%d slow)</span>', count($slowQueries))
         );
         
         // Show only first 5 queries to keep panel manageable
@@ -227,9 +221,7 @@ class DebugPanel
             </div>', count($queries) - 5);
         }
         
-        $html .= '</div>';
-        
-        return $html;
+        return $html . '</div>';
     }
 
     /**
@@ -250,15 +242,13 @@ class DebugPanel
             $html .= sprintf('<div class="debug-metric">
                 <div><strong>%s:</strong> %.2f MB (Peak: %.2f MB)</div>
             </div>', 
-                htmlspecialchars($snapshot['label']),
+                htmlspecialchars((string) $snapshot['label']),
                 $snapshot['memory_mb'],
                 $snapshot['peak_memory_mb']
             );
         }
         
-        $html .= '</div>';
-        
-        return $html;
+        return $html . '</div>';
     }
 
     /**
@@ -282,16 +272,14 @@ class DebugPanel
                     %s:%d
                 </div>
             </div>', 
-                htmlspecialchars($exception['class']),
-                htmlspecialchars($exception['message']),
-                htmlspecialchars($exception['file']),
+                htmlspecialchars((string) $exception['class']),
+                htmlspecialchars((string) $exception['message']),
+                htmlspecialchars((string) $exception['file']),
                 $exception['line']
             );
         }
         
-        $html .= '</div>';
-        
-        return $html;
+        return $html . '</div>';
     }
 
     /**
@@ -310,12 +298,10 @@ class DebugPanel
         
         foreach ($warnings as $warning) {
             $html .= sprintf('<div class="debug-warning">%s</div>', 
-                htmlspecialchars($warning)
+                htmlspecialchars((string) $warning)
             );
         }
         
-        $html .= '</div>';
-        
-        return $html;
+        return $html . '</div>';
     }
 }

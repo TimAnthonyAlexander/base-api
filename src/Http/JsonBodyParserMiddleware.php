@@ -2,15 +2,19 @@
 
 namespace BaseApi\Http;
 
+use Override;
+use BaseApi\Logger;
+use InvalidArgumentException;
 use BaseApi\App;
 
 class JsonBodyParserMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $req, callable $next): Response
     {
         $contentType = $req->headers['Content-Type'] ?? '';
 
-        if (str_starts_with($contentType, 'application/json')) {
+        if (str_starts_with((string) $contentType, 'application/json')) {
             $result = $this->parseJsonBody($req);
             if ($result instanceof Response) {
                 return $result; // Size limit exceeded
@@ -33,15 +37,15 @@ class JsonBodyParserMiddleware implements Middleware
         if (strlen($req->rawBody) > $maxBytes) {
             // Return 413 Payload Too Large with proper error format
             return new JsonResponse([
-                'error' => "Request body too large. Maximum {$maxMb}MB allowed.",
-                'requestId' => \BaseApi\Logger::getRequestId()
+                'error' => sprintf('Request body too large. Maximum %sMB allowed.', $maxMb),
+                'requestId' => Logger::getRequestId()
             ], 413);
         }
 
         $decoded = json_decode($req->rawBody, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
+            throw new InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
         }
 
         $req->body = $decoded ?? [];

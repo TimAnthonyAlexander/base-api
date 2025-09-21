@@ -2,15 +2,21 @@
 
 namespace BaseApi\Http;
 
+use finfo;
 use BaseApi\Storage\Storage;
 
 class UploadedFile
 {
     public string $name;
+
     public string $clientType;
+
     public string $type;
+
     public string $tmpName;
+
     public int $error;
+
     public int $size;
 
     public function __construct(array $fileData)
@@ -36,14 +42,14 @@ class UploadedFile
     public function getMimeType(): string
     {
         // Check if temp file exists and is readable before trying to detect MIME type
-        if (!empty($this->tmpName) && file_exists($this->tmpName) && is_readable($this->tmpName)) {
-            $f = new \finfo(FILEINFO_MIME_TYPE);
+        if ($this->tmpName !== '' && $this->tmpName !== '0' && file_exists($this->tmpName) && is_readable($this->tmpName)) {
+            $f = new finfo(FILEINFO_MIME_TYPE);
             $detectedType = $f->file($this->tmpName);
             if ($detectedType !== false) {
                 return $detectedType;
             }
         }
-        
+
         // Fallback to client type or default
         return $this->clientType ?: 'application/octet-stream';
     }
@@ -67,7 +73,7 @@ class UploadedFile
      */
     public function store(?string $directory = null, ?string $disk = null): string
     {
-        $directory = $directory ?? '';
+        $directory ??= '';
         return Storage::disk($disk)->putFile($directory, $this);
     }
 

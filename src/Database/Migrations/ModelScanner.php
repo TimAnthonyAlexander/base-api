@@ -2,6 +2,9 @@
 
 namespace BaseApi\Database\Migrations;
 
+use Exception;
+use ReflectionNamedType;
+use ReflectionType;
 use ReflectionClass;
 use ReflectionProperty;
 use BaseApi\Models\BaseModel;
@@ -35,16 +38,18 @@ class ModelScanner
                 }
                 
                 $reflection = new ReflectionClass($className);
-
                 // Skip abstract classes and non-BaseModel classes
-                if ($reflection->isAbstract() || !$reflection->isSubclassOf(BaseModel::class)) {
+                if ($reflection->isAbstract()) {
+                    continue;
+                }
+                if (!$reflection->isSubclassOf(BaseModel::class)) {
                     continue;
                 }
 
                 $table = $this->scanModel($reflection);
                 $schema->tables[$table->name] = $table;
                 
-            } catch (\Exception $e) {
+            } catch (Exception) {
                 // Skip files that can't be loaded (deleted, syntax errors, etc.)
                 continue;
             }
@@ -75,7 +80,7 @@ class ModelScanner
 
     private function scanModel(ReflectionClass $reflection): TableDef
     {
-        $className = $reflection->getName();
+        $reflection->getName();
 
         // Get table name - check for static $table property, otherwise infer
         $tableName = $this->getTableName($reflection);
@@ -96,14 +101,14 @@ class ModelScanner
                 continue;
             }
 
-            $column = $this->propertyToColumn($property, $reflection);
-            if ($column) {
+            $column = $this->propertyToColumn($property);
+            if ($column instanceof ColumnDef) {
                 $table->columns[$column->name] = $column;
             }
 
             // Check if this is a foreign key (typed as another model)
             $fk = $this->propertyToForeignKey($property, $reflection);
-            if ($fk) {
+            if ($fk instanceof ForeignKeyDef) {
                 $table->fks[$fk->name] = $fk;
 
                 // Add the FK column to the table
@@ -113,7 +118,7 @@ class ModelScanner
 
             // Also check if this is a foreign key based on _id naming convention
             $idFk = $this->idPropertyToForeignKey($property, $reflection);
-            if ($idFk) {
+            if ($idFk instanceof ForeignKeyDef) {
                 $table->fks[$idFk->name] = $idFk;
             }
         }
@@ -149,7 +154,7 @@ class ModelScanner
     private function classNameToTableName(string $className): string
     {
         // Convert PascalCase to snake_case and pluralize
-        $snakeCase = strtolower(preg_replace('/([A-Z])/', '_$1', lcfirst($className)));
+        $snakeCase = strtolower((string) preg_replace('/([A-Z])/', '_$1', lcfirst($className)));
 
         // Simple pluralization (just add 's' for now)
         if (!str_ends_with($snakeCase, 's')) {
@@ -194,7 +199,7 @@ class ModelScanner
         return null;
     }
 
-    private function propertyToColumn(ReflectionProperty $property, ReflectionClass $reflection): ?ColumnDef
+    private function propertyToColumn(ReflectionProperty $property): ?ColumnDef
     {
         $name = $property->getName();
         $type = $property->getType();
@@ -234,7 +239,7 @@ class ModelScanner
             return null;
         }
 
-        if (!$type instanceof \ReflectionNamedType) {
+        if (!$type instanceof ReflectionNamedType) {
             return null;
         }
 
@@ -252,7 +257,7 @@ class ModelScanner
         $fkName = 'fk_' . $this->getTableName($reflection) . '_' . $fkColumnName;
 
         // Add the FK column to the table
-        $fkColumn = new ColumnDef($fkColumnName, 'CHAR(36)', $type->allowsNull());
+        new ColumnDef($fkColumnName, 'CHAR(36)', $type->allowsNull());
 
         return new ForeignKeyDef($fkName, $fkColumnName, $refTableName, 'id');
     }
@@ -304,9 +309,9 @@ class ModelScanner
         return new ForeignKeyDef($fkName, $propertyName, $refTableName, 'id');
     }
 
-    private function isModelType(\ReflectionType $type): bool
+    private function isModelType(ReflectionType $type): bool
     {
-        if (!$type instanceof \ReflectionNamedType) {
+        if (!$type instanceof ReflectionNamedType) {
             return false;
         }
 
@@ -321,9 +326,9 @@ class ModelScanner
         return false;
     }
 
-    private function phpTypeToSqlType(\ReflectionType $type, string $propertyName = ''): string
+    private function phpTypeToSqlType(ReflectionType $type, string $propertyName = ''): string
     {
-        if (!$type instanceof \ReflectionNamedType) {
+        if (!$type instanceof ReflectionNamedType) {
             $connection = App::db()->getConnection();
             $driver = $connection->getDriver();
             return $driver->phpTypeToSqlType('string', $propertyName);

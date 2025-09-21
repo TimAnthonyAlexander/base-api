@@ -11,20 +11,18 @@ use InvalidArgumentException;
  */
 class StorageManager
 {
-    private Config $config;
     private array $drivers = [];
+
     private array $customDrivers = [];
 
-    public function __construct(Config $config)
+    public function __construct(private readonly Config $config)
     {
-        $this->config = $config;
     }
 
     /**
      * Get a storage driver instance.
-     * 
+     *
      * @param string|null $name Driver name (null for default)
-     * @return StorageInterface
      */
     public function disk(?string $name = null): StorageInterface
     {
@@ -67,8 +65,6 @@ class StorageManager
 
     /**
      * Get all configured disk names.
-     * 
-     * @return array
      */
     public function getDisks(): array
     {
@@ -78,9 +74,8 @@ class StorageManager
 
     /**
      * Resolve a storage driver by name.
-     * 
+     *
      * @param string $name Driver name
-     * @return StorageInterface
      * @throws InvalidArgumentException If driver not found or invalid config
      */
     protected function resolve(string $name): StorageInterface
@@ -96,17 +91,16 @@ class StorageManager
 
     /**
      * Get configuration for a disk.
-     * 
+     *
      * @param string $name Disk name
-     * @return array
      * @throws InvalidArgumentException If disk not configured
      */
     protected function getConfig(string $name): array
     {
         $disks = $this->config->get('filesystems.disks', []);
-        
+
         if (!isset($disks[$name])) {
-            throw new InvalidArgumentException("Storage disk [{$name}] is not configured.");
+            throw new InvalidArgumentException(sprintf('Storage disk [%s] is not configured.', $name));
         }
 
         return array_merge(['name' => $name], $disks[$name]);
@@ -114,9 +108,8 @@ class StorageManager
 
     /**
      * Create a storage driver based on configuration.
-     * 
+     *
      * @param array $config Driver configuration
-     * @return StorageInterface
      * @throws InvalidArgumentException If driver type not supported
      */
     protected function createDriver(array $config): StorageInterface
@@ -125,24 +118,23 @@ class StorageManager
 
         return match ($driver) {
             'local' => $this->createLocalDriver($config),
-            default => throw new InvalidArgumentException("Storage driver [{$driver}] is not supported.")
+            default => throw new InvalidArgumentException(sprintf('Storage driver [%s] is not supported.', $driver))
         };
     }
 
     /**
      * Create a local filesystem driver.
-     * 
+     *
      * @param array $config Driver configuration
-     * @return LocalDriver
      */
     protected function createLocalDriver(array $config): LocalDriver
     {
         $root = $config['root'] ?? 'storage/app';
         // Convert relative path to absolute using storage_path helper
-        if (!str_starts_with($root, '/')) {
+        if (!str_starts_with((string) $root, '/')) {
             $root = storage_path($root === 'storage/app' ? 'app' : $root);
         }
-        
+
         return new LocalDriver(
             root: $root,
             url: $config['url'] ?? null,

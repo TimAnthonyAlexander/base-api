@@ -2,10 +2,10 @@
 
 namespace BaseApi\Http;
 
+use BaseApi\Logger;
+
 class ControllerInvoker
 {
-    public function __construct() {}
-
     public function invoke(object $controller, Request $req): Response
     {
         // Determine which method to call based on HTTP method
@@ -33,7 +33,7 @@ class ControllerInvoker
                 'Content-Type' => 'application/json; charset=utf-8'
             ], json_encode([
                 'error' => 'Method not allowed',
-                'requestId' => \BaseApi\Logger::getRequestId()
+                'requestId' => Logger::getRequestId()
             ]));
         }
 

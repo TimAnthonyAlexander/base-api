@@ -3,7 +3,6 @@
 namespace BaseApi\Database\Drivers;
 
 use PDO;
-use BaseApi\Database\Migrations\DatabaseSchema;
 use BaseApi\Database\Migrations\MigrationPlan;
 
 interface DatabaseDriverInterface

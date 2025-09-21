@@ -2,6 +2,10 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
+use Exception;
+use ReflectionUnionType;
 use BaseApi\Console\Command;
 use BaseApi\Http\Attributes\ResponseType;
 use BaseApi\Http\Attributes\Tag;
@@ -9,24 +13,27 @@ use BaseApi\App;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
-use ReflectionAttribute;
 
 class TypesGenerateCommand implements Command
 {
     private array $routes = [];
+
     private array $dtoSchemas = [];
 
+    #[Override]
     public function name(): string
     {
         return 'types:generate';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Generate OpenAPI spec and TypeScript definitions from controllers and routes';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         $options = $this->parseArgs($args);
 
@@ -64,8 +71,8 @@ class TypesGenerateCommand implements Command
 
             echo "✅ Type generation completed!\n";
             return 0;
-        } catch (\Exception $e) {
-            echo "❌ Error: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "❌ Error: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -77,14 +84,14 @@ class TypesGenerateCommand implements Command
         foreach ($args as $arg) {
             if ($arg === '--help' || $arg === '-h') {
                 $options['help'] = true;
-            } elseif (str_starts_with($arg, '--out-ts=')) {
-                $options['out-ts'] = substr($arg, 9);
-            } elseif (str_starts_with($arg, '--out-openapi=')) {
-                $options['out-openapi'] = substr($arg, 14);
-            } elseif (str_starts_with($arg, '--format=')) {
-                $options['format'] = substr($arg, 9);
-            } elseif (str_starts_with($arg, '--schemas-dir=')) {
-                $options['schemas-dir'] = substr($arg, 14);
+            } elseif (str_starts_with((string) $arg, '--out-ts=')) {
+                $options['out-ts'] = substr((string) $arg, 9);
+            } elseif (str_starts_with((string) $arg, '--out-openapi=')) {
+                $options['out-openapi'] = substr((string) $arg, 14);
+            } elseif (str_starts_with((string) $arg, '--format=')) {
+                $options['format'] = substr((string) $arg, 9);
+            } elseif (str_starts_with((string) $arg, '--schemas-dir=')) {
+                $options['schemas-dir'] = substr((string) $arg, 14);
             }
         }
 
@@ -92,9 +99,11 @@ class TypesGenerateCommand implements Command
         if (!isset($options['format'])) {
             $options['format'] = 'json';
         }
+
         if (!isset($options['out-ts'])) {
             $options['out-ts'] = 'types.ts';
         }
+
         if (!isset($options['out-openapi'])) {
             $options['out-openapi'] = 'openapi.json';
         }
@@ -131,7 +140,7 @@ HELP;
         $routesFile = App::basePath('routes/api.php');
 
         if (!file_exists($routesFile)) {
-            throw new \Exception("Routes file not found: {$routesFile}");
+            throw new Exception('Routes file not found: ' . $routesFile);
         }
 
         // Create a mock App class to capture router calls
@@ -163,7 +172,7 @@ HELP;
         };
 
         // Create a mock App class
-        $originalAppExists = class_exists('BaseApi\\App', false);
+        $originalAppExists = class_exists(App::class, false);
         if (!$originalAppExists) {
             // If App isn't loaded yet, we need to ensure we can mock it
             $mockRouterRef = &$mockRouter; // Create reference for closure
@@ -178,7 +187,7 @@ HELP;
             ');
             // Now the mock App class exists, we can call setMockRouter
             /** @phpstan-ignore-next-line */
-            \BaseApi\App::setMockRouter($mockRouterRef);
+            App::setMockRouter($mockRouterRef);
         } else {
             // If App is already loaded, we need to work around it
             // Store original router method (this is tricky with static methods)
@@ -255,7 +264,7 @@ HELP;
             $controllerClass = end($pipeline); // Last element should be controller
 
             if (!class_exists($controllerClass)) {
-                echo "   ⚠️  Controller not found: {$controllerClass}\n";
+                echo sprintf('   ⚠️  Controller not found: %s%s', $controllerClass, PHP_EOL);
                 continue;
             }
 
@@ -280,7 +289,7 @@ HELP;
         }
 
         if (!$reflection->hasMethod($methodName)) {
-            throw new \Exception("No suitable method found in {$controllerClass} for {$method}");
+            throw new Exception(sprintf('No suitable method found in %s for %s', $controllerClass, $method));
         }
 
         $methodReflection = $reflection->getMethod($methodName);
@@ -300,7 +309,9 @@ HELP;
         $properties = [];
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
-            if ($prop->isStatic()) continue;
+            if ($prop->isStatic()) {
+                continue;
+            }
 
             $type = $prop->getType();
             $properties[] = [
@@ -343,9 +354,8 @@ HELP;
 
         // 2. Add scalar public properties (API parameters)
         $scalarProperties = $this->getScalarProperties($reflection);
-        $parameters = array_merge($parameters, $scalarProperties);
 
-        return $parameters;
+        return array_merge($parameters, $scalarProperties);
     }
 
     private function getScalarProperties(ReflectionClass $reflection): array
@@ -353,7 +363,9 @@ HELP;
         $parameters = [];
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
-            if ($prop->isStatic()) continue;
+            if ($prop->isStatic()) {
+                continue;
+            }
 
             $type = $prop->getType();
             $typeName = $type ? $type->__toString() : 'mixed';
@@ -384,7 +396,7 @@ HELP;
         // Handle union types (like string|null)
         if (str_contains($typeName, '|')) {
             $types = explode('|', $typeName);
-            $nonNullTypes = array_filter($types, fn($t) => trim($t) !== 'null');
+            $nonNullTypes = array_filter($types, fn($t): bool => trim((string) $t) !== 'null');
             if (count($nonNullTypes) === 1) {
                 $typeName = trim($nonNullTypes[0]);
             }
@@ -432,7 +444,9 @@ HELP;
         $dtoClasses = [];
 
         foreach ($this->routes as $route) {
-            if (!isset($route['controller'])) continue;
+            if (!isset($route['controller'])) {
+                continue;
+            }
 
             foreach ($route['controller']['responseTypes'] as $responseType) {
                 $dtoClasses = array_merge($dtoClasses, $responseType->getClassReferences());
@@ -456,7 +470,7 @@ HELP;
         }
 
         if (!class_exists($className)) {
-            throw new \Exception("DTO class not found: {$className}");
+            throw new Exception('DTO class not found: ' . $className);
         }
 
         $reflection = new ReflectionClass($className);
@@ -467,7 +481,9 @@ HELP;
         ];
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $prop) {
-            if ($prop->isStatic()) continue;
+            if ($prop->isStatic()) {
+                continue;
+            }
 
             $propType = $prop->getType();
             $typeInfo = $this->getTypeInfo($propType);
@@ -500,9 +516,9 @@ HELP;
         $nullable = $type->allowsNull();
 
         // Handle union types (mainly for nullable)
-        if ($type instanceof \ReflectionUnionType) {
+        if ($type instanceof ReflectionUnionType) {
             $types = $type->getTypes();
-            $nonNullTypes = array_filter($types, fn($t) => $t->__toString() !== 'null');
+            $nonNullTypes = array_filter($types, fn($t): bool => $t->__toString() !== 'null');
 
             if (count($nonNullTypes) === 1) {
                 $typeName = $nonNullTypes[0]->__toString();
@@ -511,9 +527,9 @@ HELP;
         }
 
         // Handle array types
-        $isArray = str_ends_with($typeName, '[]') || $typeName === 'array';
-        if ($isArray && str_ends_with($typeName, '[]')) {
-            $typeName = substr($typeName, 0, -2);
+        $isArray = str_ends_with((string) $typeName, '[]') || $typeName === 'array';
+        if ($isArray && str_ends_with((string) $typeName, '[]')) {
+            $typeName = substr((string) $typeName, 0, -2);
         }
 
         // Determine if this is a class reference
@@ -562,10 +578,12 @@ HELP;
 
         // Generate paths
         foreach ($this->routes as $route) {
-            if (!isset($route['controller'])) continue;
+            if (!isset($route['controller'])) {
+                continue;
+            }
 
             $path = $this->convertPathToOpenApi($route['path']);
-            $method = strtolower($route['method']);
+            $method = strtolower((string) $route['method']);
 
             $spec['paths'][$path][$method] = $this->generateOpenApiOperation($route);
         }
@@ -612,13 +630,13 @@ HELP;
         // Write output
         $output = json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-        $this->ensureDirectoryExists(dirname($options['out-openapi']));
+        $this->ensureDirectoryExists(dirname((string) $options['out-openapi']));
 
         if (file_put_contents($options['out-openapi'], $output) === false) {
-            throw new \Exception("Failed to write OpenAPI spec to {$options['out-openapi']}");
+            throw new Exception('Failed to write OpenAPI spec to ' . $options['out-openapi']);
         }
 
-        echo "   📄 OpenAPI spec written to {$options['out-openapi']}\n";
+        echo sprintf('   📄 OpenAPI spec written to %s%s', $options['out-openapi'], PHP_EOL);
     }
 
     private function generateTypeScript(array $options): void
@@ -647,7 +665,9 @@ HELP;
 
         // Generate request/response types for each route
         foreach ($this->routes as $route) {
-            if (!isset($route['controller'])) continue;
+            if (!isset($route['controller'])) {
+                continue;
+            }
 
             $ts = array_merge($ts, $this->generateTypeScriptOperation($route));
             $ts[] = "";
@@ -655,13 +675,13 @@ HELP;
 
         $output = implode("\n", $ts);
 
-        $this->ensureDirectoryExists(dirname($options['out-ts']));
+        $this->ensureDirectoryExists(dirname((string) $options['out-ts']));
 
         if (file_put_contents($options['out-ts'], $output) === false) {
-            throw new \Exception("Failed to write TypeScript definitions to {$options['out-ts']}");
+            throw new Exception('Failed to write TypeScript definitions to ' . $options['out-ts']);
         }
 
-        echo "   📘 TypeScript definitions written to {$options['out-ts']}\n";
+        echo sprintf('   📘 TypeScript definitions written to %s%s', $options['out-ts'], PHP_EOL);
     }
 
     private function convertPathToOpenApi(string $path): string
@@ -672,7 +692,7 @@ HELP;
     private function generateOpenApiOperation(array $route): array
     {
         $controller = $route['controller'];
-        $method = strtolower($route['method']);
+        $method = strtolower((string) $route['method']);
 
         $operation = [
             'summary' => $this->generateOperationSummary($route),
@@ -683,7 +703,7 @@ HELP;
         ];
 
         // Add path parameters
-        preg_match_all('/\{(\w+)\}/', $route['path'], $matches);
+        preg_match_all('/\{(\w+)\}/', (string) $route['path'], $matches);
         foreach ($matches[1] as $paramName) {
             $paramType = $this->getPathParamType($controller['parameters'], $paramName);
             $operation['parameters'][] = [
@@ -748,7 +768,7 @@ HELP;
     {
         $shapeInfo = $responseType->getShapeInfo();
 
-        $response = [
+        return [
             'description' => $responseType->when ? ucfirst($responseType->when) : 'Success',
             'content' => [
                 'application/json' => [
@@ -761,8 +781,6 @@ HELP;
                 ]
             ]
         ];
-
-        return $response;
     }
 
     private function convertShapeToOpenApiSchema(array $shapeInfo): array
@@ -781,6 +799,7 @@ HELP;
                         'items' => ['$ref' => '#/components/schemas/' . $this->getShortClassName($shapeInfo['items'])]
                     ];
                 }
+
                 return [
                     'type' => 'array',
                     'items' => $this->phpTypeToOpenApiType($shapeInfo['items'])
@@ -791,6 +810,7 @@ HELP;
                 foreach ($shapeInfo['properties'] as $propName => $propType) {
                     $properties[$propName] = $this->phpTypeToOpenApiType($propType);
                 }
+
                 return [
                     'type' => 'object',
                     'properties' => $properties
@@ -820,7 +840,7 @@ HELP;
             'properties' => $properties
         ];
 
-        if (!empty($required)) {
+        if ($required !== []) {
             $result['required'] = $required;
         }
 
@@ -836,7 +856,7 @@ HELP;
         }
 
         if ($prop['isArray']) {
-            $schema = [
+            return [
                 'type' => 'array',
                 'items' => $schema
             ];
@@ -860,12 +880,12 @@ HELP;
     private function generateTypeScriptInterface(array $schema): array
     {
         $lines = [];
-        $lines[] = "export interface {$schema['shortName']} {";
+        $lines[] = sprintf('export interface %s {', $schema['shortName']);
 
         foreach ($schema['properties'] as $prop) {
             $tsType = $this->phpTypeToTypeScript($prop);
             $optional = $prop['nullable'] ? '?' : '';
-            $lines[] = "  {$prop['name']}{$optional}: {$tsType};";
+            $lines[] = sprintf('  %s%s: %s;', $prop['name'], $optional, $tsType);
         }
 
         $lines[] = "}";
@@ -909,26 +929,28 @@ HELP;
 
         // Generate path parameters interface
         $pathParams = $this->getPathParameters($route['path'], $controller['parameters']);
-        if (!empty($pathParams)) {
-            $lines[] = "export interface {$operationName}RequestPath {";
+        if ($pathParams !== []) {
+            $lines[] = sprintf('export interface %sRequestPath {', $operationName);
             foreach ($pathParams as $param) {
                 $tsType = $this->phpTypeToTsType($param['type']);
-                $lines[] = "  {$param['name']}: {$tsType};";
+                $lines[] = sprintf('  %s: %s;', $param['name'], $tsType);
             }
+
             $lines[] = "}";
             $lines[] = "";
         }
 
         // Generate query/body parameters interface
         $bodyParams = $this->getBodyParameters($route, $controller['parameters']);
-        if (!empty($bodyParams)) {
+        if ($bodyParams !== []) {
             $interfaceType = $route['method'] === 'GET' ? 'Query' : 'Body';
-            $lines[] = "export interface {$operationName}Request{$interfaceType} {";
+            $lines[] = sprintf('export interface %sRequest%s {', $operationName, $interfaceType);
             foreach ($bodyParams as $param) {
                 $tsType = $this->phpTypeToTsType($param['type']);
                 $optional = $param['nullable'] || $param['hasDefault'] ? '?' : '';
-                $lines[] = "  {$param['name']}{$optional}: {$tsType};";
+                $lines[] = sprintf('  %s%s: %s;', $param['name'], $optional, $tsType);
             }
+
             $lines[] = "}";
             $lines[] = "";
         }
@@ -939,11 +961,12 @@ HELP;
             foreach ($controller['responseTypes'] as $responseType) {
                 $shapeInfo = $responseType->getShapeInfo();
                 $tsType = $this->convertShapeToTypeScript($shapeInfo);
-                $responseUnions[] = "Envelope<{$tsType}>";
+                $responseUnions[] = sprintf('Envelope<%s>', $tsType);
             }
-            $lines[] = "export type {$operationName}Response = " . implode(' | ', $responseUnions) . ";";
+
+            $lines[] = sprintf('export type %sResponse = ', $operationName) . implode(' | ', $responseUnions) . ";";
         } else {
-            $lines[] = "export type {$operationName}Response = Envelope<any>;";
+            $lines[] = sprintf('export type %sResponse = Envelope<any>;', $operationName);
         }
 
         return $lines;
@@ -962,14 +985,16 @@ HELP;
                 if (class_exists($shapeInfo['items'])) {
                     return $this->getShortClassName($shapeInfo['items']) . '[]';
                 }
+
                 return $this->phpTypeToTsType($shapeInfo['items']) . '[]';
 
             case 'object':
                 $props = [];
                 foreach ($shapeInfo['properties'] as $propName => $propType) {
                     $tsType = $this->phpTypeToTsType($propType);
-                    $props[] = "{$propName}: {$tsType}";
+                    $props[] = sprintf('%s: %s', $propName, $tsType);
                 }
+
                 return '{ ' . implode('; ', $props) . ' }';
 
             default:
@@ -987,13 +1012,13 @@ HELP;
     {
         $controller = $this->getShortClassName($route['controller']['class']);
         $method = $route['method'];
-        return "{$method} {$controller}";
+        return sprintf('%s %s', $method, $controller);
     }
 
     private function generateOperationId(array $route): string
     {
         $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
-        $method = strtolower($route['method']);
+        $method = strtolower((string) $route['method']);
         $pathSuffix = $this->getPathSuffix($route['path']);
 
         return $method . $controller . $pathSuffix;
@@ -1002,7 +1027,7 @@ HELP;
     private function generateOperationName(array $route): string
     {
         $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
-        $method = ucfirst(strtolower($route['method']));
+        $method = ucfirst(strtolower((string) $route['method']));
 
         // Add path parameters to make operation names unique
         $pathSuffix = $this->getPathSuffix($route['path']);
@@ -1040,6 +1065,7 @@ HELP;
                 };
             }
         }
+
         return 'string';
     }
 
@@ -1047,7 +1073,9 @@ HELP;
     {
         $params = [];
         foreach ($parameters as $param) {
-            if (in_array($param['name'], $pathParamNames)) continue;
+            if (in_array($param['name'], $pathParamNames)) {
+                continue;
+            }
 
             $params[] = [
                 'name' => $param['name'],
@@ -1056,6 +1084,7 @@ HELP;
                 'schema' => $this->phpTypeToOpenApiType($param['type'])
             ];
         }
+
         return $params;
     }
 
@@ -1067,7 +1096,9 @@ HELP;
         ];
 
         foreach ($parameters as $param) {
-            if (in_array($param['name'], $pathParamNames)) continue;
+            if (in_array($param['name'], $pathParamNames)) {
+                continue;
+            }
 
             $schema['properties'][$param['name']] = $this->phpTypeToOpenApiType($param['type']);
         }
@@ -1095,8 +1126,8 @@ HELP;
     private function getBodyParameters(array $route, array $parameters): array
     {
         $pathParamNames = [];
-        preg_match_all('/\{(\w+)\}/', $route['path'], $matches);
-        if (!empty($matches[1])) {
+        preg_match_all('/\{(\w+)\}/', (string) $route['path'], $matches);
+        if (isset($matches[1]) && $matches[1] !== []) {
             $pathParamNames = $matches[1];
         }
 
@@ -1113,7 +1144,7 @@ HELP;
     private function ensureDirectoryExists(string $directory): void
     {
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new \Exception("Failed to create directory: {$directory}");
+            throw new Exception('Failed to create directory: ' . $directory);
         }
     }
 }

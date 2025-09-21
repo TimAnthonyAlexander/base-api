@@ -2,6 +2,8 @@
 
 namespace BaseApi\Http;
 
+use Override;
+use BaseApi\App;
 use BaseApi\Container\ContainerInterface;
 
 /**
@@ -18,16 +20,15 @@ abstract class BaseMiddleware implements Middleware
      * @param callable $next The next middleware
      * @return Response The response
      */
+    #[Override]
     abstract public function handle(Request $req, callable $next): Response;
 
     /**
      * Get the application container instance.
-     * 
-     * @return ContainerInterface
      */
     protected function container(): ContainerInterface
     {
-        return \BaseApi\App::container();
+        return App::container();
     }
 
     /**

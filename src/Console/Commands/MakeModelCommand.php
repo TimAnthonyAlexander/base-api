@@ -2,24 +2,29 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\App;
 
 class MakeModelCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'make:model';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Create a new model class';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
-        if (empty($args)) {
+        if ($args === []) {
             echo "Error: Model name is required\n";
             echo "Usage: console make:model <Name>\n";
             return 1;
@@ -27,12 +32,12 @@ class MakeModelCommand implements Command
 
         $name = $this->sanitizeName($args[0]);
         
-        if (empty($name)) {
+        if ($name === '' || $name === '0') {
             echo "Error: Invalid model name. Use only letters, numbers, and underscores.\n";
             return 1;
         }
         
-        $filePath = App::basePath("app/Models/{$name}.php");
+        $filePath = App::basePath(sprintf('app/Models/%s.php', $name));
         $modelsDir = dirname($filePath);
         
         // Create Models directory if it doesn't exist

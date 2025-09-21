@@ -2,6 +2,8 @@
 
 namespace BaseApi\Tests;
 
+use Override;
+use RuntimeException;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Cache\Stores\FileStore;
 use BaseApi\Time\FrozenClock;
@@ -9,9 +11,12 @@ use BaseApi\Time\FrozenClock;
 class FileStoreTest extends TestCase
 {
     private string $tempDir;
+
     private FileStore $store;
+
     private FrozenClock $clock;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/baseapi-test-' . uniqid();
@@ -19,6 +24,7 @@ class FileStoreTest extends TestCase
         $this->store = new FileStore($this->tempDir, 'test', 0755, $this->clock);
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         if (is_dir($this->tempDir)) {
@@ -36,12 +42,12 @@ class FileStoreTest extends TestCase
     {
         $readOnlyDir = sys_get_temp_dir() . '/readonly-' . uniqid();
         mkdir($readOnlyDir, 0444);
-        
-        $this->expectException(\RuntimeException::class);
+
+        $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Cache directory is not writable');
-        
+
         new FileStore($readOnlyDir);
-        
+
         rmdir($readOnlyDir);
     }
 
@@ -156,10 +162,10 @@ class FileStoreTest extends TestCase
     public function testIncrementWithExistingStringValue(): void
     {
         $key = 'increment_string_key';
-        
+
         // Put string value first
         $this->store->put($key, 'not_a_number', null);
-        
+
         // Increment should treat as 0 + value
         $result = $this->store->increment($key, 5);
         $this->assertEquals(5, $result);
@@ -171,13 +177,13 @@ class FileStoreTest extends TestCase
 
         // Put with TTL
         $this->store->put($key, 10, 3600); // 1 hour TTL
-        
+
         // Increment should preserve TTL
         $this->store->increment($key, 5);
-        
+
         // Value should be updated but file should still exist
         $this->assertEquals(15, $this->store->get($key));
-        
+
         // Check file exists (not expired)
         $this->assertTrue($this->store->has($key));
     }
@@ -204,10 +210,10 @@ class FileStoreTest extends TestCase
         $this->store->put('permanent_key', 'permanent_value', null); // No expiration
 
         $removed = $this->store->cleanup();
-        
+
         // Should have removed 2 expired keys
         $this->assertEquals(2, $removed);
-        
+
         // Check remaining keys
         $this->assertTrue($this->store->has('active_key'));
         $this->assertTrue($this->store->has('permanent_key'));
@@ -268,7 +274,7 @@ class FileStoreTest extends TestCase
         foreach ($testCases as $key => $value) {
             $this->store->put($key, $value, null);
             $result = $this->store->get($key);
-            $this->assertEquals($value, $result, "Failed for data type: $key");
+            $this->assertEquals($value, $result, 'Failed for data type: ' . $key);
         }
     }
 
@@ -298,14 +304,14 @@ class FileStoreTest extends TestCase
     public function testGetWithCorruptedFile(): void
     {
         $key = 'corrupted_key';
-        
+
         // First put a valid value
         $this->store->put($key, 'valid_value', null);
-        
+
         // Now corrupt the file
         $filePath = $this->tempDir . '/test_corrupted_key';
         file_put_contents($filePath, 'corrupted data that cannot be unserialized');
-        
+
         // Get should return null and clean up the corrupted file
         $result = $this->store->get($key);
         $this->assertNull($result);
@@ -319,12 +325,12 @@ class FileStoreTest extends TestCase
         }
 
         $files = array_diff(scandir($dir), ['.', '..']);
-        
+
         foreach ($files as $file) {
-            $path = "$dir/$file";
+            $path = sprintf('%s/%s', $dir, $file);
             is_dir($path) ? $this->rmdirRecursive($path) : unlink($path);
         }
-        
+
         rmdir($dir);
     }
 }

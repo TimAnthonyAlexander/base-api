@@ -2,13 +2,12 @@
 
 namespace BaseApi\Http\Validation;
 
-class ValidationException extends \Exception
-{
-    private array $errors;
+use Exception;
 
-    public function __construct(array $errors)
+class ValidationException extends Exception
+{
+    public function __construct(private readonly array $errors)
     {
-        $this->errors = $errors;
         parent::__construct('Validation failed.');
     }
 

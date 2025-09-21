@@ -32,6 +32,15 @@ export const NAV: NavNode[] = [
     ]
   },
   { 
+    title: 'Queue System', 
+    children: [
+      { title: 'Overview', path: '/queue/overview' },
+      { title: 'Creating Jobs', path: '/queue/creating-jobs' },
+      { title: 'Processing Jobs', path: '/queue/processing-jobs' },
+      { title: 'Configuration', path: '/queue/configuration' },
+    ]
+  },
+  { 
     title: 'Database', 
     children: [
       { title: 'Drivers', path: '/database/drivers' },

@@ -2,6 +2,10 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 use BaseApi\Console\Command;
 use BaseApi\App;
 use BaseApi\Support\I18n;
@@ -9,20 +13,24 @@ use BaseApi\Support\Translation\ICUValidator;
 
 class I18nLintCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'i18n:lint';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Lint translation files for errors and inconsistencies';
     }
 
     private array $errors = [];
+
     private array $warnings = [];
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         $failOnOrphans = in_array('--fail-on-orphans', $args);
         $allowEmpty = in_array('--allow-empty', $args);
@@ -53,10 +61,10 @@ class I18nLintCommand implements Command
         $this->checkDuplicates($defaultLocale);
 
         // Display results
-        $this->displayResults($failOnOrphans);
+        $this->displayResults();
 
         // Return exit code
-        return empty($this->errors) ? 0 : 1;
+        return $this->errors === [] ? 0 : 1;
     }
 
     private function lintLocale(string $locale, string $defaultLocale, bool $allowEmpty): void
@@ -79,8 +87,8 @@ class I18nLintCommand implements Command
                 }
 
                 // Check for empty translations (non-default locales)
-                if (!$allowEmpty && $locale !== $defaultLocale && empty(trim($value))) {
-                    $this->warnings[] = "{$locale}/{$namespace}: Empty translation for '{$token}'";
+                if (!$allowEmpty && $locale !== $defaultLocale && in_array(trim((string) $value), ['', '0'], true)) {
+                    $this->warnings[] = sprintf("%s/%s: Empty translation for '%s'", $locale, $namespace, $token);
                 }
 
                 // Validate ICU message format
@@ -94,9 +102,9 @@ class I18nLintCommand implements Command
 
             // Check for missing translations in non-default locales
             if ($locale !== $defaultLocale) {
-                foreach ($defaultTranslations as $token => $value) {
+                foreach (array_keys($defaultTranslations) as $token) {
                     if ($token !== '__meta' && !isset($translations[$token])) {
-                        $this->warnings[] = "{$locale}/{$namespace}: Missing translation for '{$token}'";
+                        $this->warnings[] = sprintf("%s/%s: Missing translation for '%s'", $locale, $namespace, $token);
                     }
                 }
             }
@@ -109,7 +117,7 @@ class I18nLintCommand implements Command
 
         if (!$validator->validate($value)) {
             foreach ($validator->getErrors() as $error) {
-                $this->errors[] = "{$locale}/{$namespace}: ICU validation error in '{$token}' - {$error}";
+                $this->errors[] = sprintf("%s/%s: ICU validation error in '%s' - %s", $locale, $namespace, $token, $error);
             }
         }
     }
@@ -124,11 +132,11 @@ class I18nLintCommand implements Command
         $extra = array_diff($placeholders, $defaultPlaceholders);
 
         foreach ($missing as $placeholder) {
-            $this->errors[] = "{$locale}/{$namespace}: Missing variable '{$placeholder}' in '{$token}'";
+            $this->errors[] = sprintf("%s/%s: Missing variable '%s' in '%s'", $locale, $namespace, $placeholder, $token);
         }
 
         foreach ($extra as $placeholder) {
-            $this->warnings[] = "{$locale}/{$namespace}: Extra variable '{$placeholder}' in '{$token}'";
+            $this->warnings[] = sprintf("%s/%s: Extra variable '%s' in '%s'", $locale, $namespace, $placeholder, $token);
         }
     }
 
@@ -141,7 +149,7 @@ class I18nLintCommand implements Command
 
         foreach ($matches[1] as $match) {
             // For simple placeholders like {name}, just take the name
-            if (strpos($match, ',') === false) {
+            if (!str_contains($match, ',')) {
                 $variables[] = trim($match);
             } else {
                 // For ICU format like {count, plural, one {...} other {...}}, extract just the variable name
@@ -181,7 +189,7 @@ class I18nLintCommand implements Command
         $orphans = array_diff($existingTokens, $usedTokens);
 
         foreach ($orphans as $orphan) {
-            $this->errors[] = "Orphaned token '{$orphan}' - not used in code";
+            $this->errors[] = sprintf("Orphaned token '%s' - not used in code", $orphan);
         }
     }
 
@@ -202,10 +210,10 @@ class I18nLintCommand implements Command
     private function scanDirectory(string $directory, array $patterns): array
     {
         $tokens = [];
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory));
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
 
         foreach ($iterator as $file) {
-            if ($file->isFile() && preg_match('/\.(php|html|twig|blade\.php)$/', $file->getFilename())) {
+            if ($file->isFile() && preg_match('/\.(php|html|twig|blade\.php)$/', (string) $file->getFilename())) {
                 $tokens = array_merge($tokens, $this->scanFile($file->getPathname(), $patterns));
             }
         }
@@ -241,10 +249,10 @@ class I18nLintCommand implements Command
 
         foreach ($namespaces as $namespace) {
             $translations = $i18n->loadTranslations($defaultLocale, $namespace);
-            foreach ($translations as $token => $value) {
+            foreach (array_keys($translations) as $token) {
                 if ($token !== '__meta') {
                     if (isset($allTokens[$token])) {
-                        $this->errors[] = "Duplicate token '{$token}' found in both '{$allTokens[$token]}' and '{$namespace}'";
+                        $this->errors[] = sprintf("Duplicate token '%s' found in both '%s' and '%s'", $token, $allTokens[$token], $namespace);
                     } else {
                         $allTokens[$token] = $namespace;
                     }
@@ -253,27 +261,26 @@ class I18nLintCommand implements Command
         }
     }
 
-    private function displayResults(bool $failOnOrphans): void
+    private function displayResults(): void
     {
         $errorCount = count($this->errors);
         $warningCount = count($this->warnings);
-
         if ($errorCount > 0) {
             echo "❌ ERRORS ({$errorCount}):\n";
             foreach ($this->errors as $error) {
-                echo "  {$error}\n";
+                echo sprintf('  %s%s', $error, PHP_EOL);
             }
+
             echo "\n";
         }
-
         if ($warningCount > 0) {
             echo "⚠️  WARNINGS ({$warningCount}):\n";
             foreach ($this->warnings as $warning) {
-                echo "  {$warning}\n";
+                echo sprintf('  %s%s', $warning, PHP_EOL);
             }
+
             echo "\n";
         }
-
         if ($errorCount === 0 && $warningCount === 0) {
             echo "✅ All translation files are valid!\n";
         } else {

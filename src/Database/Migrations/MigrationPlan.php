@@ -29,16 +29,16 @@ class MigrationPlan
 
     public function isEmpty(): bool
     {
-        return empty($this->operations);
+        return $this->operations === [];
     }
 
     public function getDestructiveCount(): int
     {
-        return count(array_filter($this->operations, fn($op) => $op['destructive']));
+        return count(array_filter($this->operations, fn($op): bool => $op['destructive']));
     }
 
     public function getNonDestructiveOperations(): array
     {
-        return array_filter($this->operations, fn($op) => !$op['destructive']);
+        return array_filter($this->operations, fn($op): bool => !$op['destructive']);
     }
 }

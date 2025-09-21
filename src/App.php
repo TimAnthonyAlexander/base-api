@@ -2,6 +2,7 @@
 
 namespace BaseApi;
 
+use Dotenv\Dotenv;
 use BaseApi\Http\Kernel;
 use BaseApi\Database\Connection;
 use BaseApi\Database\DB;
@@ -9,20 +10,34 @@ use BaseApi\Auth\UserProvider;
 use BaseApi\Container\Container;
 use BaseApi\Container\ContainerInterface;
 use BaseApi\Container\CoreServiceProvider;
+use BaseApi\Queue\QueueManager;
 
 class App
 {
     private static ?Config $config = null;
+
     private static ?Logger $logger = null;
+
     private static ?Router $router = null;
+
     private static ?Kernel $kernel = null;
+
     private static ?Connection $connection = null;
+
     private static ?DB $db = null;
+
     private static ?UserProvider $userProvider = null;
+
     private static ?Profiler $profiler = null;
+
+    private static ?QueueManager $queue = null;
+
     private static bool $booted = false;
+
     private static ?string $basePath = null;
+
     private static ?ContainerInterface $container = null;
+
     private static array $serviceProviders = [];
 
     public static function boot(?string $basePath = null): void
@@ -32,14 +47,10 @@ class App
         }
 
         // Set base path - either provided or auto-detect
-        if ($basePath) {
-            self::$basePath = $basePath;
-        } else {
-            self::$basePath = self::detectBasePath();
-        }
+        self::$basePath = $basePath ?: self::detectBasePath();
 
         // Load environment
-        $dotenv = \Dotenv\Dotenv::createImmutable(self::$basePath);
+        $dotenv = Dotenv::createImmutable(self::$basePath);
         $dotenv->safeLoad();
 
         // Load configuration first
@@ -49,6 +60,7 @@ class App
         if (file_exists($configFile)) {
             $appConfig = require $configFile;
         }
+
         $config = array_replace_recursive($frameworkDefaults, $appConfig);
 
         // Initialize container
@@ -60,15 +72,11 @@ class App
 
         // Register core service provider
         self::$serviceProviders[] = new CoreServiceProvider();
-        
+
         // Register application providers from config
         $providers = $config['providers'] ?? [];
         foreach ($providers as $providerClass) {
-            if (is_string($providerClass)) {
-                self::$serviceProviders[] = new $providerClass();
-            } else {
-                self::$serviceProviders[] = $providerClass;
-            }
+            self::$serviceProviders[] = is_string($providerClass) ? new $providerClass() : $providerClass;
         }
 
         // Register services from all providers
@@ -89,6 +97,8 @@ class App
         self::$db = self::$container->make(DB::class);
         self::$profiler = self::$container->make(Profiler::class);
         self::$kernel = self::$container->make(Kernel::class);
+        // Queue initialization is deferred to avoid circular dependencies
+        // self::$queue = new QueueManager(self::config('queue.default', 'sync'));
 
         self::$booted = true;
     }
@@ -99,7 +109,7 @@ class App
             self::boot();
         }
 
-        if (empty($key)) {
+        if ($key === '' || $key === '0') {
             return self::$config;
         }
 
@@ -111,6 +121,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$logger;
     }
 
@@ -119,6 +130,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$router;
     }
 
@@ -127,6 +139,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$kernel;
     }
 
@@ -135,6 +148,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$db;
     }
 
@@ -148,6 +162,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$userProvider;
     }
 
@@ -156,6 +171,7 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$profiler;
     }
 
@@ -164,7 +180,22 @@ class App
         if (!self::$booted) {
             self::boot();
         }
+
         return self::$container;
+    }
+
+    public static function queue(): QueueManager
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+
+        // Lazy initialization to avoid circular dependencies
+        if (!self::$queue instanceof QueueManager) {
+            self::$queue = new QueueManager(self::config('queue.default', 'sync'));
+        }
+
+        return self::$queue;
     }
 
     public static function registerProvider($provider): void
@@ -189,13 +220,13 @@ class App
         }
 
         $basePath = self::$basePath ?? self::detectBasePath();
-        return $path ? $basePath . '/' . ltrim($path, '/') : $basePath;
+        return $path !== '' && $path !== '0' ? $basePath . '/' . ltrim($path, '/') : $basePath;
     }
 
     public static function storagePath(string $path = ''): string
     {
         $storagePath = self::basePath('storage');
-        return $path ? $storagePath . '/' . ltrim($path, '/') : $storagePath;
+        return $path !== '' && $path !== '0' ? $storagePath . '/' . ltrim($path, '/') : $storagePath;
     }
 
     private static function detectBasePath(): string
@@ -210,6 +241,7 @@ class App
                     return $current;
                 }
             }
+
             $current = dirname($current);
         }
 

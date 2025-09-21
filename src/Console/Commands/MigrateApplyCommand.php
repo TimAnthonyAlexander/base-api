@@ -2,27 +2,30 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
+use Exception;
 use BaseApi\Console\Command;
-use BaseApi\Database\Migrations\MigrationPlan;
-use BaseApi\Database\Migrations\SqlGenerator;
 use BaseApi\Database\Migrations\MigrationsFile;
 use BaseApi\Database\Migrations\ExecutedMigrationsFile;
 use BaseApi\App;
-use PDO;
 
 class MigrateApplyCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'migrate:apply';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Apply migration plan to database';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         try {
             // Check for --safe flag
@@ -37,8 +40,8 @@ class MigrateApplyCommand implements Command
             
             // Read all migrations
             $allMigrations = MigrationsFile::readMigrations($migrationsPath);
-            if (empty($allMigrations)) {
-                echo "No migrations found at {$migrationsFile}\n";
+            if ($allMigrations === []) {
+                echo sprintf('No migrations found at %s%s', $migrationsFile, PHP_EOL);
                 echo "Run 'migrate:generate' first to create migrations.\n";
                 return 1;
             }
@@ -46,7 +49,7 @@ class MigrateApplyCommand implements Command
             // Get pending migrations (ones not yet executed)
             $pendingMigrations = ExecutedMigrationsFile::getPendingMigrations($allMigrations, $executedPath);
             
-            if (empty($pendingMigrations)) {
+            if ($pendingMigrations === []) {
                 echo "No pending migrations to apply. Database is up to date.\n";
                 return 0;
             }
@@ -57,7 +60,7 @@ class MigrateApplyCommand implements Command
             $migrationsToApply = $pendingMigrations;
             if ($safeMode) {
                 $originalCount = count($migrationsToApply);
-                $migrationsToApply = array_filter($migrationsToApply, fn($mig) => !($mig['destructive'] ?? false));
+                $migrationsToApply = array_filter($migrationsToApply, fn($mig): bool => !($mig['destructive'] ?? false));
                 $filteredCount = $originalCount - count($migrationsToApply);
                 
                 if ($filteredCount > 0) {
@@ -65,7 +68,7 @@ class MigrateApplyCommand implements Command
                 }
             }
             
-            if (empty($migrationsToApply)) {
+            if ($migrationsToApply === []) {
                 echo "No migrations to execute after filtering.\n";
                 return 0;
             }
@@ -95,8 +98,8 @@ class MigrateApplyCommand implements Command
             
             return 0;
             
-        } catch (\Exception $e) {
-            echo "Error: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -109,8 +112,8 @@ class MigrateApplyCommand implements Command
         foreach ($migrations as $i => $migration) {
             $num = $i + 1;
             $destructive = ($migration['destructive'] ?? false) ? " [DESTRUCTIVE]" : "";
-            $warning = (!empty($migration['warning'])) ? " - {$migration['warning']}" : "";
-            $table = $migration['table'] ? " ({$migration['table']})" : "";
+            $warning = (empty($migration['warning'])) ? "" : ' - ' . $migration['warning'];
+            $table = $migration['table'] ? sprintf(' (%s)', $migration['table']) : "";
             
             echo "{$num}. [{$migration['operation']}]{$table} {$migration['sql']}{$destructive}{$warning}\n\n";
         }
@@ -137,14 +140,14 @@ class MigrateApplyCommand implements Command
         $tableGroups = $this->groupMigrationsByTable($migrations);
         
         foreach ($tableGroups as $table => $tableMigrations) {
-            echo "Processing table: {$table}\n";
+            echo sprintf('Processing table: %s%s', $table, PHP_EOL);
             
             $pdo->beginTransaction();
             
             try {
                 foreach ($tableMigrations as $i => $migration) {
                     $num = $i + 1;
-                    echo "  {$num}. Executing [{$migration['operation']}]: " . substr($migration['sql'], 0, 50) . "...\n";
+                    echo sprintf('  %s. Executing [%s]: ', $num, $migration['operation']) . substr((string) $migration['sql'], 0, 50) . "...\n";
                     
                     $pdo->exec($migration['sql']);
                     $executedIds[] = $migration['id'];
@@ -153,9 +156,9 @@ class MigrateApplyCommand implements Command
                 $pdo->commit();
                 echo "  ✓ Table {$table} completed successfully\n";
                 
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $pdo->rollBack();
-                throw new \Exception("Failed to execute migration for table {$table}: " . $e->getMessage());
+                throw new Exception(sprintf('Failed to execute migration for table %s: ', $table) . $e->getMessage(), $e->getCode(), $e);
             }
         }
         

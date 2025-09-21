@@ -17,7 +17,7 @@ class Storage
      */
     public static function manager(): StorageManager
     {
-        if (self::$manager === null) {
+        if (!self::$manager instanceof StorageManager) {
             self::$manager = App::container()->make(StorageManager::class);
         }
 
@@ -26,9 +26,8 @@ class Storage
 
     /**
      * Get a storage driver instance.
-     * 
+     *
      * @param string|null $name Driver name (null for default)
-     * @return StorageInterface
      */
     public static function disk(?string $name = null): StorageInterface
     {

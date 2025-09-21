@@ -4,14 +4,10 @@ namespace BaseApi\Debug;
 
 class MemoryTracker
 {
-    private array $snapshots = [];
-    private bool $enabled = false;
-    private float $highMemoryThreshold = 128.0; // MB
+    private array $snapshots = []; // MB
 
-    public function __construct(bool $enabled = false, float $highMemoryThreshold = 128.0)
+    public function __construct(private bool $enabled = false, private readonly float $highMemoryThreshold = 128.0)
     {
-        $this->enabled = $enabled;
-        $this->highMemoryThreshold = $highMemoryThreshold;
     }
 
     public function isEnabled(): bool

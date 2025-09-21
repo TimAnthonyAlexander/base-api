@@ -2,6 +2,8 @@
 
 namespace BaseApi\Http;
 
+use BaseApi\App;
+use BaseApi\Route;
 use BaseApi\Router;
 use BaseApi\Http\Binding\ControllerBinder;
 use BaseApi\Http\Validation\ValidationException;
@@ -10,19 +12,16 @@ use BaseApi\Container\ContainerInterface;
 
 class Kernel
 {
-    private Router $router;
     private array $globalMiddleware = [];
-    private ?ControllerBinder $binder = null;
-    private ?ControllerInvoker $invoker = null;
-    private ?ContainerInterface $container = null;
 
-    public function __construct(Router $router, ?ContainerInterface $container = null)
+    private ?ControllerBinder $binder = null;
+
+    private ?ControllerInvoker $invoker = null;
+
+    public function __construct(private readonly Router $router, private ?ContainerInterface $container = null)
     {
-        $this->router = $router;
-        $this->container = $container;
-        
         // Defer binder and invoker creation until container is available
-        if ($this->container) {
+        if ($this->container instanceof ContainerInterface) {
             $this->binder = $this->container->make(ControllerBinder::class);
             $this->invoker = $this->container->make(ControllerInvoker::class);
         }
@@ -35,23 +34,27 @@ class Kernel
 
     private function getBinder(): ControllerBinder
     {
-        if ($this->binder === null) {
-            if ($this->container === null) {
-                $this->container = \BaseApi\App::container();
+        if (!$this->binder instanceof ControllerBinder) {
+            if (!$this->container instanceof ContainerInterface) {
+                $this->container = App::container();
             }
+
             $this->binder = $this->container->make(ControllerBinder::class);
         }
+
         return $this->binder;
     }
 
     private function getInvoker(): ControllerInvoker
     {
-        if ($this->invoker === null) {
-            if ($this->container === null) {
-                $this->container = \BaseApi\App::container();
+        if (!$this->invoker instanceof ControllerInvoker) {
+            if (!$this->container instanceof ContainerInterface) {
+                $this->container = App::container();
             }
+
             $this->invoker = $this->container->make(ControllerInvoker::class);
         }
+
         return $this->invoker;
     }
 
@@ -73,10 +76,10 @@ class Kernel
     private function buildRequest(): Request
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $path = parse_url((string) $_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $query = $_GET;
         $cookies = $_COOKIE;
-        
+
         // Get headers
         $headers = [];
         foreach ($_SERVER as $key => $value) {
@@ -85,11 +88,12 @@ class Kernel
                 $headers[$headerName] = $value;
             }
         }
-        
+
         // Handle Content-Type and Content-Length specially
         if (isset($_SERVER['CONTENT_TYPE'])) {
             $headers['Content-Type'] = $_SERVER['CONTENT_TYPE'];
         }
+
         if (isset($_SERVER['CONTENT_LENGTH'])) {
             $headers['Content-Length'] = $_SERVER['CONTENT_LENGTH'];
         }
@@ -121,23 +125,23 @@ class Kernel
     {
         // Try to match route
         $routeMatch = $this->router->match($request->method, $request->path);
-        
+
         if ($routeMatch === null) {
             // Check if path exists for other methods (for OPTIONS)
             $allowedMethods = $this->router->allowedMethodsForPath($request->path);
-            
-            if ($request->method === 'OPTIONS' && !empty($allowedMethods)) {
+
+            if ($request->method === 'OPTIONS' && $allowedMethods !== []) {
                 // Let OPTIONS go through global middleware (including CORS)
                 // Add allowed methods to request for CORS middleware to use
                 $request->allowedMethods = array_merge($allowedMethods, ['OPTIONS']);
-                
+
                 $middlewareStack = array_merge(
                     $this->globalMiddleware,
                     ['OptionsHandler']
                 );
                 return $this->createPipeline($middlewareStack, [], null);
             }
-            
+
             // 404 Not Found - also goes through global middleware for CORS
             $middlewareStack = array_merge(
                 $this->globalMiddleware,
@@ -152,15 +156,9 @@ class Kernel
         // Convert route middlewares to the format expected by createPipeline
         $routeMiddlewares = [];
         foreach ($route->middlewares() as $key => $value) {
-            if (is_string($key) && is_array($value)) {
-                // Optioned middleware: class => options
-                $routeMiddlewares[] = [$key => $value];
-            } else {
-                // Regular middleware
-                $routeMiddlewares[] = $value;
-            }
+            $routeMiddlewares[] = is_string($key) && is_array($value) ? [$key => $value] : $value;
         }
-        
+
         $middlewareStack = array_merge(
             $this->globalMiddleware,
             $routeMiddlewares,
@@ -170,12 +168,11 @@ class Kernel
         return $this->createPipeline($middlewareStack, $pathParams, $route);
     }
 
-    private function createPipeline(array $middlewareStack, array $pathParams, ?\BaseApi\Route $route): callable
+    private function createPipeline(array $middlewareStack, array $pathParams, ?Route $route): callable
     {
-        $pipeline = function(Request $request) {
+        $pipeline = fn(Request $request): Response =>
             // This should never be reached
-            return new Response(500, [], 'Pipeline exhausted');
-        };
+            new Response(500, [], 'Pipeline exhausted');
 
         // Build pipeline in reverse order
         for ($i = count($middlewareStack) - 1; $i >= 0; $i--) {
@@ -185,11 +182,11 @@ class Kernel
 
             $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController, $route) {
                 // Add route info to request for middleware use
-                if ($route) {
+                if ($route instanceof Route) {
                     $request->routePattern = $route->path();
                     $request->routeMethod = $route->method();
                 }
-                
+
                 // Check if this is the controller (last in pipeline)
                 if ($isController) {
                     return $this->invokeController($middlewareClass, $request, $pathParams);
@@ -198,24 +195,26 @@ class Kernel
                 // Handle optioned middleware (ClassName::class => [options])
                 if (is_string($middlewareClass)) {
                     // Regular middleware - use container
-                    if ($this->container === null) {
-                        $this->container = \BaseApi\App::container();
+                    if (!$this->container instanceof ContainerInterface) {
+                        $this->container = App::container();
                     }
+
                     $middleware = $this->container->make($middlewareClass);
                 } else {
                     // This is an associative array with class => options
                     $className = key($middlewareClass);
                     $options = current($middlewareClass);
-                    if ($this->container === null) {
-                        $this->container = \BaseApi\App::container();
+                    if (!$this->container instanceof ContainerInterface) {
+                        $this->container = App::container();
                     }
+
                     $middleware = $this->container->make($className);
-                    
+
                     if ($middleware instanceof OptionedMiddleware) {
                         $middleware->setOptions($options);
                     }
                 }
-                
+
                 return $middleware->handle($request, $next);
             };
         }
@@ -231,16 +230,17 @@ class Kernel
                 'Allow' => implode(', ', $request->allowedMethods)
             ]);
         }
-        
+
         if ($controllerClass === 'NotFoundHandler') {
             return JsonResponse::notFound();
         }
 
         try {
             // Instantiate controller using container
-            if ($this->container === null) {
-                $this->container = \BaseApi\App::container();
+            if (!$this->container instanceof ContainerInterface) {
+                $this->container = App::container();
             }
+
             $controller = $this->container->make($controllerClass);
 
             // Bind request data to controller properties
@@ -248,9 +248,9 @@ class Kernel
 
             // Invoke the controller method
             return $this->getInvoker()->invoke($controller, $request);
-        } catch (ValidationException $e) {
+        } catch (ValidationException $validationException) {
             // Return 400 with validation errors
-            return JsonResponse::badRequest('Validation failed.', $e->errors());
+            return JsonResponse::badRequest('Validation failed.', $validationException->errors());
         }
     }
 
@@ -261,7 +261,7 @@ class Kernel
 
         // Set headers
         foreach ($response->headers as $name => $value) {
-            header("{$name}: {$value}");
+            header(sprintf('%s: %s', $name, $value));
         }
 
         // Send body

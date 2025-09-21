@@ -2,15 +2,13 @@
 
 namespace BaseApi\Http;
 
+use Override;
 use JsonSerializable;
 
 abstract class ApiResource implements JsonSerializable
 {
-    protected mixed $resource;
-
-    public function __construct(mixed $resource)
+    public function __construct(protected mixed $resource)
     {
-        $this->resource = $resource;
     }
 
     /**
@@ -32,12 +30,13 @@ abstract class ApiResource implements JsonSerializable
      */
     public static function collection(array $resources): array
     {
-        return array_map(fn($r) => static::make($r)->toArray(), $resources);
+        return array_map(fn($r): array => static::make($r)->toArray(), $resources);
     }
 
     /**
      * Specify data which should be serialized to JSON.
      */
+    #[Override]
     public function jsonSerialize(): array
     {
         return $this->toArray();

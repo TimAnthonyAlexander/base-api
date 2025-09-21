@@ -2,8 +2,8 @@
 
 namespace BaseApi\Tests;
 
+use Override;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use BaseApi\Http\Validation\Validator;
 use BaseApi\Http\Validation\ValidationException;
 use BaseApi\Http\UploadedFile;
@@ -12,6 +12,7 @@ class ValidatorTest extends TestCase
 {
     private Validator $validator;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->validator = new Validator();
@@ -21,6 +22,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $name = 'John Doe';
+
             public int $age = 25;
         };
 
@@ -38,6 +40,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $name = '';
+
             public int $age = 15;
         };
 
@@ -54,7 +57,9 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $name = '';
+
             public ?string $email = null;
+
             public array $items = [];
         };
 
@@ -67,8 +72,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayHasKey('name', $errors);
             $this->assertArrayHasKey('email', $errors);
             $this->assertArrayHasKey('items', $errors);
@@ -80,6 +85,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public bool $active = true;
+
             public string $invalid = 'not a boolean';
         };
 
@@ -91,8 +97,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('active', $errors);
             $this->assertArrayHasKey('invalid', $errors);
             $this->assertStringContainsString('boolean', $errors['invalid']);
@@ -103,6 +109,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public int $age = 25;
+
             public string $notInteger = '25.5';
         };
 
@@ -114,8 +121,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('age', $errors);
             $this->assertArrayHasKey('notInteger', $errors);
             $this->assertStringContainsString('integer', $errors['notInteger']);
@@ -126,7 +133,9 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public float $price = 29.99;
+
             public string $numericString = '123';
+
             public string $notNumeric = 'abc';
         };
 
@@ -139,8 +148,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('price', $errors);
             $this->assertArrayNotHasKey('numericString', $errors);
             $this->assertArrayHasKey('notNumeric', $errors);
@@ -152,6 +161,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public array $items = ['item1', 'item2'];
+
             public string $notArray = 'string';
         };
 
@@ -163,8 +173,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('items', $errors);
             $this->assertArrayHasKey('notArray', $errors);
             $this->assertStringContainsString('array', $errors['notArray']);
@@ -175,6 +185,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $validEmail = 'test@example.com';
+
             public string $invalidEmail = 'not-an-email';
         };
 
@@ -186,8 +197,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validEmail', $errors);
             $this->assertArrayHasKey('invalidEmail', $errors);
             $this->assertStringContainsString('email', $errors['invalidEmail']);
@@ -198,6 +209,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $validUuid = '550e8400-e29b-41d4-a716-446655440000';
+
             public string $invalidUuid = 'not-a-uuid';
         };
 
@@ -209,8 +221,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validUuid', $errors);
             $this->assertArrayHasKey('invalidUuid', $errors);
             $this->assertStringContainsString('UUID', $errors['invalidUuid']);
@@ -221,6 +233,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $validString = 'hello world';
+
             public string $shortString = 'hi';
         };
 
@@ -232,8 +245,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validString', $errors);
             $this->assertArrayHasKey('shortString', $errors);
             $this->assertStringContainsString('at least 5 characters', $errors['shortString']);
@@ -244,6 +257,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public int $validNumber = 25;
+
             public int $smallNumber = 10;
         };
 
@@ -255,8 +269,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validNumber', $errors);
             $this->assertArrayHasKey('smallNumber', $errors);
             $this->assertStringContainsString('at least 18', $errors['smallNumber']);
@@ -267,6 +281,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public array $validArray = ['a', 'b', 'c'];
+
             public array $shortArray = ['a'];
         };
 
@@ -278,8 +293,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validArray', $errors);
             $this->assertArrayHasKey('shortArray', $errors);
             $this->assertStringContainsString('at least 2 items', $errors['shortArray']);
@@ -290,6 +305,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $validString = 'hello';
+
             public string $longString = 'this is a very long string';
         };
 
@@ -301,8 +317,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validString', $errors);
             $this->assertArrayHasKey('longString', $errors);
             $this->assertStringContainsString('not exceed 10 characters', $errors['longString']);
@@ -313,6 +329,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public int $validNumber = 25;
+
             public int $bigNumber = 150;
         };
 
@@ -324,8 +341,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validNumber', $errors);
             $this->assertArrayHasKey('bigNumber', $errors);
             $this->assertStringContainsString('not exceed 100', $errors['bigNumber']);
@@ -336,6 +353,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public array $validArray = ['a', 'b'];
+
             public array $longArray = ['a', 'b', 'c', 'd', 'e'];
         };
 
@@ -347,8 +365,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validArray', $errors);
             $this->assertArrayHasKey('longArray', $errors);
             $this->assertStringContainsString('not have more than 3 items', $errors['longArray']);
@@ -359,6 +377,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $validStatus = 'active';
+
             public string $invalidStatus = 'unknown';
         };
 
@@ -370,8 +389,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validStatus', $errors);
             $this->assertArrayHasKey('invalidStatus', $errors);
             $this->assertStringContainsString('must be one of: active, inactive, pending', $errors['invalidStatus']);
@@ -382,8 +401,11 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $password = 'secret123';
+
             public string $password_confirmation = 'secret123';
+
             public string $differentPassword = 'secret123';
+
             public string $differentPassword_confirmation = 'different';
         };
 
@@ -395,8 +417,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('password', $errors);
             $this->assertArrayHasKey('differentPassword', $errors);
             $this->assertStringContainsString('confirmation does not match', $errors['differentPassword']);
@@ -407,6 +429,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $password = 'secret123';
+
             public string $confirmPassword = 'secret123';
         };
 
@@ -429,7 +452,9 @@ class ValidatorTest extends TestCase
 
         $controller = new class {
             public $validFile;
+
             public $invalidFile;
+
             public string $notFile = 'string';
         };
         
@@ -445,8 +470,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validFile', $errors);
             $this->assertArrayHasKey('invalidFile', $errors);
             $this->assertArrayHasKey('notFile', $errors);
@@ -469,6 +494,7 @@ class ValidatorTest extends TestCase
 
         $controller = new class {
             public $validImage;
+
             public $invalidImage;
         };
         
@@ -483,8 +509,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validImage', $errors);
             $this->assertArrayHasKey('invalidImage', $errors);
             $this->assertStringContainsString('must be an image file', $errors['invalidImage']);
@@ -503,6 +529,7 @@ class ValidatorTest extends TestCase
 
         $controller = new class {
             public $validFile;
+
             public $invalidFile;
         };
         
@@ -517,8 +544,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validFile', $errors);
             $this->assertArrayHasKey('invalidFile', $errors);
             $this->assertStringContainsString('must be a file of type: pdf, jpg, png', $errors['invalidFile']);
@@ -535,6 +562,7 @@ class ValidatorTest extends TestCase
 
         $controller = new class {
             public $validFile;
+
             public $oversizedFile;
         };
         
@@ -549,8 +577,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayNotHasKey('validFile', $errors);
             $this->assertArrayHasKey('oversizedFile', $errors);
             $this->assertStringContainsString('not exceed 5MB', $errors['oversizedFile']);
@@ -574,8 +602,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules, $messages);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertEquals('Custom name required message', $errors['name']);
         }
     }
@@ -584,7 +612,6 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $publicField = '';
-            private string $privateField = '';
             protected string $protectedField = '';
         };
 
@@ -597,8 +624,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayHasKey('publicField', $errors); // Only public field should be validated
             $this->assertArrayNotHasKey('privateField', $errors);
             $this->assertArrayNotHasKey('protectedField', $errors);
@@ -619,8 +646,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayHasKey('existingField', $errors);
             $this->assertArrayNotHasKey('unknownField', $errors); // Unknown property should be skipped
         }
@@ -654,8 +681,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayHasKey('field', $errors);
             $this->assertStringContainsString('required', $errors['field']);
         }
@@ -664,9 +691,7 @@ class ValidatorTest extends TestCase
     public function testCustomRuleExtension(): void
     {
         // Test the extend functionality for custom rules
-        Validator::extend('custom_rule', function($value, $parameter, $controller) {
-            return $value === 'expected_value';
-        });
+        Validator::extend('custom_rule', fn($value, $parameter, $controller): bool => $value === 'expected_value');
 
         $controller = new class {
             public string $field = 'wrong_value';
@@ -679,8 +704,8 @@ class ValidatorTest extends TestCase
         try {
             $this->validator->validate($controller, $rules);
             $this->fail('Expected ValidationException');
-        } catch (ValidationException $e) {
-            $errors = $e->errors();
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
             $this->assertArrayHasKey('field', $errors);
             $this->assertStringContainsString('failed custom_rule validation', $errors['field']);
         }

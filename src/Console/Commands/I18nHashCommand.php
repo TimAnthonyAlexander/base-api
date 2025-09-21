@@ -2,23 +2,28 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 
 class I18nHashCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'i18n:hash';
     }
     
+    #[Override]
     public function description(): string
     {
         return 'Generate hash for translation bundles';
     }
     
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         // Load the complete i18n config
         $configPath = App::basePath('config/i18n.php');
@@ -30,10 +35,10 @@ class I18nHashCommand implements Command
         $showAll = false;
         
         foreach ($args as $arg) {
-            if (str_starts_with($arg, '--lang=')) {
-                $locale = substr($arg, 7);
-            } elseif (str_starts_with($arg, '--ns=')) {
-                $namespaces = array_filter(array_map('trim', explode(',', substr($arg, 5))));
+            if (str_starts_with((string) $arg, '--lang=')) {
+                $locale = substr((string) $arg, 7);
+            } elseif (str_starts_with((string) $arg, '--ns=')) {
+                $namespaces = array_filter(array_map('trim', explode(',', substr((string) $arg, 5))));
             } elseif ($arg === '--all') {
                 $showAll = true;
             }
@@ -41,13 +46,13 @@ class I18nHashCommand implements Command
         
         // Validate locale
         if (!in_array($locale, $config['locales'])) {
-            echo "Invalid locale: {$locale}\n";
+            echo sprintf('Invalid locale: %s%s', $locale, PHP_EOL);
             echo "Available locales: " . implode(', ', $config['locales']) . "\n";
             return 1;
         }
         
         // If no namespaces specified, use all available
-        if (empty($namespaces)) {
+        if ($namespaces === []) {
             $namespaces = I18n::getAvailableNamespaces($locale);
         }
         
@@ -62,21 +67,21 @@ class I18nHashCommand implements Command
     
     private function showHash(string $locale, array $namespaces): void
     {
-        if (empty($namespaces)) {
-            echo "No translation namespaces found for locale: {$locale}\n";
+        if ($namespaces === []) {
+            echo sprintf('No translation namespaces found for locale: %s%s', $locale, PHP_EOL);
             return;
         }
         
         $hash = I18n::getInstance()->generateETag($locale, $namespaces);
         
-        echo "Locale: {$locale}\n";
+        echo sprintf('Locale: %s%s', $locale, PHP_EOL);
         echo "Namespaces: " . implode(', ', $namespaces) . "\n";
-        echo "Hash: {$hash}\n";
+        echo sprintf('Hash: %s%s', $hash, PHP_EOL);
         
         // Also show bundle information
         $bundle = I18n::bundle($locale, $namespaces);
         $tokenCount = count($bundle['tokens']);
-        echo "Tokens: {$tokenCount}\n";
+        echo sprintf('Tokens: %d%s', $tokenCount, PHP_EOL);
     }
     
     private function showAllHashes(array $locales): void
@@ -86,8 +91,9 @@ class I18nHashCommand implements Command
         foreach ($locales as $locale) {
             $namespaces = I18n::getAvailableNamespaces($locale);
             
-            if (empty($namespaces)) {
-                echo "{$locale}: No translation files\n";
+            if ($namespaces === []) {
+                echo $locale . ': No translation files
+';
                 continue;
             }
             

@@ -2,6 +2,8 @@
 
 namespace BaseApi\Cache\Stores;
 
+use Override;
+use RuntimeException;
 use BaseApi\Time\ClockInterface;
 use BaseApi\Time\SystemClock;
 
@@ -13,21 +15,12 @@ use BaseApi\Time\SystemClock;
  */
 class FileStore implements StoreInterface
 {
-    private string $directory;
-    private string $prefix;
-    private int $permissions;
-    private ClockInterface $clock;
-
-    public function __construct(string $directory, string $prefix = '', int $permissions = 0755, ?ClockInterface $clock = null)
+    public function __construct(private readonly string $directory, private readonly string $prefix = '', private readonly int $permissions = 0755, private readonly ClockInterface $clock = new SystemClock())
     {
-        $this->directory = $directory;
-        $this->prefix = $prefix;
-        $this->permissions = $permissions;
-        $this->clock = $clock ?? new SystemClock();
-
         $this->ensureDirectoryExists();
     }
 
+    #[Override]
     public function get(string $key): mixed
     {
         $filePath = $this->getFilePath($key);
@@ -57,6 +50,7 @@ class FileStore implements StoreInterface
         return $data['value'];
     }
 
+    #[Override]
     public function put(string $key, mixed $value, ?int $seconds): void
     {
         $filePath = $this->getFilePath($key);
@@ -75,17 +69,18 @@ class FileStore implements StoreInterface
         $tempPath = $filePath . '.tmp.' . uniqid();
         
         if (file_put_contents($tempPath, $serialized, LOCK_EX) === false) {
-            throw new \RuntimeException("Failed to write cache file: {$tempPath}");
+            throw new RuntimeException('Failed to write cache file: ' . $tempPath);
         }
 
         if (!rename($tempPath, $filePath)) {
             @unlink($tempPath);
-            throw new \RuntimeException("Failed to move cache file: {$tempPath} to {$filePath}");
+            throw new RuntimeException(sprintf('Failed to move cache file: %s to %s', $tempPath, $filePath));
         }
 
         chmod($filePath, $this->permissions);
     }
 
+    #[Override]
     public function forget(string $key): bool
     {
         $filePath = $this->getFilePath($key);
@@ -97,6 +92,7 @@ class FileStore implements StoreInterface
         return false;
     }
 
+    #[Override]
     public function flush(): bool
     {
         $pattern = $this->directory . '/' . $this->getCachePrefix() . '*';
@@ -116,11 +112,13 @@ class FileStore implements StoreInterface
         return $success;
     }
 
+    #[Override]
     public function getPrefix(): string
     {
         return $this->prefix;
     }
 
+    #[Override]
     public function increment(string $key, int $value): int
     {
         $current = $this->get($key);
@@ -144,11 +142,13 @@ class FileStore implements StoreInterface
         return $new;
     }
 
+    #[Override]
     public function decrement(string $key, int $value): int
     {
         return $this->increment($key, -$value);
     }
 
+    #[Override]
     public function has(string $key): bool
     {
         return $this->get($key) !== null;
@@ -243,7 +243,7 @@ class FileStore implements StoreInterface
 
     private function getCachePrefix(): string
     {
-        return $this->prefix ? $this->prefix . '_' : 'cache_';
+        return $this->prefix !== '' && $this->prefix !== '0' ? $this->prefix . '_' : 'cache_';
     }
 
     private function sanitizeKey(string $key): string
@@ -254,14 +254,12 @@ class FileStore implements StoreInterface
 
     private function ensureDirectoryExists(): void
     {
-        if (!is_dir($this->directory)) {
-            if (!mkdir($this->directory, $this->permissions, true)) {
-                throw new \RuntimeException("Failed to create cache directory: {$this->directory}");
-            }
+        if (!is_dir($this->directory) && !mkdir($this->directory, $this->permissions, true)) {
+            throw new RuntimeException('Failed to create cache directory: ' . $this->directory);
         }
 
         if (!is_writable($this->directory)) {
-            throw new \RuntimeException("Cache directory is not writable: {$this->directory}");
+            throw new RuntimeException('Cache directory is not writable: ' . $this->directory);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace BaseApi\Database\Relations;
 
+use Override;
 use BaseApi\Models\BaseModel;
 use BaseApi\Database\QueryBuilder;
 
@@ -13,6 +14,7 @@ class HasMany extends Relation
     /**
      * Get the foreign key name for this relation
      */
+    #[Override]
     protected function getForeignKey(): string
     {
         if ($this->foreignKey !== null) {
@@ -20,7 +22,7 @@ class HasMany extends Relation
         }
 
         // Default to parentTable_id (e.g. 'users' becomes 'user_id')
-        $parentTable = $this->parent::table();
+        $parentTable = null;
         $singularTable = BaseModel::singularize($parentTable);
         return $singularTable . '_id';
     }
@@ -30,6 +32,7 @@ class HasMany extends Relation
      * Execute the relation and return array of related models
      * @return BaseModel[]
      */
+    #[Override]
     public function get(): array
     {
         $foreignKey = $this->getForeignKey();
@@ -46,6 +49,7 @@ class HasMany extends Relation
     /**
      * Execute the relation and return first related model
      */
+    #[Override]
     public function first(): ?BaseModel
     {
         $foreignKey = $this->getForeignKey();

@@ -54,7 +54,7 @@ class ICUValidator
         $closeCount = substr_count($message, '}');
         
         if ($openCount !== $closeCount) {
-            $this->errors[] = "Mismatched braces: {$openCount} opening, {$closeCount} closing";
+            $this->errors[] = sprintf('Mismatched braces: %d opening, %d closing', $openCount, $closeCount);
             return false;
         }
         
@@ -68,7 +68,7 @@ class ICUValidator
             } elseif ($char === '}') {
                 $level--;
                 if ($level < 0) {
-                    $this->errors[] = "Unmatched closing brace at position {$i}";
+                    $this->errors[] = 'Unmatched closing brace at position ' . $i;
                     return false;
                 }
             }
@@ -94,6 +94,7 @@ class ICUValidator
                     $inPlaceholder = true;
                     $current = '';
                 }
+
                 $level++;
                 if ($level > 1) {
                     $current .= $char;
@@ -120,7 +121,7 @@ class ICUValidator
      */
     private function validatePlaceholder(string $placeholder): bool
     {
-        if (empty($placeholder)) {
+        if ($placeholder === '' || $placeholder === '0') {
             $this->errors[] = "Empty placeholder found";
             return false;
         }
@@ -130,7 +131,7 @@ class ICUValidator
         
         // Validate variable name
         if (!$this->isValidVariableName($variableName)) {
-            $this->errors[] = "Invalid variable name: '{$variableName}'";
+            $this->errors[] = sprintf("Invalid variable name: '%s'", $variableName);
             return false;
         }
         
@@ -141,7 +142,7 @@ class ICUValidator
         
         // Validate format type
         if (count($parts) < 3) {
-            $this->errors[] = "Invalid placeholder format: '{$placeholder}'";
+            $this->errors[] = sprintf("Invalid placeholder format: '%s'", $placeholder);
             return false;
         }
         
@@ -159,7 +160,7 @@ class ICUValidator
             case 'select':
                 return $this->validateSelectFormat($formatStyle, $placeholder);
             default:
-                $this->errors[] = "Unknown format type: '{$formatType}' in '{$placeholder}'";
+                $this->errors[] = sprintf("Unknown format type: '%s' in '%s'", $formatType, $placeholder);
                 return false;
         }
     }
@@ -170,7 +171,7 @@ class ICUValidator
     private function isValidVariableName(string $name): bool
     {
         // Variable names should be alphanumeric with underscores
-        return preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $name);
+        return preg_match('/^[a-zA-Z_]\w*$/', $name);
     }
     
     /**
@@ -181,7 +182,7 @@ class ICUValidator
         $validStyles = ['integer', 'currency', 'percent'];
         
         if (!in_array($style, $validStyles)) {
-            $this->errors[] = "Invalid number format style: '{$style}' in '{$placeholder}'";
+            $this->errors[] = sprintf("Invalid number format style: '%s' in '%s'", $style, $placeholder);
             return false;
         }
         
@@ -196,7 +197,7 @@ class ICUValidator
         $validStyles = ['short', 'medium', 'long', 'full'];
         
         if (!in_array($style, $validStyles)) {
-            $this->errors[] = "Invalid date/time format style: '{$style}' in '{$placeholder}'";
+            $this->errors[] = sprintf("Invalid date/time format style: '%s' in '%s'", $style, $placeholder);
             return false;
         }
         
@@ -211,14 +212,14 @@ class ICUValidator
         // Parse plural options
         $cases = $this->parsePluralOptions($options);
         
-        if (empty($cases)) {
-            $this->errors[] = "No plural cases found in '{$placeholder}'";
+        if ($cases === []) {
+            $this->errors[] = sprintf("No plural cases found in '%s'", $placeholder);
             return false;
         }
         
         // Check for required 'other' case
         if (!isset($cases['other'])) {
-            $this->errors[] = "Plural format missing required 'other' case in '{$placeholder}'";
+            $this->errors[] = sprintf("Plural format missing required 'other' case in '%s'", $placeholder);
             return false;
         }
         
@@ -226,7 +227,7 @@ class ICUValidator
         $validCases = ['zero', 'one', 'two', 'few', 'many', 'other'];
         foreach (array_keys($cases) as $case) {
             if (!in_array($case, $validCases)) {
-                $this->errors[] = "Invalid plural case: '{$case}' in '{$placeholder}'";
+                $this->errors[] = sprintf("Invalid plural case: '%s' in '%s'", $case, $placeholder);
                 return false;
             }
         }
@@ -242,14 +243,14 @@ class ICUValidator
         // Parse select options
         $cases = $this->parseSelectOptions($options);
         
-        if (empty($cases)) {
-            $this->errors[] = "No select cases found in '{$placeholder}'";
+        if ($cases === []) {
+            $this->errors[] = sprintf("No select cases found in '%s'", $placeholder);
             return false;
         }
         
         // Check for required 'other' case
         if (!isset($cases['other'])) {
-            $this->errors[] = "Select format missing required 'other' case in '{$placeholder}'";
+            $this->errors[] = sprintf("Select format missing required 'other' case in '%s'", $placeholder);
             return false;
         }
         

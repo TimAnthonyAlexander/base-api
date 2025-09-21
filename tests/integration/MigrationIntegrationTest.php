@@ -3,15 +3,13 @@
 namespace BaseApi\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
-use BaseApi\Database\Migrations\ModelScanner;
-use BaseApi\Database\Migrations\SqlGenerator;
 use BaseApi\Database\Migrations\MigrationPlan;
 use BaseApi\Database\Drivers\MySqlDriver;
 use BaseApi\Database\Drivers\SqliteDriver;
 
 class MigrationIntegrationTest extends TestCase
 {
-    public function testSqlGeneration()
+    public function testSqlGeneration(): void
     {
         $sqliteDriver = new SqliteDriver();
         $mysqlDriver = new MySqlDriver();
@@ -53,7 +51,7 @@ class MigrationIntegrationTest extends TestCase
         $this->assertStringContainsString('PRIMARY KEY (`id`)', $mysqlStatements[0]['sql']);
     }
     
-    public function testDriverTypeMapping()
+    public function testDriverTypeMapping(): void
     {
         $sqliteDriver = new SqliteDriver();
         $mysqlDriver = new MySqlDriver();
@@ -78,7 +76,7 @@ class MigrationIntegrationTest extends TestCase
         $this->assertEquals('TINYINT(1)', $mysqlDriver->phpTypeToSqlType('bool'));
     }
     
-    public function testAddColumnOperation()
+    public function testAddColumnOperation(): void
     {
         $sqliteDriver = new SqliteDriver();
         $mysqlDriver = new MySqlDriver();
@@ -109,7 +107,7 @@ class MigrationIntegrationTest extends TestCase
         $this->assertStringContainsString('`email` VARCHAR(255) NOT NULL', $mysqlStatements[0]['sql']);
     }
     
-    public function testDropTableOperation()
+    public function testDropTableOperation(): void
     {
         $sqliteDriver = new SqliteDriver();
         $mysqlDriver = new MySqlDriver();

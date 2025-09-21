@@ -19,7 +19,7 @@ class Cache
      */
     public static function manager(): CacheManager
     {
-        if (self::$manager === null) {
+        if (!self::$manager instanceof CacheManager) {
             self::$manager = App::container()->make(CacheManager::class);
         }
 
@@ -234,11 +234,7 @@ class Cache
         $parts = [];
         
         foreach ($components as $component) {
-            if (is_array($component)) {
-                $parts[] = md5(serialize($component));
-            } else {
-                $parts[] = (string)$component;
-            }
+            $parts[] = is_array($component) ? md5(serialize($component)) : (string)$component;
         }
         
         return implode(':', $parts);

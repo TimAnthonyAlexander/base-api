@@ -2,6 +2,8 @@
 
 namespace BaseApi\Time;
 
+use Override;
+
 /**
  * Frozen clock for testing.
  * 
@@ -16,6 +18,7 @@ class FrozenClock implements ClockInterface
         $this->time = $time ?? time();
     }
 
+    #[Override]
     public function now(): int
     {
         return $this->time;

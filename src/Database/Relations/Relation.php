@@ -9,16 +9,10 @@ use BaseApi\Models\BaseModel;
  */
 abstract class Relation
 {
-    protected BaseModel $parent;
-    protected string $relatedClass;
-    protected ?string $foreignKey = null;
     protected ?string $localKey = null;
 
-    public function __construct(BaseModel $parent, string $relatedClass, ?string $foreignKey = null, ?string $localKey = null)
+    public function __construct(protected BaseModel $parent, protected string $relatedClass, protected ?string $foreignKey = null, ?string $localKey = null)
     {
-        $this->parent = $parent;
-        $this->relatedClass = $relatedClass;
-        $this->foreignKey = $foreignKey;
         $this->localKey = $localKey ?? 'id';
     }
 

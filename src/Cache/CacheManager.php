@@ -2,6 +2,8 @@
 
 namespace BaseApi\Cache;
 
+use Override;
+use InvalidArgumentException;
 use BaseApi\Config;
 use BaseApi\Cache\Stores\StoreInterface;
 use BaseApi\Cache\Stores\ArrayStore;
@@ -13,14 +15,14 @@ use BaseApi\Cache\Stores\RedisStore;
  */
 class CacheManager implements CacheInterface
 {
-    private Config $config;
     private array $stores = [];
+
     private array $customDrivers = [];
+
     private ?string $defaultDriver = null;
 
-    public function __construct(Config $config)
+    public function __construct(private readonly Config $config)
     {
-        $this->config = $config;
     }
 
     /**
@@ -71,7 +73,7 @@ class CacheManager implements CacheInterface
     public function purge(?string $name = null): void
     {
         $name = $name ?: $this->getDefaultDriver();
-        
+
         if (isset($this->stores[$name])) {
             $this->stores[$name]->flush();
             unset($this->stores[$name]);
@@ -89,46 +91,55 @@ class CacheManager implements CacheInterface
 
     // Implement CacheInterface methods (delegate to default driver)
 
+    #[Override]
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->driver()->get($key, $default);
     }
 
+    #[Override]
     public function put(string $key, mixed $value, ?int $ttl = null): bool
     {
         return $this->driver()->put($key, $value, $ttl);
     }
 
+    #[Override]
     public function forget(string $key): bool
     {
         return $this->driver()->forget($key);
     }
 
+    #[Override]
     public function flush(): bool
     {
         return $this->driver()->flush();
     }
 
+    #[Override]
     public function remember(string $key, int $ttl, callable $callback): mixed
     {
         return $this->driver()->remember($key, $ttl, $callback);
     }
 
+    #[Override]
     public function forever(string $key, mixed $value): bool
     {
         return $this->driver()->forever($key, $value);
     }
 
+    #[Override]
     public function increment(string $key, int $value = 1): int
     {
         return $this->driver()->increment($key, $value);
     }
 
+    #[Override]
     public function decrement(string $key, int $value = 1): int
     {
         return $this->driver()->decrement($key, $value);
     }
 
+    #[Override]
     public function tags(array $tags): TaggedCache
     {
         return $this->driver()->tags($tags);
@@ -139,10 +150,10 @@ class CacheManager implements CacheInterface
      */
     protected function resolve(string $name): CacheInterface
     {
-        $config = $this->config->get("cache.stores.{$name}");
+        $config = $this->config->get('cache.stores.' . $name);
 
         if (!$config) {
-            throw new \InvalidArgumentException("Cache store [{$name}] is not defined.");
+            throw new InvalidArgumentException(sprintf('Cache store [%s] is not defined.', $name));
         }
 
         $driverName = $config['driver'] ?? $name;
@@ -168,7 +179,7 @@ class CacheManager implements CacheInterface
             return $this->{$method}($config);
         }
 
-        throw new \InvalidArgumentException("Cache driver [{$driver}] is not supported.");
+        throw new InvalidArgumentException(sprintf('Cache driver [%s] is not supported.', $driver));
     }
 
     /**
@@ -186,7 +197,7 @@ class CacheManager implements CacheInterface
     {
         $path = $config['path'] ?? $this->getDefaultCachePath();
         $permissions = $config['permissions'] ?? 0755;
-        
+
         return new FileStore($path, $this->getStorePrefix($config), $permissions);
     }
 

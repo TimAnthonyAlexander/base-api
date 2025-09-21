@@ -39,9 +39,9 @@ class Logger
     private function log(string $level, string $msg, array $ctx): void
     {
         $requestIdPart = self::$requestId ? '[' . self::$requestId . '] ' : '';
-        $contextPart = !empty($ctx) ? ' ' . json_encode($ctx) : '';
+        $contextPart = $ctx === [] ? '' : ' ' . json_encode($ctx);
         
-        $logMessage = "[{$level}] {$requestIdPart}{$msg}{$contextPart}";
+        $logMessage = sprintf('[%s] %s%s%s', $level, $requestIdPart, $msg, $contextPart);
         
         error_log($logMessage);
     }

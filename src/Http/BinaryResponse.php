@@ -2,12 +2,15 @@
 
 namespace BaseApi\Http;
 
+use InvalidArgumentException;
+use RuntimeException;
+
 class BinaryResponse
 {
     public static function fromFile(string $path, string $mime, ?string $downloadName = null): Response
     {
         if (!file_exists($path)) {
-            throw new \InvalidArgumentException("File not found: {$path}");
+            throw new InvalidArgumentException('File not found: ' . $path);
         }
 
         $headers = [
@@ -21,7 +24,7 @@ class BinaryResponse
 
         $stream = fopen($path, 'r');
         if ($stream === false) {
-            throw new \RuntimeException("Unable to open file: {$path}");
+            throw new RuntimeException('Unable to open file: ' . $path);
         }
 
         return new Response(200, $headers, $stream);

@@ -2,6 +2,8 @@
 
 namespace BaseApi\Http\Binding;
 
+use ReflectionClass;
+use ReflectionProperty;
 use BaseApi\Http\Request;
 use BaseApi\Http\UploadedFile;
 
@@ -14,8 +16,8 @@ class ControllerBinder
             $controller->request = $req;
         }
 
-        $reflection = new \ReflectionClass($controller);
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $reflection = new ReflectionClass($controller);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
 
         foreach ($properties as $property) {
             $propertyName = $property->getName();
@@ -28,11 +30,9 @@ class ControllerBinder
             // Get value with precedence: route params → query → body → files
             $value = $this->getValueWithPrecedence($propertyName, $routeParams, $req);
             
-            if ($value === null) {
-                // Check if property has a default value, if so keep it
-                if ($property->hasDefaultValue()) {
-                    continue;
-                }
+            // Check if property has a default value, if so keep it
+            if ($value === null && $property->hasDefaultValue()) {
+                continue;
             }
 
             // Coerce the value to the property type
@@ -106,7 +106,7 @@ class ControllerBinder
             }
             
             // If we found valid files in an indexed array, return them
-            if ($isArrayOfFiles && !empty($validFiles)) {
+            if ($isArrayOfFiles && $validFiles !== []) {
                 return $validFiles;
             }
             
@@ -119,6 +119,6 @@ class ControllerBinder
 
     private function camelToSnakeCase(string $input): string
     {
-        return strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
+        return strtolower((string) preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
     }
 }

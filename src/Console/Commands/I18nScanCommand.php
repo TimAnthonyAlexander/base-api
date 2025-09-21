@@ -2,23 +2,30 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 use BaseApi\Console\Command;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 
 class I18nScanCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'i18n:scan';
     }
     
+    #[Override]
     public function description(): string
     {
         return 'Scan codebase for translation tokens';
     }
     
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         echo "Scanning for translation tokens...\n";
         
@@ -54,7 +61,7 @@ class I18nScanCommand implements Command
         $this->displayResults($foundTokens, $newTokens, $missingInDefault, $orphanTokens, $showOrphans);
         
         // Write new tokens if requested
-        if ($write && !empty($newTokens)) {
+        if ($write && $newTokens !== []) {
             $this->writeNewTokens($newTokens, $defaultLocale);
             echo "\n✅ Added " . count($newTokens) . " new tokens to translation files.\n";
         }
@@ -79,10 +86,10 @@ class I18nScanCommand implements Command
     private function scanDirectory(string $directory, array $patterns): array
     {
         $tokens = [];
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory));
+        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
         
         foreach ($iterator as $file) {
-            if ($file->isFile() && preg_match('/\.(php|html|twig|blade\.php)$/', $file->getFilename())) {
+            if ($file->isFile() && preg_match('/\.(php|html|twig|blade\.php)$/', (string) $file->getFilename())) {
                 $tokens = array_merge($tokens, $this->scanFile($file->getPathname(), $patterns));
             }
         }
@@ -131,27 +138,30 @@ class I18nScanCommand implements Command
         echo "  Missing in default locale: " . count($missingInDefault) . "\n";
         echo "  Orphaned tokens: " . count($orphanTokens) . "\n\n";
         
-        if (!empty($newTokens)) {
+        if ($newTokens !== []) {
             echo "🆕 New tokens found:\n";
             foreach ($newTokens as $token) {
-                echo "  - {$token}\n";
+                echo sprintf('  - %s%s', $token, PHP_EOL);
             }
+
             echo "\n";
         }
         
-        if (!empty($missingInDefault)) {
+        if ($missingInDefault !== []) {
             echo "⚠️  Tokens missing in default locale:\n";
             foreach ($missingInDefault as $token) {
-                echo "  - {$token}\n";
+                echo sprintf('  - %s%s', $token, PHP_EOL);
             }
+
             echo "\n";
         }
         
-        if ($showOrphans && !empty($orphanTokens)) {
+        if ($showOrphans && $orphanTokens !== []) {
             echo "🗑️  Orphaned tokens (not used in code):\n";
             foreach ($orphanTokens as $token) {
-                echo "  - {$token}\n";
+                echo sprintf('  - %s%s', $token, PHP_EOL);
             }
+
             echo "\n";
         }
     }
@@ -162,10 +172,11 @@ class I18nScanCommand implements Command
         
         // Group tokens by namespace
         foreach ($newTokens as $token) {
-            $namespace = explode('.', $token, 2)[0] ?? 'common';
+            $namespace = explode('.', (string) $token, 2)[0] ?? 'common';
             if (!isset($tokensByNamespace[$namespace])) {
                 $tokensByNamespace[$namespace] = [];
             }
+
             $tokensByNamespace[$namespace][$token] = '';
         }
         
