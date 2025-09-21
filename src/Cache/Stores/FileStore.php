@@ -34,7 +34,7 @@ class FileStore implements StoreInterface
             return null;
         }
 
-        $data = unserialize($contents);
+        $data = @unserialize($contents);
         if ($data === false) {
             // Corrupted file, remove it
             @unlink($filePath);
@@ -131,7 +131,7 @@ class FileStore implements StoreInterface
         if (file_exists($filePath)) {
             $contents = file_get_contents($filePath);
             if ($contents !== false) {
-                $data = unserialize($contents);
+                $data = @unserialize($contents);
                 if ($data !== false && $data['expires_at'] !== null) {
                     $ttl = max(0, $data['expires_at'] - $this->clock->now());
                 }

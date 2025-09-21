@@ -149,7 +149,7 @@ class Validator
 
         // Image dimension rules
         if ($value instanceof UploadedFile && $this->isImage($value)) {
-            $imageInfo = getimagesize($value->tmpName);
+            $imageInfo = file_exists($value->tmpName) ? getimagesize($value->tmpName) : false;
             if ($imageInfo) {
                 [$width, $height] = $imageInfo;
                 
