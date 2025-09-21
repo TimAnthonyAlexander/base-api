@@ -7,6 +7,7 @@ use BaseApi\Console\Application;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 
@@ -27,7 +28,7 @@ class I18nScanCommand implements Command
     #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
-        echo "Scanning for translation tokens...\n";
+        echo ColorHelper::header("🔍 Scanning for translation tokens...") . "\n";
         
         $write = in_array('--write', $args);
         $showOrphans = in_array('--show-orphans', $args);
@@ -63,7 +64,7 @@ class I18nScanCommand implements Command
         // Write new tokens if requested
         if ($write && $newTokens !== []) {
             $this->writeNewTokens($newTokens, $defaultLocale);
-            echo "\n✅ Added " . count($newTokens) . " new tokens to translation files.\n";
+            echo "\n" . ColorHelper::success("✅ Added " . count($newTokens) . " new tokens to translation files.") . "\n";
         }
         
         return 0;
@@ -132,34 +133,34 @@ class I18nScanCommand implements Command
     
     private function displayResults(array $foundTokens, array $newTokens, array $missingInDefault, array $orphanTokens, bool $showOrphans): void
     {
-        echo "📊 Scan Results:\n";
-        echo "  Total tokens found in code: " . count($foundTokens) . "\n";
-        echo "  New tokens: " . count($newTokens) . "\n";
-        echo "  Missing in default locale: " . count($missingInDefault) . "\n";
-        echo "  Orphaned tokens: " . count($orphanTokens) . "\n\n";
+        echo ColorHelper::header("📊 Scan Results") . "\n";
+        echo ColorHelper::info("  Total tokens found in code: ") . ColorHelper::colorize((string)count($foundTokens), ColorHelper::CYAN) . "\n";
+        echo ColorHelper::info("  New tokens: ") . ColorHelper::colorize((string)count($newTokens), ColorHelper::GREEN) . "\n";
+        echo ColorHelper::info("  Missing in default locale: ") . ColorHelper::colorize((string)count($missingInDefault), ColorHelper::YELLOW) . "\n";
+        echo ColorHelper::info("  Orphaned tokens: ") . ColorHelper::colorize((string)count($orphanTokens), ColorHelper::RED) . "\n\n";
         
         if ($newTokens !== []) {
-            echo "🆕 New tokens found:\n";
+            echo ColorHelper::success("🆕 New tokens found:") . "\n";
             foreach ($newTokens as $token) {
-                echo sprintf('  - %s%s', $token, PHP_EOL);
+                echo ColorHelper::success(sprintf('  - %s', $token)) . "\n";
             }
 
             echo "\n";
         }
         
         if ($missingInDefault !== []) {
-            echo "⚠️  Tokens missing in default locale:\n";
+            echo ColorHelper::warning("⚠️  Tokens missing in default locale:") . "\n";
             foreach ($missingInDefault as $token) {
-                echo sprintf('  - %s%s', $token, PHP_EOL);
+                echo ColorHelper::warning(sprintf('  - %s', $token)) . "\n";
             }
 
             echo "\n";
         }
         
         if ($showOrphans && $orphanTokens !== []) {
-            echo "🗑️  Orphaned tokens (not used in code):\n";
+            echo ColorHelper::comment("🗑️  Orphaned tokens (not used in code):") . "\n";
             foreach ($orphanTokens as $token) {
-                echo sprintf('  - %s%s', $token, PHP_EOL);
+                echo ColorHelper::comment(sprintf('  - %s', $token)) . "\n";
             }
 
             echo "\n";

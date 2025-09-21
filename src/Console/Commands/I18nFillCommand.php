@@ -5,6 +5,7 @@ namespace BaseApi\Console\Commands;
 use Override;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 use BaseApi\Support\Translation\TranslationProviderFactory;
@@ -50,7 +51,7 @@ class I18nFillCommand implements Command
         }
 
         if ($targetLocales === []) {
-            echo "No target locales specified or available.\n";
+            echo ColorHelper::error("❌ No target locales specified or available.") . "\n";
             return 1;
         }
 
@@ -66,9 +67,9 @@ class I18nFillCommand implements Command
             return 1;
         }
 
-        echo "Using translation provider to fill missing translations...\n";
-        echo sprintf('Default locale: %s%s', $defaultLocale, PHP_EOL);
-        echo "Target locales: " . implode(', ', $targetLocales) . "\n\n";
+        echo ColorHelper::header("🤖 Using translation provider to fill missing translations...") . "\n";
+        echo ColorHelper::info('Default locale: ') . ColorHelper::colorize($defaultLocale, ColorHelper::CYAN) . "\n";
+        echo ColorHelper::info('Target locales: ') . ColorHelper::colorize(implode(', ', $targetLocales), ColorHelper::YELLOW) . "\n\n";
 
         $totalFilled = 0;
 
@@ -77,7 +78,7 @@ class I18nFillCommand implements Command
             $totalFilled += $filled;
         }
 
-        echo "\n✅ Filled {$totalFilled} missing translations across all locales.\n";
+        echo "\n" . ColorHelper::success(sprintf('✅ Filled %d missing translations across all locales.', $totalFilled)) . "\n";
 
         return 0;
     }

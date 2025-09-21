@@ -5,6 +5,7 @@ namespace BaseApi\Console\Commands;
 use Override;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 
@@ -46,8 +47,8 @@ class I18nHashCommand implements Command
         
         // Validate locale
         if (!in_array($locale, $config['locales'])) {
-            echo sprintf('Invalid locale: %s%s', $locale, PHP_EOL);
-            echo "Available locales: " . implode(', ', $config['locales']) . "\n";
+            echo ColorHelper::error(sprintf('❌ Invalid locale: %s', $locale)) . "\n";
+            echo ColorHelper::info("Available locales: ") . ColorHelper::colorize(implode(', ', $config['locales']), ColorHelper::YELLOW) . "\n";
             return 1;
         }
         
@@ -68,25 +69,25 @@ class I18nHashCommand implements Command
     private function showHash(string $locale, array $namespaces): void
     {
         if ($namespaces === []) {
-            echo sprintf('No translation namespaces found for locale: %s%s', $locale, PHP_EOL);
+            echo ColorHelper::warning(sprintf('⚠️  No translation namespaces found for locale: %s', $locale)) . "\n";
             return;
         }
         
         $hash = I18n::getInstance()->generateETag($locale, $namespaces);
         
-        echo sprintf('Locale: %s%s', $locale, PHP_EOL);
-        echo "Namespaces: " . implode(', ', $namespaces) . "\n";
-        echo sprintf('Hash: %s%s', $hash, PHP_EOL);
+        echo ColorHelper::info('Locale: ') . ColorHelper::colorize($locale, ColorHelper::CYAN) . "\n";
+        echo ColorHelper::info('Namespaces: ') . ColorHelper::colorize(implode(', ', $namespaces), ColorHelper::YELLOW) . "\n";
+        echo ColorHelper::info('Hash: ') . ColorHelper::colorize($hash, ColorHelper::MAGENTA) . "\n";
         
         // Also show bundle information
         $bundle = I18n::bundle($locale, $namespaces);
         $tokenCount = count($bundle['tokens']);
-        echo sprintf('Tokens: %d%s', $tokenCount, PHP_EOL);
+        echo ColorHelper::info('Tokens: ') . ColorHelper::colorize((string)$tokenCount, ColorHelper::GREEN) . "\n";
     }
     
     private function showAllHashes(array $locales): void
     {
-        echo "Translation bundle hashes:\n\n";
+        echo ColorHelper::header("🏷️  Translation bundle hashes") . "\n\n";
         
         foreach ($locales as $locale) {
             $namespaces = I18n::getAvailableNamespaces($locale);

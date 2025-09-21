@@ -6,6 +6,7 @@ use Override;
 use BaseApi\Console\Application;
 use Exception;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Database\Migrations\MigrationsFile;
 use BaseApi\Database\Migrations\ExecutedMigrationsFile;
 use BaseApi\App;
@@ -41,8 +42,8 @@ class MigrateApplyCommand implements Command
             // Read all migrations
             $allMigrations = MigrationsFile::readMigrations($migrationsPath);
             if ($allMigrations === []) {
-                echo sprintf('No migrations found at %s%s', $migrationsFile, PHP_EOL);
-                echo "Run 'migrate:generate' first to create migrations.\n";
+                echo ColorHelper::warning(sprintf('⚠️  No migrations found at %s', $migrationsFile)) . "\n";
+                echo ColorHelper::info("📊 Run 'migrate:generate' first to create migrations.") . "\n";
                 return 1;
             }
             
@@ -50,11 +51,11 @@ class MigrateApplyCommand implements Command
             $pendingMigrations = ExecutedMigrationsFile::getPendingMigrations($allMigrations, $executedPath);
             
             if ($pendingMigrations === []) {
-                echo "No pending migrations to apply. Database is up to date.\n";
+                echo ColorHelper::success("✅ No pending migrations to apply. Database is up to date.") . "\n";
                 return 0;
             }
             
-            echo "Found " . count($pendingMigrations) . " pending migration(s).\n";
+            echo ColorHelper::info("🔍 Found " . count($pendingMigrations) . " pending migration(s).") . "\n";
             
             // Filter out destructive operations in safe mode
             $migrationsToApply = $pendingMigrations;
@@ -64,12 +65,12 @@ class MigrateApplyCommand implements Command
                 $filteredCount = $originalCount - count($migrationsToApply);
                 
                 if ($filteredCount > 0) {
-                    echo "Safe mode: Skipping {$filteredCount} destructive operations.\n";
+                    echo ColorHelper::warning(sprintf('⚠️  Safe mode: Skipping %d destructive operations.', $filteredCount)) . "\n";
                 }
             }
             
             if ($migrationsToApply === []) {
-                echo "No migrations to execute after filtering.\n";
+                echo ColorHelper::comment("ℹ️  No migrations to execute after filtering.") . "\n";
                 return 0;
             }
             
@@ -78,7 +79,7 @@ class MigrateApplyCommand implements Command
             
             // Confirm execution
             if (!$this->confirmExecution()) {
-                echo "Migration cancelled.\n";
+                echo ColorHelper::comment("❌ Migration cancelled.") . "\n";
                 return 0;
             }
             
@@ -88,40 +89,44 @@ class MigrateApplyCommand implements Command
             // Update executed migrations file
             ExecutedMigrationsFile::addMultipleExecuted($executedPath, $executedIds);
             
-            echo "\nMigrations completed successfully!\n";
-            echo "Executed " . count($executedIds) . " migration(s).\n";
+            echo "\n" . ColorHelper::success("✅ Migrations completed successfully!") . "\n";
+            echo ColorHelper::info("Executed " . count($executedIds) . " migration(s).") . "\n";
             
             if ($safeMode && count($executedIds) < count($pendingMigrations)) {
                 $remaining = count($pendingMigrations) - count($executedIds);
-                echo "Note: {$remaining} destructive migration(s) remain. Run without --safe to apply them.\n";
+                echo ColorHelper::warning(sprintf('⚠️  Note: %d destructive migration(s) remain. Run without --safe to apply them.', $remaining)) . "\n";
             }
             
             return 0;
             
         } catch (Exception $exception) {
-            echo "Error: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
 
     private function showExecutionPlan(array $migrations, bool $safeMode): void
     {
-        echo "Execution Plan" . ($safeMode ? " (Safe Mode)" : "") . ":\n";
-        echo "==========================================\n";
+        echo ColorHelper::header("📋 Execution Plan" . ($safeMode ? " (Safe Mode)" : "")) . "\n";
+        echo ColorHelper::colorize("==========================================", ColorHelper::BRIGHT_CYAN) . "\n";
         
         foreach ($migrations as $i => $migration) {
             $num = $i + 1;
-            $destructive = ($migration['destructive'] ?? false) ? " [DESTRUCTIVE]" : "";
-            $warning = (empty($migration['warning'])) ? "" : ' - ' . $migration['warning'];
-            $table = $migration['table'] ? sprintf(' (%s)', $migration['table']) : "";
+            $destructive = ($migration['destructive'] ?? false) ? ColorHelper::colorize(" [DESTRUCTIVE]", ColorHelper::RED) : "";
+            $warning = (empty($migration['warning'])) ? "" : ' - ' . ColorHelper::colorize($migration['warning'], ColorHelper::YELLOW);
+            $table = $migration['table'] ? ColorHelper::colorize(sprintf(' (%s)', $migration['table']), ColorHelper::CYAN) : "";
             
-            echo "{$num}. [{$migration['operation']}]{$table} {$migration['sql']}{$destructive}{$warning}\n\n";
+            echo ColorHelper::info($num . '. ') . 
+                 ColorHelper::colorize(sprintf('[%s]', $migration['operation']), ColorHelper::GREEN) . 
+                 $table . " " . 
+                 ColorHelper::comment($migration['sql']) . 
+                 $destructive . $warning . "\n\n";
         }
     }
 
     private function confirmExecution(): bool
     {
-        echo "Do you want to execute these migrations? [y/N]: ";
+        echo ColorHelper::warning("⚠️  Do you want to execute these migrations? [y/N]: ");
         $handle = fopen("php://stdin", "r");
         $line = fgets($handle);
         fclose($handle);
@@ -134,35 +139,36 @@ class MigrateApplyCommand implements Command
         $pdo = App::db()->getConnection()->pdo();
         $executedIds = [];
         
-        echo "Executing migrations...\n";
+        echo ColorHelper::header("🔄 Executing migrations...") . "\n";
         
         // Group migrations by table for transaction boundaries
         $tableGroups = $this->groupMigrationsByTable($migrations);
         
         foreach ($tableGroups as $table => $tableMigrations) {
-            echo sprintf('Processing table: %s%s', $table, PHP_EOL);
+            echo ColorHelper::info(sprintf('📋 Processing table: %s', $table)) . "\n";
             
             $pdo->beginTransaction();
             
             try {
                 foreach ($tableMigrations as $i => $migration) {
                     $num = $i + 1;
-                    echo sprintf('  %s. Executing [%s]: ', $num, $migration['operation']) . substr((string) $migration['sql'], 0, 50) . "...\n";
+                    echo ColorHelper::comment(sprintf('  %s. Executing [%s]: ', $num, $migration['operation'])) . 
+                         ColorHelper::colorize(substr((string) $migration['sql'], 0, 50) . "...", ColorHelper::BRIGHT_BLACK) . "\n";
                     
                     $pdo->exec($migration['sql']);
                     $executedIds[] = $migration['id'];
                 }
                 
                 $pdo->commit();
-                echo "  ✓ Table {$table} completed successfully\n";
+                echo ColorHelper::success(sprintf('  ✓ Table %s completed successfully', $table)) . "\n";
                 
             } catch (Exception $e) {
                 $pdo->rollBack();
-                throw new Exception(sprintf('Failed to execute migration for table %s: ', $table) . $e->getMessage(), $e->getCode(), $e);
+                throw new Exception(ColorHelper::error(sprintf('Failed to execute migration for table %s: ', $table)) . $e->getMessage(), $e->getCode(), $e);
             }
         }
         
-        echo "\nAll migrations executed successfully!\n";
+        echo "\n" . ColorHelper::success("🎉 All migrations executed successfully!") . "\n";
         return $executedIds;
     }
 

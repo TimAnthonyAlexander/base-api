@@ -7,6 +7,7 @@ use BaseApi\Console\Application;
 use Exception;
 use ReflectionUnionType;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Http\Attributes\ResponseType;
 use BaseApi\Http\Attributes\Tag;
 use BaseApi\App;
@@ -42,37 +43,37 @@ class TypesGenerateCommand implements Command
             return 0;
         }
 
-        echo "Generating types from BaseApi controllers and routes...\n";
+        echo ColorHelper::header("🔧 Generating types from BaseApi controllers and routes...") . "\n";
 
         try {
             // Step 1: Load and analyze routes
-            echo "📖 Scanning routes...\n";
+            echo ColorHelper::info("📖 Scanning routes...") . "\n";
             $this->loadRoutes();
 
             // Step 2: Reflect controllers and build component graph
-            echo "🔍 Reflecting controllers...\n";
+            echo ColorHelper::info("🔍 Reflecting controllers...") . "\n";
             $this->analyzeControllers();
 
             // Step 3: Resolve DTOs recursively
-            echo "📋 Resolving DTOs...\n";
+            echo ColorHelper::info("📋 Resolving DTOs...") . "\n";
             $this->resolveDtos();
 
             // Step 4: Generate OpenAPI if requested
             if (isset($options['out-openapi'])) {
-                echo "🌐 Generating OpenAPI spec...\n";
+                echo ColorHelper::info("🌐 Generating OpenAPI spec...") . "\n";
                 $this->generateOpenApi($options);
             }
 
             // Step 5: Generate TypeScript if requested
             if (isset($options['out-ts'])) {
-                echo "🔷 Generating TypeScript definitions...\n";
+                echo ColorHelper::info("🔷 Generating TypeScript definitions...") . "\n";
                 $this->generateTypeScript($options);
             }
 
-            echo "✅ Type generation completed!\n";
+            echo ColorHelper::success("✅ Type generation completed!") . "\n";
             return 0;
         } catch (Exception $exception) {
-            echo "❌ Error: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
@@ -199,7 +200,7 @@ HELP;
         require $routesFile;
         $this->routes = $routes;
 
-        echo "   Found " . count($this->routes) . " routes\n";
+        echo ColorHelper::success("   ✅ Found " . count($this->routes) . " routes") . "\n";
     }
 
     private function parseRoutesFile(string $routesFile): void
@@ -237,7 +238,7 @@ HELP;
         }
 
         $this->routes = $routes;
-        echo "   Found " . count($this->routes) . " routes\n";
+        echo ColorHelper::success("   ✅ Found " . count($this->routes) . " routes") . "\n";
     }
 
     private function resolveClassName(string $shortName, string $content): string
@@ -264,7 +265,7 @@ HELP;
             $controllerClass = end($pipeline); // Last element should be controller
 
             if (!class_exists($controllerClass)) {
-                echo sprintf('   ⚠️  Controller not found: %s%s', $controllerClass, PHP_EOL);
+                echo ColorHelper::warning(sprintf('   ⚠️  Controller not found: %s', $controllerClass)) . "\n";
                 continue;
             }
 
@@ -480,7 +481,7 @@ HELP;
             }
         }
 
-        echo "   Resolved " . count($this->dtoSchemas) . " DTOs\n";
+        echo ColorHelper::success("   ✅ Resolved " . count($this->dtoSchemas) . " DTOs") . "\n";
     }
 
     private function resolveDto(string $className): array
@@ -656,7 +657,7 @@ HELP;
             throw new Exception('Failed to write OpenAPI spec to ' . $options['out-openapi']);
         }
 
-        echo sprintf('   📄 OpenAPI spec written to %s%s', $options['out-openapi'], PHP_EOL);
+        echo ColorHelper::success(sprintf('   📄 OpenAPI spec written to %s', $options['out-openapi'])) . "\n";
     }
 
     private function generateTypeScript(array $options): void
@@ -701,7 +702,7 @@ HELP;
             throw new Exception('Failed to write TypeScript definitions to ' . $options['out-ts']);
         }
 
-        echo sprintf('   📘 TypeScript definitions written to %s%s', $options['out-ts'], PHP_EOL);
+        echo ColorHelper::success(sprintf('   📘 TypeScript definitions written to %s', $options['out-ts'])) . "\n";
     }
 
     private function convertPathToOpenApi(string $path): string

@@ -7,6 +7,7 @@ use BaseApi\Queue\Drivers\DatabaseQueueDriver;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 
 class QueueStatusCommand implements Command
@@ -36,8 +37,8 @@ class QueueStatusCommand implements Command
             // Get stats for common queues
             $queues = ['default', 'high', 'low', 'emails', 'processing'];
             
-            echo "Queue Status\n";
-            echo "============\n\n";
+            echo ColorHelper::header("📊 Queue Status") . "\n";
+            echo ColorHelper::colorize("============", ColorHelper::BRIGHT_CYAN) . "\n\n";
             
             $totalJobs = 0;
             foreach ($queues as $queue) {
@@ -45,14 +46,14 @@ class QueueStatusCommand implements Command
                 $totalJobs += $size;
                 
                 if ($size > 0) {
-                    echo sprintf("%-12s: %d jobs\n", $queue, $size);
+                    echo ColorHelper::info(sprintf("  %-12s: ", $queue)) . ColorHelper::colorize($size . " jobs", ColorHelper::YELLOW) . "\n";
                 }
             }
             
             if ($totalJobs === 0) {
-                echo "No pending jobs in any queue.\n";
+                echo ColorHelper::comment("ℹ️  No pending jobs in any queue.") . "\n";
             } else {
-                echo "\nTotal pending jobs: {$totalJobs}\n";
+                echo "\n" . ColorHelper::info("Total pending jobs: ") . ColorHelper::colorize((string)$totalJobs, ColorHelper::BRIGHT_YELLOW) . "\n";
             }
             
             // If using database driver, show additional stats
@@ -62,7 +63,7 @@ class QueueStatusCommand implements Command
             
             return 0;
         } catch (Exception $exception) {
-            echo "Error getting queue status: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error getting queue status: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
@@ -80,11 +81,18 @@ class QueueStatusCommand implements Command
             ");
             
             if ($stats !== []) {
-                echo "\nJob Status Statistics:\n";
-                echo "---------------------\n";
+                echo "\n" . ColorHelper::header("📊 Job Status Statistics") . "\n";
+                echo ColorHelper::colorize("---------------------", ColorHelper::BRIGHT_CYAN) . "\n";
                 
                 foreach ($stats as $stat) {
-                    echo sprintf("%-12s: %d\n", ucfirst((string) $stat['status']), $stat['count']);
+                    $status = ucfirst((string) $stat['status']);
+                    $color = match($stat['status']) {
+                        'completed' => ColorHelper::GREEN,
+                        'failed' => ColorHelper::RED,
+                        'processing' => ColorHelper::YELLOW,
+                        default => ColorHelper::CYAN
+                    };
+                    echo ColorHelper::info(sprintf("  %-12s: ", $status)) . ColorHelper::colorize((string)$stat['count'], $color) . "\n";
                 }
             }
             
@@ -97,7 +105,7 @@ class QueueStatusCommand implements Command
             ");
             
             if ($failedRecent > 0) {
-                echo "\nRecent failures (24h): {$failedRecent}\n";
+                echo "\n" . ColorHelper::warning("⚠️  Recent failures (24h): ") . ColorHelper::colorize((string)$failedRecent, ColorHelper::RED) . "\n";
             }
             
         } catch (Exception) {

@@ -6,6 +6,7 @@ use Override;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 
 class JobMakeCommand implements Command
@@ -26,8 +27,8 @@ class JobMakeCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         if ($args === []) {
-            echo "Error: Job name is required\n";
-            echo "Usage: console make:job JobName\n";
+            echo ColorHelper::error("❌ Error: Job name is required") . "\n";
+            echo ColorHelper::info("📊 Usage: console make:job JobName") . "\n";
             return 1;
         }
         
@@ -38,17 +39,17 @@ class JobMakeCommand implements Command
         
         // Validate job name
         if (!preg_match('/^[A-Z][a-zA-Z0-9]*Job$/', (string) $name)) {
-            echo "Error: Job name must start with uppercase letter and end with 'Job'\n";
-            echo "Example: SendEmailJob, ProcessImageJob\n";
+            echo ColorHelper::error("❌ Error: Job name must start with uppercase letter and end with 'Job'") . "\n";
+            echo ColorHelper::comment("Example: SendEmailJob, ProcessImageJob") . "\n";
             return 1;
         }
         
         try {
             $this->generateJobClass($basePath, $name);
-            echo "Job {$name} created successfully at app/Jobs/{$name}.php\n";
+            echo ColorHelper::success(sprintf('✅ Job %s created successfully at app/Jobs/%s.php', $name, $name)) . "\n";
             return 0;
         } catch (Exception $exception) {
-            echo "Error creating job: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error creating job: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }

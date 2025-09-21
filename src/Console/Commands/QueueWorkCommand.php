@@ -6,6 +6,7 @@ use Override;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Queue\QueueWorker;
 use BaseApi\App;
 
@@ -38,17 +39,17 @@ class QueueWorkCommand implements Command
         $maxTime = (int) ($options['max-time'] ?? 0);
         $memoryLimit = (int) ($options['memory'] ?? 128);
         
-        echo sprintf('Starting queue worker for queue: %s%s', $queue, PHP_EOL);
-        echo sprintf('Options: sleep=%ds, max-jobs=', $sleep) . ($maxJobs ?: 'unlimited') . ", max-time=" . ($maxTime ?: 'unlimited') . "s, memory={$memoryLimit}MB\n\n";
+        echo ColorHelper::header(sprintf('🔄 Starting queue worker for queue: %s', $queue)) . "\n";
+        echo ColorHelper::info('Options: ') . ColorHelper::comment(sprintf('sleep=%ds, max-jobs=%s, max-time=%ss, memory=%dMB', $sleep, $maxJobs ?: 'unlimited', $maxTime ?: 'unlimited', $memoryLimit)) . "\n\n";
         
         try {
             $worker = new QueueWorker(App::queue()->driver());
             $worker->work($queue, $sleep, $maxJobs, $maxTime, $memoryLimit);
             
-            echo "Queue worker stopped gracefully.\n";
+            echo ColorHelper::success("✅ Queue worker stopped gracefully.") . "\n";
             return 0;
         } catch (Exception $exception) {
-            echo "Queue worker error: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Queue worker error: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }

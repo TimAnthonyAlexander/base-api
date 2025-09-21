@@ -7,6 +7,7 @@ use Exception;
 use BaseApi\Queue\Drivers\DatabaseQueueDriver;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 
 class QueueRetryCommand implements Command
@@ -40,7 +41,7 @@ class QueueRetryCommand implements Command
             return $this->retryAllFailedJobs();
             
         } catch (Exception $exception) {
-            echo "Error retrying jobs: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error retrying jobs: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
@@ -50,11 +51,11 @@ class QueueRetryCommand implements Command
         $driver = App::queue()->driver();
 
         if ($driver->retry($jobId)) {
-            echo "Job {$jobId} queued for retry.\n";
+            echo ColorHelper::success(sprintf('♾️ Job %s queued for retry.', $jobId)) . "\n";
             return 0;
         }
 
-        echo "Failed to retry job {$jobId}. Job may not exist or is not in failed state.\n";
+        echo ColorHelper::error(sprintf('❌ Failed to retry job %s. Job may not exist or is not in failed state.', $jobId)) . "\n";
         return 1;
     }
     
@@ -64,7 +65,7 @@ class QueueRetryCommand implements Command
         $driver = App::queue()->driver();
         
         if ($driver::class !== DatabaseQueueDriver::class) {
-            echo "Error: Bulk retry is only supported with database queue driver.\n";
+            echo ColorHelper::error("❌ Error: Bulk retry is only supported with database queue driver.") . "\n";
             return 1;
         }
         
@@ -81,19 +82,19 @@ class QueueRetryCommand implements Command
         $failedJobs = array_column($failedJobsResult, 'id');
         
         if ($failedJobs === []) {
-            echo "No failed jobs found.\n";
+            echo ColorHelper::info("ℹ️  No failed jobs found.") . "\n";
             return 0;
         }
         
-        echo "Found " . count($failedJobs) . " failed jobs.\n";
-        echo "Retry all failed jobs? [y/N]: ";
+        echo ColorHelper::info("🔍 Found " . count($failedJobs) . " failed jobs.") . "\n";
+        echo ColorHelper::warning("⚠️  Retry all failed jobs? [y/N]: ");
         
         $handle = fopen("php://stdin", "r");
         $line = fgets($handle);
         fclose($handle);
         
         if (strtolower(trim($line)) !== 'y') {
-            echo "Retry cancelled.\n";
+            echo ColorHelper::comment("❌ Retry cancelled.") . "\n";
             return 0;
         }
         
@@ -104,7 +105,7 @@ class QueueRetryCommand implements Command
             }
         }
         
-        echo "Successfully queued {$retried} jobs for retry.\n";
+        echo ColorHelper::success(sprintf('✅ Successfully queued %d jobs for retry.', $retried)) . "\n";
         return 0;
     }
     

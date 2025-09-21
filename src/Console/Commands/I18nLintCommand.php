@@ -7,6 +7,7 @@ use BaseApi\Console\Application;
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 use BaseApi\Support\Translation\ICUValidator;
@@ -35,7 +36,7 @@ class I18nLintCommand implements Command
         $failOnOrphans = in_array('--fail-on-orphans', $args);
         $allowEmpty = in_array('--allow-empty', $args);
 
-        echo "Linting translation files...\n\n";
+        echo ColorHelper::header("🔍 Linting translation files...") . "\n\n";
 
         // Load the complete i18n config
         $configPath = App::basePath('config/i18n.php');
@@ -163,7 +164,7 @@ class I18nLintCommand implements Command
 
     private function checkOrphans(string $defaultLocale): void
     {
-        echo "Checking for orphaned tokens...\n";
+        echo ColorHelper::info("🔍 Checking for orphaned tokens...") . "\n";
 
         // Get all tokens from translation files
         $i18n = I18n::getInstance();
@@ -266,27 +267,27 @@ class I18nLintCommand implements Command
         $errorCount = count($this->errors);
         $warningCount = count($this->warnings);
         if ($errorCount > 0) {
-            echo "❌ ERRORS ({$errorCount}):\n";
+            echo ColorHelper::error(sprintf('❌ ERRORS (%d):', $errorCount)) . "\n";
             foreach ($this->errors as $error) {
-                echo sprintf('  %s%s', $error, PHP_EOL);
+                echo ColorHelper::error(sprintf('  %s', $error)) . "\n";
             }
 
             echo "\n";
         }
 
         if ($warningCount > 0) {
-            echo "⚠️  WARNINGS ({$warningCount}):\n";
+            echo ColorHelper::warning(sprintf('⚠️  WARNINGS (%d):', $warningCount)) . "\n";
             foreach ($this->warnings as $warning) {
-                echo sprintf('  %s%s', $warning, PHP_EOL);
+                echo ColorHelper::warning(sprintf('  %s', $warning)) . "\n";
             }
 
             echo "\n";
         }
 
         if ($errorCount === 0 && $warningCount === 0) {
-            echo "✅ All translation files are valid!\n";
+            echo ColorHelper::success("✅ All translation files are valid!") . "\n";
         } else {
-            echo "📊 Summary: {$errorCount} errors, {$warningCount} warnings\n";
+            echo ColorHelper::info("📊 Summary: ") . ColorHelper::colorize(sprintf('%d errors, %d warnings', $errorCount, $warningCount), $errorCount > 0 ? ColorHelper::RED : ColorHelper::YELLOW) . "\n";
         }
     }
 }

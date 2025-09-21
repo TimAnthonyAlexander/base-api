@@ -5,6 +5,7 @@ namespace BaseApi\Console\Commands;
 use Override;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 
 class MakeModelCommand implements Command
@@ -25,15 +26,15 @@ class MakeModelCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         if ($args === []) {
-            echo "Error: Model name is required\n";
-            echo "Usage: console make:model <Name>\n";
+            echo ColorHelper::error("❌ Error: Model name is required") . "\n";
+            echo ColorHelper::info("📊 Usage: console make:model <Name>") . "\n";
             return 1;
         }
 
         $name = $this->sanitizeName($args[0]);
         
         if ($name === '' || $name === '0') {
-            echo "Error: Invalid model name. Use only letters, numbers, and underscores.\n";
+            echo ColorHelper::error("❌ Error: Invalid model name. Use only letters, numbers, and underscores.") . "\n";
             return 1;
         }
         
@@ -46,18 +47,18 @@ class MakeModelCommand implements Command
         }
         
         if (file_exists($filePath)) {
-            echo "Error: Model {$name} already exists\n";
+            echo ColorHelper::error(sprintf('❌ Error: Model %s already exists', $name)) . "\n";
             return 1;
         }
 
         $template = $this->getModelTemplate($name);
         
         if (!file_put_contents($filePath, $template)) {
-            echo "Error: Could not create model file\n";
+            echo ColorHelper::error("❌ Error: Could not create model file") . "\n";
             return 1;
         }
 
-        echo "Model created: app/Models/{$name}.php\n";
+        echo ColorHelper::success(sprintf('✅ Model created: app/Models/%s.php', $name)) . "\n";
         
         return 0;
     }

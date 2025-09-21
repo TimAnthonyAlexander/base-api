@@ -5,6 +5,7 @@ namespace BaseApi\Console\Commands;
 use Override;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 
 class ServeCommand implements Command
@@ -34,13 +35,13 @@ class ServeCommand implements Command
         
         $address = sprintf('%s:%s', $host, $port);
         
-        echo sprintf('Starting BaseApi development server on http://%s%s', $address, PHP_EOL);
-        echo "Press Ctrl+C to stop the server\n\n";
+        echo ColorHelper::success(sprintf('🚀 Starting BaseApi development server on http://%s', $address)) . "\n";
+        echo ColorHelper::comment("⌨️  Press Ctrl+C to stop the server") . "\n\n";
         
         // Check if public directory exists
         $publicDir = $basePath . '/public';
         if (!is_dir($publicDir)) {
-            echo sprintf('Error: public directory not found at %s%s', $publicDir, PHP_EOL);
+            echo ColorHelper::error(sprintf('❌ Error: public directory not found at %s', $publicDir)) . "\n";
             return 1;
         }
         

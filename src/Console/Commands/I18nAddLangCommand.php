@@ -6,6 +6,7 @@ use Override;
 use BaseApi\Console\Application;
 use Exception;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 use BaseApi\Support\I18n;
 use BaseApi\Support\Translation\TranslationProviderFactory;
@@ -28,10 +29,10 @@ class I18nAddLangCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         if ($args === []) {
-            echo "Usage: ./mason i18n:add-lang <lang1> [lang2] [lang3] [options]\n";
-            echo "Options:\n";
-            echo "  --seed    Copy default locale values to aid translators\n";
-            echo "  --auto    Auto-translate using configured provider\n";
+            echo ColorHelper::error("❌ Usage: ./mason i18n:add-lang <lang1> [lang2] [lang3] [options]") . "\n";
+            echo ColorHelper::info("Options:") . "\n";
+            echo ColorHelper::comment("  --seed    Copy default locale values to aid translators") . "\n";
+            echo ColorHelper::comment("  --auto    Auto-translate using configured provider") . "\n";
             return 1;
         }
 
@@ -55,22 +56,22 @@ class I18nAddLangCommand implements Command
 
     private function addLanguage(string $language, string $defaultLocale, bool $seed, bool $auto): void
     {
-        echo sprintf('Adding language: %s%s', $language, PHP_EOL);
+        echo ColorHelper::header(sprintf('🌍 Adding language: %s', $language)) . "\n";
 
         // Create language directory
         $languageDir = App::basePath('translations/' . $language);
         if (!is_dir($languageDir)) {
             mkdir($languageDir, 0755, true);
-            echo sprintf('  ✅ Created directory: %s%s', $languageDir, PHP_EOL);
+            echo ColorHelper::success(sprintf('  ✅ Created directory: %s', $languageDir)) . "\n";
         } else {
-            echo sprintf('  ℹ️  Directory already exists: %s%s', $languageDir, PHP_EOL);
+            echo ColorHelper::comment(sprintf('  ℹ️  Directory already exists: %s', $languageDir)) . "\n";
         }
 
         // Get all namespaces from default locale
         $namespaces = I18n::getAvailableNamespaces($defaultLocale);
 
         if ($namespaces === []) {
-            echo "  ⚠️  No translation files found in default locale ({$defaultLocale})\n";
+            echo ColorHelper::warning(sprintf('  ⚠️  No translation files found in default locale (%s)', $defaultLocale)) . "\n";
             return;
         }
 
@@ -81,17 +82,17 @@ class I18nAddLangCommand implements Command
             try {
                 $provider = TranslationProviderFactory::create();
                 if ($provider && !$provider->supportsLanguagePair($defaultLocale, $language)) {
-                    echo sprintf("  ⚠️  Provider doesn't support %s -> %s%s", $defaultLocale, $language, PHP_EOL);
+                    echo ColorHelper::warning(sprintf("  ⚠️  Provider doesn't support %s -> %s", $defaultLocale, $language)) . "\n";
                     $provider = null;
                 }
             } catch (Exception $e) {
-                echo "  ⚠️  Translation provider error: " . $e->getMessage() . "\n";
+                echo ColorHelper::warning("  ⚠️  Translation provider error: " . $e->getMessage()) . "\n";
                 $provider = null;
             }
         }
 
         foreach ($namespaces as $namespace) {
-            echo sprintf('  Processing namespace: %s%s', $namespace, PHP_EOL);
+            echo ColorHelper::info(sprintf('  📋 Processing namespace: %s', $namespace)) . "\n";
 
             // Load default translations
             $defaultTranslations = $i18n->loadTranslations($defaultLocale, $namespace);
@@ -110,11 +111,11 @@ class I18nAddLangCommand implements Command
                     try {
                         $translated = $provider->translate($value, $defaultLocale, $language);
                         $newTranslations[$token] = $translated;
-                        echo sprintf('    ✨ Auto-translated: %s%s', $token, PHP_EOL);
+                        echo ColorHelper::success(sprintf('    ✨ Auto-translated: %s', $token)) . "\n";
                     } catch (Exception $e) {
                         $newTranslations[$token] = $seed ? $value : '';
 
-                        echo sprintf('    ⚠️  Failed to auto-translate %s: ', $token) . $e->getMessage() . "\n";
+                        echo ColorHelper::warning(sprintf('    ⚠️  Failed to auto-translate %s: ', $token) . $e->getMessage()) . "\n";
                     }
                 } elseif ($seed) {
                     // Copy default value
@@ -138,12 +139,12 @@ class I18nAddLangCommand implements Command
 
             $newCount = count($defaultTranslations) - count($existingTranslations);
             if ($newCount > 0) {
-                echo "    ✅ Added {$newCount} translations to {$namespace}.json\n";
+                echo ColorHelper::success(sprintf('    ✅ Added %d translations to %s.json', $newCount, $namespace)) . "\n";
             } else {
-                echo "    ℹ️  No new translations needed for {$namespace}.json\n";
+                echo ColorHelper::comment(sprintf('    ℹ️  No new translations needed for %s.json', $namespace)) . "\n";
             }
         }
 
-        echo "  ✅ Language {$language} setup complete\n\n";
+        echo ColorHelper::success(sprintf('  ✅ Language %s setup complete', $language)) . "\n\n";
     }
 }

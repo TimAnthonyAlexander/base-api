@@ -5,6 +5,7 @@ namespace BaseApi\Console\Commands;
 use Override;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\App;
 
 class MakeControllerCommand implements Command
@@ -25,15 +26,15 @@ class MakeControllerCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         if ($args === []) {
-            echo "Error: Controller name is required\n";
-            echo "Usage: console make:controller <Name>\n";
+            echo ColorHelper::error("❌ Error: Controller name is required") . "\n";
+            echo ColorHelper::info("📊 Usage: console make:controller <Name>") . "\n";
             return 1;
         }
 
         $name = $this->sanitizeName($args[0]);
         
         if ($name === '' || $name === '0') {
-            echo "Error: Invalid controller name. Use only letters, numbers, and underscores.\n";
+            echo ColorHelper::error("❌ Error: Invalid controller name. Use only letters, numbers, and underscores.") . "\n";
             return 1;
         }
         
@@ -51,19 +52,19 @@ class MakeControllerCommand implements Command
         }
         
         if (file_exists($filePath)) {
-            echo "Error: Controller {$name} already exists\n";
+            echo ColorHelper::error(sprintf('❌ Error: Controller %s already exists', $name)) . "\n";
             return 1;
         }
 
         $template = $this->getControllerTemplate($name);
         
         if (!file_put_contents($filePath, $template)) {
-            echo "Error: Could not create controller file\n";
+            echo ColorHelper::error("❌ Error: Could not create controller file") . "\n";
             return 1;
         }
 
-        echo "Controller created: app/Controllers/{$name}.php\n";
-        echo "Remember to register routes in routes/api.php\n";
+        echo ColorHelper::success(sprintf('✅ Controller created: app/Controllers/%s.php', $name)) . "\n";
+        echo ColorHelper::info("📊 Remember to register routes in routes/api.php") . "\n";
         
         return 0;
     }

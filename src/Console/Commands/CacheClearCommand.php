@@ -6,6 +6,7 @@ use Override;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Cache\Cache;
 use BaseApi\App;
 
@@ -45,33 +46,33 @@ class CacheClearCommand implements Command
             if ($tags) {
                 // Clear by tags
                 $tagsList = array_map('trim', explode(',', $tags));
-                echo "Clearing cache for tags: " . implode(', ', $tagsList) . "\n";
+                echo ColorHelper::info("🏷️  Clearing cache for tags: " . implode(', ', $tagsList)) . "\n";
                 
                 $cache = Cache::tags($tagsList);
                 $result = $cache->flush();
                 
                 if ($result) {
-                    echo "✅ Cache cleared for specified tags.\n";
+                    echo ColorHelper::success("✅ Cache cleared for specified tags.") . "\n";
                 } else {
-                    echo "❌ Failed to clear cache for specified tags.\n";
+                    echo ColorHelper::error("❌ Failed to clear cache for specified tags.") . "\n";
                     return 1;
                 }
             } elseif ($driver) {
                 // Clear specific driver
-                echo sprintf('Clearing cache for driver: %s%s', $driver, PHP_EOL);
+                echo ColorHelper::info(sprintf('📋 Clearing cache for driver: %s', $driver)) . "\n";
                 
                 $cache = Cache::driver($driver);
                 $result = $cache->flush();
                 
                 if ($result) {
-                    echo sprintf('✅ Cache cleared for driver: %s%s', $driver, PHP_EOL);
+                    echo ColorHelper::success(sprintf('✅ Cache cleared for driver: %s', $driver)) . "\n";
                 } else {
-                    echo sprintf('❌ Failed to clear cache for driver: %s%s', $driver, PHP_EOL);
+                    echo ColorHelper::error(sprintf('❌ Failed to clear cache for driver: %s', $driver)) . "\n";
                     return 1;
                 }
             } else {
                 // Clear all drivers
-                echo "Clearing all cache...\n";
+                echo ColorHelper::info("🧹 Clearing all cache...") . "\n";
                 
                 $config = App::config();
                 $stores = $config->get('cache.stores', []);
@@ -82,29 +83,29 @@ class CacheClearCommand implements Command
                     try {
                         $cache = Cache::driver($storeName);
                         if ($cache->flush()) {
-                            echo sprintf('✓ Cleared %s%s', $storeName, PHP_EOL);
+                            echo ColorHelper::success(sprintf('  ✓ Cleared %s', $storeName)) . "\n";
                             $cleared++;
                         } else {
-                            echo sprintf('✗ Failed to clear %s%s', $storeName, PHP_EOL);
+                            echo ColorHelper::error(sprintf('  ✗ Failed to clear %s', $storeName)) . "\n";
                             $failed++;
                         }
                     } catch (Exception $e) {
-                        echo sprintf('✗ Error clearing %s: ', $storeName) . $e->getMessage() . "\n";
+                        echo ColorHelper::error(sprintf('  ✗ Error clearing %s: ', $storeName) . $e->getMessage()) . "\n";
                         $failed++;
                     }
                 }
                 
                 if ($failed === 0) {
-                    echo "✅ All cache stores cleared successfully ({$cleared} stores).\n";
+                    echo ColorHelper::success(sprintf('✅ All cache stores cleared successfully (%d stores).', $cleared)) . "\n";
                 } else {
-                    echo "⚠️ Cache clearing completed with {$failed} failures and {$cleared} successes.\n";
+                    echo ColorHelper::warning(sprintf('⚠️  Cache clearing completed with %d failures and %d successes.', $failed, $cleared)) . "\n";
                     return 1;
                 }
             }
 
             return 0;
         } catch (Exception $exception) {
-            echo "❌ Error clearing cache: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error clearing cache: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }

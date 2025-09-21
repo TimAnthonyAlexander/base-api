@@ -6,6 +6,7 @@ use Override;
 use BaseApi\Console\Application;
 use Exception;
 use BaseApi\Console\Command;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Database\Migrations\ModelScanner;
 use BaseApi\Database\Migrations\DatabaseIntrospector;
 use BaseApi\Database\Migrations\DiffEngine;
@@ -31,31 +32,31 @@ class MigrateGenerateCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         try {
-            echo "Scanning models...\n";
+            echo ColorHelper::info("🔍 Scanning models...") . "\n";
             
             // Scan models
             $scanner = new ModelScanner();
             $modelSchema = $scanner->scan(App::basePath('app/Models'));
             
-            echo "Introspecting database...\n";
+            echo ColorHelper::info("📋 Introspecting database...") . "\n";
             
             // Introspect database
             $introspector = new DatabaseIntrospector();
             $dbSchema = $introspector->snapshot();
             
-            echo "Generating migration plan...\n";
+            echo ColorHelper::info("🔄 Generating migration plan...") . "\n";
             
             // Generate diff
             $diffEngine = new DiffEngine();
             $plan = $diffEngine->diff($modelSchema, $dbSchema);
             
             if ($plan->isEmpty()) {
-                echo "\nNo changes detected. Database is up to date.\n";
+                echo "\n" . ColorHelper::success("✅ No changes detected. Database is up to date.") . "\n";
                 return 0;
             }
             
             // Generate SQL statements from the plan
-            echo "Converting to SQL statements...\n";
+            echo ColorHelper::info("⚙️  Converting to SQL statements...") . "\n";
             $generator = new SqlGenerator();
             $sqlStatements = $generator->generate($plan);
             
@@ -101,16 +102,16 @@ class MigrateGenerateCommand implements Command
             $this->printSummary($migrations);
             
             if ($finalCount === 0) {
-                echo "\nNo new migrations added (duplicates filtered out).\n";
+                echo "\n" . ColorHelper::comment("ℹ️  No new migrations added (duplicates filtered out).") . "\n";
             } else {
-                echo sprintf('%s%d new migrations added to: %s%s', PHP_EOL, $finalCount, $migrationsFile, PHP_EOL);
-                echo "Run 'migrate:apply' to execute pending migrations.\n";
+                echo "\n" . ColorHelper::success(sprintf('✅ %d new migrations added to: %s', $finalCount, $migrationsFile)) . "\n";
+                echo ColorHelper::info("📊 Run 'migrate:apply' to execute pending migrations.") . "\n";
             }
             
             return 0;
             
         } catch (Exception $exception) {
-            echo "Error: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
@@ -133,16 +134,17 @@ class MigrateGenerateCommand implements Command
             }
         }
         
-        echo "\nMigration Summary:\n";
-        echo "==================\n";
+        echo "\n" . ColorHelper::header("📊 Migration Summary") . "\n";
+        echo ColorHelper::colorize("==================", ColorHelper::BRIGHT_CYAN) . "\n";
         
         foreach ($counts as $operation => $count) {
-            echo ucwords(str_replace('_', ' ', $operation)) . sprintf(': %d%s', $count, PHP_EOL);
+            $displayName = ucwords(str_replace('_', ' ', $operation));
+            echo ColorHelper::info($displayName . ': ') . ColorHelper::colorize((string)$count, ColorHelper::YELLOW) . "\n";
         }
         
         if ($destructiveCount > 0) {
-            echo "\nWARNING: {$destructiveCount} destructive operations detected!\n";
-            echo "Use 'migrate:apply --safe' to skip destructive changes.\n";
+            echo "\n" . ColorHelper::warning(sprintf('⚠️  WARNING: %d destructive operations detected!', $destructiveCount)) . "\n";
+            echo ColorHelper::info("💡 Use 'migrate:apply --safe' to skip destructive changes.") . "\n";
         }
     }
 

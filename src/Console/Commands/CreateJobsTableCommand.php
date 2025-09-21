@@ -6,6 +6,7 @@ use Override;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Database\Migrations\MigrationsFile;
 use BaseApi\App;
 
@@ -39,12 +40,12 @@ class CreateJobsTableCommand implements Command
             // Add to migrations file
             MigrationsFile::appendMigrations($migrationsPath, [$migration]);
             
-            echo "Jobs table migration created successfully!\n";
-            echo "Run 'console migrate:apply' to create the jobs table.\n";
+            echo ColorHelper::success("✅ Jobs table migration created successfully!") . "\n";
+            echo ColorHelper::info("📊 Run 'console migrate:apply' to create the jobs table.") . "\n";
             
             return 0;
         } catch (Exception $exception) {
-            echo "Error creating jobs table migration: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error creating jobs table migration: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }

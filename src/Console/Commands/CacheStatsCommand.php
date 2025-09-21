@@ -6,6 +6,7 @@ use Override;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
+use BaseApi\Console\ColorHelper;
 use BaseApi\Cache\Cache;
 use BaseApi\App;
 
@@ -41,9 +42,9 @@ class CacheStatsCommand implements Command
                 $stores = $config->get('cache.stores', []);
                 $defaultDriver = $config->get('cache.default', 'array');
                 
-                echo "Cache Configuration:\n";
-                echo sprintf('Default driver: %s%s', $defaultDriver, PHP_EOL);
-                echo "Configured stores: " . implode(', ', array_keys($stores)) . "\n";
+                echo ColorHelper::header("📊 Cache Configuration") . "\n";
+                echo ColorHelper::info("Default driver: ") . ColorHelper::colorize($defaultDriver, ColorHelper::YELLOW) . "\n";
+                echo ColorHelper::info("Configured stores: ") . ColorHelper::colorize(implode(', ', array_keys($stores)), ColorHelper::YELLOW) . "\n";
                 echo "\n";
 
                 foreach (array_keys($stores) as $storeName) {
@@ -54,14 +55,14 @@ class CacheStatsCommand implements Command
 
             return 0;
         } catch (Exception $exception) {
-            echo "❌ Error getting cache stats: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("❌ Error getting cache stats: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
 
     private function showDriverStats(string $driver): void
     {
-        echo sprintf('Cache Driver: %s%s', $driver, PHP_EOL);
+        echo ColorHelper::header(sprintf('📊 Cache Driver: %s', $driver)) . "\n";
         
         try {
             $cache = Cache::manager();
@@ -71,17 +72,17 @@ class CacheStatsCommand implements Command
                 $stats = $repository->getStats();
                 
                 if (empty($stats)) {
-                    echo "  No statistics available for this driver\n";
+                    echo ColorHelper::comment("  No statistics available for this driver") . "\n";
                     return;
                 }
 
                 // Format and display stats based on driver type
                 $this->displayFormattedStats($driver, $stats);
             } else {
-                echo "  Statistics not supported for this driver\n";
+                echo ColorHelper::comment("  Statistics not supported for this driver") . "\n";
             }
         } catch (Exception $exception) {
-            echo "  Error: " . $exception->getMessage() . "\n";
+            echo ColorHelper::error("  Error: " . $exception->getMessage()) . "\n";
         }
     }
 
@@ -102,27 +103,27 @@ class CacheStatsCommand implements Command
 
     private function displayArrayStats(array $stats): void
     {
-        echo "  Type: In-Memory Array\n";
-        echo "  Total Items: " . ($stats['total_items'] ?? 0) . "\n";
-        echo "  Active Items: " . ($stats['active_items'] ?? 0) . "\n";
-        echo "  Expired Items: " . ($stats['expired_items'] ?? 0) . "\n";
-        echo "  Estimated Memory: " . $this->formatBytes($stats['estimated_memory_bytes'] ?? 0) . "\n";
+        echo ColorHelper::info("  Type: ") . ColorHelper::colorize("In-Memory Array", ColorHelper::CYAN) . "\n";
+        echo ColorHelper::info("  Total Items: ") . ColorHelper::colorize((string)($stats['total_items'] ?? 0), ColorHelper::YELLOW) . "\n";
+        echo ColorHelper::info("  Active Items: ") . ColorHelper::colorize((string)($stats['active_items'] ?? 0), ColorHelper::GREEN) . "\n";
+        echo ColorHelper::info("  Expired Items: ") . ColorHelper::colorize((string)($stats['expired_items'] ?? 0), ColorHelper::RED) . "\n";
+        echo ColorHelper::info("  Estimated Memory: ") . ColorHelper::colorize($this->formatBytes($stats['estimated_memory_bytes'] ?? 0), ColorHelper::MAGENTA) . "\n";
     }
 
     private function displayFileStats(array $stats): void
     {
-        echo "  Type: File System\n";
-        echo "  Total Files: " . ($stats['total_files'] ?? 0) . "\n";
-        echo "  Active Files: " . ($stats['active_files'] ?? 0) . "\n";
-        echo "  Expired Files: " . ($stats['expired_files'] ?? 0) . "\n";
-        echo "  Total Size: " . $this->formatBytes($stats['total_size_bytes'] ?? 0) . "\n";
+        echo ColorHelper::info("  Type: ") . ColorHelper::colorize("File System", ColorHelper::CYAN) . "\n";
+        echo ColorHelper::info("  Total Files: ") . ColorHelper::colorize((string)($stats['total_files'] ?? 0), ColorHelper::YELLOW) . "\n";
+        echo ColorHelper::info("  Active Files: ") . ColorHelper::colorize((string)($stats['active_files'] ?? 0), ColorHelper::GREEN) . "\n";
+        echo ColorHelper::info("  Expired Files: ") . ColorHelper::colorize((string)($stats['expired_files'] ?? 0), ColorHelper::RED) . "\n";
+        echo ColorHelper::info("  Total Size: ") . ColorHelper::colorize($this->formatBytes($stats['total_size_bytes'] ?? 0), ColorHelper::MAGENTA) . "\n";
     }
 
     private function displayRedisStats(array $stats): void
     {
-        echo "  Type: Redis\n";
-        echo "  Connected Clients: " . ($stats['connected_clients'] ?? 'N/A') . "\n";
-        echo "  Used Memory: " . ($stats['used_memory_human'] ?? $this->formatBytes($stats['used_memory'] ?? 0)) . "\n";
+        echo ColorHelper::info("  Type: ") . ColorHelper::colorize("Redis", ColorHelper::CYAN) . "\n";
+        echo ColorHelper::info("  Connected Clients: ") . ColorHelper::colorize((string)($stats['connected_clients'] ?? 'N/A'), ColorHelper::YELLOW) . "\n";
+        echo ColorHelper::info("  Used Memory: ") . ColorHelper::colorize($stats['used_memory_human'] ?? $this->formatBytes($stats['used_memory'] ?? 0), ColorHelper::MAGENTA) . "\n";
         
         if (isset($stats['keyspace_hits']) && isset($stats['keyspace_misses'])) {
             $hits = (int)$stats['keyspace_hits'];
@@ -130,23 +131,23 @@ class CacheStatsCommand implements Command
             $total = $hits + $misses;
             $hitRate = $total > 0 ? round(($hits / $total) * 100, 2) : 0;
             
-            echo sprintf('  Cache Hits: %s%s', $hits, PHP_EOL);
-            echo sprintf('  Cache Misses: %s%s', $misses, PHP_EOL);
-            echo "  Hit Rate: {$hitRate}%\n";
+            echo ColorHelper::info("  Cache Hits: ") . ColorHelper::colorize((string)$hits, ColorHelper::GREEN) . "\n";
+            echo ColorHelper::info("  Cache Misses: ") . ColorHelper::colorize((string)$misses, ColorHelper::RED) . "\n";
+            echo ColorHelper::info("  Hit Rate: ") . ColorHelper::colorize($hitRate . '%', $hitRate > 80 ? ColorHelper::GREEN : ($hitRate > 60 ? ColorHelper::YELLOW : ColorHelper::RED)) . "\n";
         }
         
         if (isset($stats['total_commands_processed'])) {
-            echo "  Total Commands: " . number_format($stats['total_commands_processed']) . "\n";
+            echo ColorHelper::info("  Total Commands: ") . ColorHelper::colorize(number_format($stats['total_commands_processed']), ColorHelper::YELLOW) . "\n";
         }
     }
 
     private function displayGenericStats(array $stats): void
     {
-        echo "  Type: Generic\n";
+        echo ColorHelper::info("  Type: ") . ColorHelper::colorize("Generic", ColorHelper::CYAN) . "\n";
         foreach ($stats as $key => $value) {
             $formattedKey = ucwords(str_replace(['_', '-'], ' ', $key));
             $formattedValue = is_numeric($value) ? number_format($value) : $value;
-            echo sprintf('  %s: %s%s', $formattedKey, $formattedValue, PHP_EOL);
+            echo ColorHelper::info(sprintf('  %s: ', $formattedKey)) . ColorHelper::colorize((string)$formattedValue, ColorHelper::YELLOW) . "\n";
         }
     }
 
