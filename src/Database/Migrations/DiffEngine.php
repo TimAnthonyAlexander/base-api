@@ -4,6 +4,40 @@ namespace BaseApi\Database\Migrations;
 
 class DiffEngine
 {
+    /**
+     * System tables that should never be dropped by migration generation.
+     * These are typically framework/infrastructure tables.
+     */
+    private array $systemTables = [
+        'jobs',           // Queue system jobs table
+        'migrations',     // Migration tracking table  
+        'schema_info',    // Schema version info
+        'cache',          // Cache table
+        'sessions',       // Session storage table
+    ];
+    
+    /**
+     * Add additional system table names that should be protected from dropping.
+     */
+    public function addSystemTable(string $tableName): void
+    {
+        if (!in_array($tableName, $this->systemTables, true)) {
+            $this->systemTables[] = $tableName;
+        }
+    }
+    
+    /**
+     * Add multiple system table names that should be protected from dropping.
+     * 
+     * @param string[] $tableNames
+     */
+    public function addSystemTables(array $tableNames): void
+    {
+        foreach ($tableNames as $tableName) {
+            $this->addSystemTable($tableName);
+        }
+    }
+    
     public function diff(ModelSchema $modelSchema, DatabaseSchema $dbSchema): MigrationPlan
     {
         $plan = new MigrationPlan();
@@ -13,7 +47,7 @@ class DiffEngine
         $dbTables = array_keys($dbSchema->tables);
         
         $tablesToCreate = array_diff($modelTables, $dbTables);
-        $tablesToDrop = array_diff($dbTables, $modelTables);
+        $tablesToDrop = array_diff($dbTables, array_merge($modelTables, $this->systemTables));
         $tablesToCompare = array_intersect($modelTables, $dbTables);
         
         // Create new tables

@@ -48,6 +48,13 @@ class MigrateGenerateCommand implements Command
             
             // Generate diff
             $diffEngine = new DiffEngine();
+            
+            // Add any user-defined system tables from configuration
+            $systemTables = App::config()->get('migrations.system_tables', []);
+            if (!empty($systemTables)) {
+                $diffEngine->addSystemTables($systemTables);
+            }
+            
             $plan = $diffEngine->diff($modelSchema, $dbSchema);
             
             if ($plan->isEmpty()) {
