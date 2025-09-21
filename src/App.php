@@ -9,6 +9,7 @@ use BaseApi\Auth\UserProvider;
 use BaseApi\Container\Container;
 use BaseApi\Container\ContainerInterface;
 use BaseApi\Container\CoreServiceProvider;
+use BaseApi\Queue\QueueManager;
 
 class App
 {
@@ -20,6 +21,7 @@ class App
     private static ?DB $db = null;
     private static ?UserProvider $userProvider = null;
     private static ?Profiler $profiler = null;
+    private static ?QueueManager $queue = null;
     private static bool $booted = false;
     private static ?string $basePath = null;
     private static ?ContainerInterface $container = null;
@@ -89,6 +91,8 @@ class App
         self::$db = self::$container->make(DB::class);
         self::$profiler = self::$container->make(Profiler::class);
         self::$kernel = self::$container->make(Kernel::class);
+        // Queue initialization is deferred to avoid circular dependencies
+        // self::$queue = new QueueManager(self::config('queue.default', 'sync'));
 
         self::$booted = true;
     }
@@ -165,6 +169,20 @@ class App
             self::boot();
         }
         return self::$container;
+    }
+
+    public static function queue(): QueueManager
+    {
+        if (!self::$booted) {
+            self::boot();
+        }
+        
+        // Lazy initialization to avoid circular dependencies
+        if (self::$queue === null) {
+            self::$queue = new QueueManager(self::config('queue.default', 'sync'));
+        }
+        
+        return self::$queue;
     }
 
     public static function registerProvider($provider): void

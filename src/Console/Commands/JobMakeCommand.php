@@ -1,0 +1,120 @@
+<?php
+
+namespace BaseApi\Console\Commands;
+
+use BaseApi\Console\Command;
+use BaseApi\Console\Application;
+use BaseApi\App;
+
+class JobMakeCommand implements Command
+{
+    public function name(): string
+    {
+        return 'make:job';
+    }
+
+    public function description(): string
+    {
+        return 'Create a new job class';
+    }
+
+    public function execute(array $args, ?Application $app = null): int
+    {
+        if (empty($args)) {
+            echo "Error: Job name is required\n";
+            echo "Usage: console make:job JobName\n";
+            return 1;
+        }
+        
+        $basePath = $app?->basePath() ?? getcwd();
+        App::boot($basePath);
+        
+        $name = $args[0];
+        
+        // Validate job name
+        if (!preg_match('/^[A-Z][a-zA-Z0-9]*Job$/', $name)) {
+            echo "Error: Job name must start with uppercase letter and end with 'Job'\n";
+            echo "Example: SendEmailJob, ProcessImageJob\n";
+            return 1;
+        }
+        
+        try {
+            $this->generateJobClass($basePath, $name);
+            echo "Job {$name} created successfully at app/Jobs/{$name}.php\n";
+            return 0;
+        } catch (\Exception $e) {
+            echo "Error creating job: " . $e->getMessage() . "\n";
+            return 1;
+        }
+    }
+    
+    private function generateJobClass(string $basePath, string $name): void
+    {
+        $jobsDir = $basePath . '/app/Jobs';
+        
+        // Create Jobs directory if it doesn't exist
+        if (!is_dir($jobsDir)) {
+            if (!mkdir($jobsDir, 0755, true)) {
+                throw new \Exception("Could not create Jobs directory");
+            }
+        }
+        
+        $filePath = $jobsDir . '/' . $name . '.php';
+        
+        if (file_exists($filePath)) {
+            throw new \Exception("Job class {$name} already exists");
+        }
+        
+        $template = $this->getJobTemplate($name);
+        
+        if (file_put_contents($filePath, $template) === false) {
+            throw new \Exception("Could not write job file");
+        }
+    }
+    
+    private function getJobTemplate(string $name): string
+    {
+        return <<<PHP
+<?php
+
+namespace App\Jobs;
+
+use BaseApi\Queue\Job;
+
+class {$name} extends Job
+{
+    protected int \$maxRetries = 3;
+    protected int \$retryDelay = 30; // seconds
+    
+    public function __construct(
+        // Add your job parameters here
+    ) {
+        // Initialize job data
+    }
+    
+    public function handle(): void
+    {
+        // Implement your job logic here
+        // This method will be called when the job is processed
+        
+        // Example:
+        // \$this->processData();
+        // \$this->sendNotification();
+    }
+    
+    public function failed(\Throwable \$exception): void
+    {
+        // Handle job failure (optional)
+        // This method is called when the job fails permanently
+        
+        parent::failed(\$exception);
+        
+        // Add custom failure handling:
+        // - Send notification to administrators
+        // - Log to external service
+        // - Clean up resources
+    }
+}
+PHP;
+    }
+}

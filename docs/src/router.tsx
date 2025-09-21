@@ -14,6 +14,13 @@ const ModelsOrm = lazy(() => import('./pages/Architecture/ModelsOrm'));
 const Migrations = lazy(() => import('./pages/Architecture/Migrations'));
 const Validation = lazy(() => import('./pages/Architecture/Validation'));
 const FileStorage = lazy(() => import('./pages/Architecture/FileStorage'));
+
+// Queue System
+const QueueOverview = lazy(() => import('./pages/Queue/Overview'));
+const QueueCreatingJobs = lazy(() => import('./pages/Queue/CreatingJobs'));
+const QueueProcessingJobs = lazy(() => import('./pages/Queue/ProcessingJobs'));
+const QueueConfiguration = lazy(() => import('./pages/Queue/Configuration'));
+
 const DatabaseDrivers = lazy(() => import('./pages/Database/Drivers'));
 const ConfigurationEnv = lazy(() => import('./pages/Configuration/Env'));
 const ConfigurationCaching = lazy(() => import('./pages/Configuration/Caching'));
@@ -54,6 +61,12 @@ const router = createBrowserRouter([
       { path: 'architecture/migrations', element: <Migrations /> },
       { path: 'architecture/validation', element: <Validation /> },
       { path: 'architecture/file-storage', element: <FileStorage /> },
+      
+      // Queue System
+      { path: 'queue/overview', element: <QueueOverview /> },
+      { path: 'queue/creating-jobs', element: <QueueCreatingJobs /> },
+      { path: 'queue/processing-jobs', element: <QueueProcessingJobs /> },
+      { path: 'queue/configuration', element: <QueueConfiguration /> },
       
       // Database
       { path: 'database/drivers', element: <DatabaseDrivers /> },

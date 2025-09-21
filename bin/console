@@ -58,6 +58,11 @@ use BaseApi\Console\Commands\I18nAddLangCommand;
 use BaseApi\Console\Commands\I18nFillCommand;
 use BaseApi\Console\Commands\I18nLintCommand;
 use BaseApi\Console\Commands\I18nHashCommand;
+use BaseApi\Console\Commands\QueueWorkCommand;
+use BaseApi\Console\Commands\QueueStatusCommand;
+use BaseApi\Console\Commands\JobMakeCommand;
+use BaseApi\Console\Commands\QueueRetryCommand;
+use BaseApi\Console\Commands\CreateJobsTableCommand;
 
 // Load environment if available
 $envPath = $baseAppPath . '/.env';
@@ -82,6 +87,13 @@ $app->register('i18n:add-lang', new I18nAddLangCommand());
 $app->register('i18n:fill', new I18nFillCommand());
 $app->register('i18n:lint', new I18nLintCommand());
 $app->register('i18n:hash', new I18nHashCommand());
+
+// Queue commands
+$app->register('queue:work', new QueueWorkCommand());
+$app->register('queue:status', new QueueStatusCommand());
+$app->register('queue:retry', new QueueRetryCommand());
+$app->register('queue:install', new CreateJobsTableCommand());
+$app->register('make:job', new JobMakeCommand());
 
 // Run the application
 exit($app->run($argv));

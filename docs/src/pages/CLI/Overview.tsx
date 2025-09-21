@@ -335,6 +335,61 @@ php bin/console types:generate --openapi --typescript`} />
                 </Table>
             </TableContainer>
 
+            {/* Queue Commands */}
+            <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+                Queue Commands
+            </Typography>
+
+            <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+                <Table>
+                    <TableHead>
+                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                            <TableCell><strong>Command</strong></TableCell>
+                            <TableCell><strong>Description</strong></TableCell>
+                            <TableCell><strong>Examples</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell><code>queue:work</code></TableCell>
+                            <TableCell>Process jobs in the queue</TableCell>
+                            <TableCell>
+                                <code>php bin/console queue:work</code><br />
+                                <code>php bin/console queue:work --queue=emails --sleep=3</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>queue:status</code></TableCell>
+                            <TableCell>Display queue status and statistics</TableCell>
+                            <TableCell>
+                                <code>php bin/console queue:status</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>queue:retry</code></TableCell>
+                            <TableCell>Retry failed jobs by ID</TableCell>
+                            <TableCell>
+                                <code>php bin/console queue:retry --id=job_uuid</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>queue:install</code></TableCell>
+                            <TableCell>Create the jobs table migration</TableCell>
+                            <TableCell>
+                                <code>php bin/console queue:install</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>make:job</code></TableCell>
+                            <TableCell>Generate a new job class</TableCell>
+                            <TableCell>
+                                <code>php bin/console make:job SendEmailJob</code>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
             {/* System Commands */}
             <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
                 System Commands
