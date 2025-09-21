@@ -14,14 +14,13 @@ export default function Caching() {
             </Typography>
 
             <Typography>
-                BaseAPI includes a powerful unified caching system that supports multiple drivers,
-                tagged cache invalidation, and automatic model query caching. Proper caching configuration
-                can dramatically improve your API's performance.
+                BaseAPI includes a unified caching system that supports multiple drivers and HTTP 
+                response caching. Proper caching configuration can dramatically improve your API's performance.
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                BaseAPI's caching system provides 10x+ performance improvements for database queries
-                and can cache HTTP responses, computed values, and more.
+                BaseAPI's caching system can cache HTTP responses, computed values, and provides
+                significant performance improvements for frequently accessed data.
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -47,10 +46,6 @@ CACHE_DEFAULT_TTL=3600
 
 # File cache path (defaults to storage/cache)
 CACHE_PATH=
-
-# Enable query result caching for models
-CACHE_QUERIES=true
-CACHE_QUERY_TTL=300
 
 # Enable HTTP response caching middleware
 CACHE_RESPONSES=true
@@ -117,7 +112,6 @@ REDIS_CACHE_DB=1`} />
 
             <CodeBlock language="bash" code={`# .env for development
 CACHE_DRIVER=array
-CACHE_QUERIES=true
 CACHE_RESPONSES=false  # Usually disabled in development`} />
 
             <List>
@@ -152,7 +146,6 @@ CACHE_RESPONSES=false  # Usually disabled in development`} />
             <CodeBlock language="bash" code={`# .env for single server deployment
 CACHE_DRIVER=file
 CACHE_PATH=storage/cache  # Optional custom path
-CACHE_QUERIES=true
 CACHE_RESPONSES=true`} />
 
             <List>
@@ -195,7 +188,6 @@ REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
 REDIS_PASSWORD=your_redis_password
 REDIS_CACHE_DB=1
-CACHE_QUERIES=true
 CACHE_RESPONSES=true`} />
 
             <List>
@@ -219,40 +211,6 @@ CACHE_RESPONSES=true`} />
                 </ListItem>
             </List>
 
-            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-                Query Caching Configuration
-            </Typography>
-
-            <Typography>
-                Automatically cache database query results to reduce database load:
-            </Typography>
-
-            <CodeBlock language="bash" code={`# Enable query caching
-CACHE_QUERIES=true
-CACHE_QUERY_TTL=300  # 5 minutes default TTL for queries
-
-# Disable for development if you want fresh data
-CACHE_QUERIES=false`} />
-
-            <Typography>
-                Query caching works automatically with BaseAPI models:
-            </Typography>
-
-            <CodeBlock language="php" code={`<?php
-
-// This query result will be cached for 5 minutes (CACHE_QUERY_TTL)
-$users = User::where('active', '=', true)->cache()->get();
-
-// Custom TTL for specific queries
-$products = Product::where('featured', '=', true)->cache(600)->get();
-
-// Cache with tags for easy invalidation
-$posts = Post::where('published', '=', true)
-    ->cacheWithTags(['posts', 'published'], 900)
-    ->get();
-
-// Use convenience method with auto-tagging
-$cachedUsers = User::cached(300)->where('active', '=', true)->get();`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Response Caching Configuration
@@ -313,25 +271,6 @@ $router->get('/api/user/{id}', [
 ./mason cache:cleanup
 ./mason cache:cleanup file`} />
 
-            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-                Tagged Cache Configuration
-            </Typography>
-
-            <Typography>
-                Tags allow you to group cache entries for bulk invalidation:
-            </Typography>
-
-            <CodeBlock language="php" code={`<?php
-
-// Store data with tags
-Cache::tags(['users', 'profiles'])->put('user.profile.123', $data, 3600);
-
-// Invalidate all entries with specific tags
-Cache::tags(['users'])->flush(); // Clears all user-related cache
-
-// Model cache is automatically tagged
-$user = User::find($id); // Automatically tagged with 'model:users'
-$user->save(); // Automatically invalidates related cache`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Performance Tuning
@@ -347,7 +286,6 @@ $user->save(); // Automatically invalidates related cache`} />
 
             <CodeBlock language="bash" code={`# Development - minimal caching for fresh data
 CACHE_DRIVER=array
-CACHE_QUERIES=false
 CACHE_RESPONSES=false
 CACHE_DEFAULT_TTL=60`} />
 
@@ -357,8 +295,6 @@ CACHE_DEFAULT_TTL=60`} />
 
             <CodeBlock language="bash" code={`# Production - aggressive caching for performance
 CACHE_DRIVER=redis
-CACHE_QUERIES=true
-CACHE_QUERY_TTL=900        # 15 minutes for queries
 CACHE_RESPONSES=true
 CACHE_RESPONSE_TTL=1800    # 30 minutes for responses
 CACHE_DEFAULT_TTL=3600     # 1 hour default`} />
@@ -369,8 +305,6 @@ CACHE_DEFAULT_TTL=3600     # 1 hour default`} />
 
             <CodeBlock language="bash" code={`# High-traffic - maximum caching
 CACHE_DRIVER=redis
-CACHE_QUERIES=true
-CACHE_QUERY_TTL=3600       # 1 hour for queries
 CACHE_RESPONSES=true
 CACHE_RESPONSE_TTL=7200    # 2 hours for responses
 CACHE_DEFAULT_TTL=14400    # 4 hours default
@@ -411,7 +345,7 @@ REDIS_CACHE_DB=2           # Dedicated database for cache`} />
                 <ListItem>
                     <ListItemText
                         primary="Performance Not Improved"
-                        secondary="Profile your queries and ensure caching is applied to expensive operations"
+                        secondary="Profile your application and ensure response caching is applied to expensive operations"
                     />
                 </ListItem>
             </List>
@@ -419,9 +353,8 @@ REDIS_CACHE_DB=2           # Dedicated database for cache`} />
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Best Practices:</strong>
                 <br />• Use Redis for production deployments
-                <br />• Enable query caching for database-heavy operations
+                <br />• Enable response caching for frequently accessed endpoints
                 <br />• Set appropriate TTL values based on data volatility
-                <br />• Use tags for logical cache grouping
                 <br />• Monitor cache hit rates and adjust strategies
                 <br />• Clear cache after deployments
             </Alert>

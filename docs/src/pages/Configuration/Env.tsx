@@ -54,12 +54,6 @@ const corsEnvVars = [
         default: 'http://localhost:5173,http://127.0.0.1:5173',
         description: 'Comma-separated list of allowed origins for API access',
     },
-    {
-        key: 'CORS_MAX_AGE',
-        default: '86400',
-        description: 'Maximum age for CORS preflight cache in seconds',
-        type: 'number' as const,
-    },
 ];
 
 const databaseEnvVars = [
@@ -116,18 +110,6 @@ const cacheEnvVars = [
     {
         key: 'CACHE_PATH',
         description: 'File cache path (defaults to storage/cache)',
-    },
-    {
-        key: 'CACHE_QUERIES',
-        default: 'false',
-        description: 'Enable query result caching for models',
-        type: 'boolean' as const,
-    },
-    {
-        key: 'CACHE_QUERY_TTL',
-        default: '300',
-        description: 'Default TTL for query cache in seconds',
-        type: 'number' as const,
     },
     {
         key: 'CACHE_RESPONSES',
@@ -192,7 +174,6 @@ APP_PORT=7879
 
 # Comma-separated list of allowed origins for API access
 CORS_ALLOWLIST=http://localhost:5173,http://127.0.0.1:5173
-CORS_MAX_AGE=86400
 
 
 ########################################
@@ -217,7 +198,13 @@ CACHE_DRIVER=file
 CACHE_PREFIX=baseapi_cache
 
 # Default cache TTL in seconds (3600 = 1 hour)
-CACHE_DEFAULT_TTL=3600`;
+CACHE_DEFAULT_TTL=3600
+
+# Enable HTTP response caching middleware  
+CACHE_RESPONSES=false
+
+# Default TTL for response cache in seconds
+CACHE_RESPONSE_TTL=600`;
 
 export default function Env() {
     return (
@@ -304,7 +291,7 @@ export default function Env() {
 
                     <Callout type="info">
                         <Typography>
-                            <strong>MySQL (Default):</strong> Requires <code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, and <code>DB_PASSWORD</code>. For SQLite, only <code>DB_DRIVER=sqlite</code> and <code>DB_NAME</code> (file path) are needed.
+                            <strong>MySQL/PostgreSQL:</strong> Requires <code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, and <code>DB_PASSWORD</code>. For SQLite, only <code>DB_DRIVER=sqlite</code> and <code>DB_NAME</code> (file path) are needed.
                         </Typography>
                     </Callout>
                 </AccordionDetails>
@@ -318,13 +305,13 @@ export default function Env() {
                 </AccordionSummary>
                 <AccordionDetails>
                     <Typography color="text.secondary">
-                        Unified caching system settings. Supports multiple drivers and automatic query/response caching.
+                        Unified caching system settings. Supports multiple drivers and HTTP response caching.
                     </Typography>
                     <EnvTable envVars={cacheEnvVars} />
 
                     <Callout type="tip">
                         <Typography>
-                            <strong>Performance Boost:</strong> Enable <code>CACHE_QUERIES=true</code> for automatic model query caching, which can improve performance by 10x or more.
+                            <strong>Performance Boost:</strong> Enable <code>CACHE_RESPONSES=true</code> for HTTP response caching to improve performance for API endpoints.
                         </Typography>
                     </Callout>
                 </AccordionDetails>
@@ -381,8 +368,8 @@ APP_URL=https://api.yourapp.com
 # Use Redis for better performance
 CACHE_DRIVER=redis
 
-# Enable query caching for performance
-CACHE_QUERIES=true
+# Enable response caching for performance
+CACHE_RESPONSES=true
 
 # Use a production database
 DB_DRIVER=mysql
