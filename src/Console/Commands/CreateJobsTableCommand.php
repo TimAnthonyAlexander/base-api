@@ -41,7 +41,7 @@ class CreateJobsTableCommand implements Command
             MigrationsFile::appendMigrations($migrationsPath, [$migration]);
 
             echo ColorHelper::success("Jobs table migration created successfully!") . "\n";
-            echo ColorHelper::info("📊 Run 'console migrate:apply' to create the jobs table.") . "\n";
+            echo ColorHelper::info("📊 Run 'console migrate:apply' to create the jobs table and performance indexes.") . "\n";
 
             return 0;
         } catch (Exception $exception) {
@@ -64,7 +64,12 @@ class CreateJobsTableCommand implements Command
     completed_at DATETIME,
     failed_at DATETIME,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-)";
+);
+
+-- Create essential indexes for queue performance
+CREATE INDEX jobs_queue_status_run_at_index ON jobs (queue, status, run_at);
+CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);
+CREATE INDEX jobs_status_index ON jobs (status);";
 
         // Return the table creation migration
         $migration = [
@@ -74,7 +79,7 @@ class CreateJobsTableCommand implements Command
             'generated_at' => date('c'),
             'table' => 'jobs',
             'operation' => 'create_table',
-            'description' => 'Create jobs table for queue system'
+            'description' => 'Create jobs table and indexes for queue system'
         ];
 
         return $migration;

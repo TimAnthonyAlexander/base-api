@@ -529,18 +529,72 @@ sudo systemctl restart supervisor`} />
             </Typography>
 
             <Typography>
-                Optimize database performance for queue operations:
+                BaseAPI automatically creates essential database indexes when you run <code>queue:install</code>. 
+                These indexes are critical for queue performance and are automatically included:
             </Typography>
 
             <CodeBlock language="sql" code={`-- These indexes are automatically created by queue:install
 CREATE INDEX jobs_queue_status_run_at_index ON jobs (queue, status, run_at);
 CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);
+CREATE INDEX jobs_status_index ON jobs (status);`} />
 
--- Monitor job table growth
+            <Typography>
+                Each index serves a specific performance purpose:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="jobs_queue_status_run_at_index (queue, status, run_at)"
+                        secondary="Critical for worker polling - enables fast job lookup by queue type, status, and schedule time"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="jobs_status_run_at_index (status, run_at)"
+                        secondary="Optimizes cross-queue operations and queue size calculations"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="jobs_status_index (status)"
+                        secondary="Accelerates status reporting and monitoring queries used by queue:status"
+                    />
+                </ListItem>
+            </List>
+
+            <Typography>
+                Monitor and maintain your jobs table:
+            </Typography>
+
+            <CodeBlock language="sql" code={`-- Monitor job table growth and status distribution
 SELECT status, COUNT(*) as count FROM jobs GROUP BY status;
 
+-- Check for jobs that might be stuck in processing
+SELECT COUNT(*) FROM jobs WHERE status = 'processing' AND started_at < datetime('now', '-1 hour');
+
 -- Clean up old completed jobs (manual cleanup example)
-DELETE FROM jobs WHERE status = 'completed' AND completed_at < DATE_SUB(NOW(), INTERVAL 7 DAY);`} />
+DELETE FROM jobs WHERE status = 'completed' AND completed_at < datetime('now', '-7 days');
+
+-- Monitor index usage (SQLite specific)
+EXPLAIN QUERY PLAN SELECT * FROM jobs WHERE queue = 'default' AND status = 'pending' AND run_at <= datetime('now');`} />
+
+            <Alert severity="warning" sx={{ mt: 3 }}>
+                <strong>Existing Installations:</strong> If you installed the queue system before these indexes 
+                were automatically created, you should manually add them to your existing jobs table for optimal performance:
+                <br /><br />
+                <code>
+                    CREATE INDEX IF NOT EXISTS jobs_queue_status_run_at_index ON jobs (queue, status, run_at);<br />
+                    CREATE INDEX IF NOT EXISTS jobs_status_run_at_index ON jobs (status, run_at);<br />
+                    CREATE INDEX IF NOT EXISTS jobs_status_index ON jobs (status);
+                </code>
+            </Alert>
+
+            <Callout type="info" title="Performance Impact">
+                These indexes provide dramatic performance improvements. Without them, worker polling queries 
+                become exponentially slower as your jobs table grows. A jobs table with 100,000+ records 
+                can slow from milliseconds to seconds per query without proper indexing.
+            </Callout>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Debugging Workers
