@@ -4,16 +4,19 @@ namespace BaseApi\Tests;
 
 use PHPUnit\Framework\TestCase;
 use BaseApi\Cache\Stores\FileStore;
+use BaseApi\Time\FrozenClock;
 
 class FileStoreTest extends TestCase
 {
     private string $tempDir;
     private FileStore $store;
+    private FrozenClock $clock;
 
     protected function setUp(): void
     {
         $this->tempDir = sys_get_temp_dir() . '/baseapi-test-' . uniqid();
-        $this->store = new FileStore($this->tempDir, 'test', 0755);
+        $this->clock = new FrozenClock();
+        $this->store = new FileStore($this->tempDir, 'test', 0755, $this->clock);
     }
 
     protected function tearDown(): void
@@ -62,8 +65,8 @@ class FileStoreTest extends TestCase
         $result = $this->store->get($key);
         $this->assertEquals($value, $result);
 
-        // Wait for expiration
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         $result = $this->store->get($key);
         $this->assertNull($result);
     }

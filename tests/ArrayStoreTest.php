@@ -4,32 +4,35 @@ namespace BaseApi\Tests;
 
 use PHPUnit\Framework\TestCase;
 use BaseApi\Cache\Stores\ArrayStore;
+use BaseApi\Time\FrozenClock;
 
 class ArrayStoreTest extends TestCase
 {
     private ArrayStore $store;
+    private FrozenClock $clock;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->store = new ArrayStore();
+        $this->clock = new FrozenClock();
+        $this->store = new ArrayStore('', $this->clock);
     }
 
     public function testConstructorSetsPrefix(): void
     {
-        $store = new ArrayStore('test_prefix');
+        $store = new ArrayStore('test_prefix', $this->clock);
         $this->assertEquals('test_prefix', $store->getPrefix());
     }
 
     public function testConstructorWithEmptyPrefix(): void
     {
-        $store = new ArrayStore('');
+        $store = new ArrayStore('', $this->clock);
         $this->assertEquals('', $store->getPrefix());
     }
 
     public function testConstructorWithoutPrefix(): void
     {
-        $store = new ArrayStore();
+        $store = new ArrayStore('', $this->clock);
         $this->assertEquals('', $store->getPrefix());
     }
 
@@ -74,8 +77,8 @@ class ArrayStoreTest extends TestCase
         // Should exist immediately
         $this->assertEquals('expiring_value', $this->store->get('expiring_key'));
         
-        // Wait for expiration (simulate by moving time forward)
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         
         // Should be expired now
         $this->assertNull($this->store->get('expiring_key'));
@@ -86,8 +89,8 @@ class ArrayStoreTest extends TestCase
         $this->store->put('zero_ttl', 'value', 0);
         
         // With TTL of 0, the item expires at current time
-        // Sleep briefly to ensure we're past the expiration time
-        sleep(1); // 1 second should be enough to guarantee expiration
+        // Advance clock briefly to ensure we're past the expiration time
+        $this->clock->advance(1);
         $this->assertNull($this->store->get('zero_ttl'));
     }
 
@@ -155,8 +158,8 @@ class ArrayStoreTest extends TestCase
         // Should exist initially
         $this->assertTrue($this->store->has('expiring_key'));
         
-        // Wait for expiration
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         
         // Should be expired
         $this->assertFalse($this->store->has('expiring_key'));
@@ -210,15 +213,15 @@ class ArrayStoreTest extends TestCase
         $prefixedKey = $prefixedKeyMethod->invoke($this->store, 'counter_with_ttl');
         
         $this->assertNotNull($storage[$prefixedKey]['expires_at']);
-        $this->assertGreaterThan(time() + 3500, $storage[$prefixedKey]['expires_at']); // Should be close to original TTL
+        $this->assertGreaterThan($this->clock->now() + 3500, $storage[$prefixedKey]['expires_at']); // Should be close to original TTL
     }
 
     public function testIncrementWithExpiredKey(): void
     {
         $this->store->put('expired_counter', 5, 1);
         
-        // Wait for expiration
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         
         // Should treat expired key as non-existent
         $result = $this->store->increment('expired_counter', 10);
@@ -294,8 +297,8 @@ class ArrayStoreTest extends TestCase
         $this->store->put('expired1', 'value', 1);
         $this->store->put('expired2', 'value', 1);
         
-        // Wait for items to expire
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         
         $stats = $this->store->getStats();
         
@@ -323,8 +326,8 @@ class ArrayStoreTest extends TestCase
         $this->store->put('expired1', 'expired_value1', 1);
         $this->store->put('expired2', 'expired_value2', 1);
         
-        // Wait for items to expire
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         
         $removed = $this->store->cleanup();
         
@@ -343,7 +346,7 @@ class ArrayStoreTest extends TestCase
 
     public function testPrefixedKeyWithPrefix(): void
     {
-        $store = new ArrayStore('test_prefix');
+        $store = new ArrayStore('test_prefix', $this->clock);
         $store->put('key', 'value', null);
         
         // Verify the key is stored with prefix
@@ -372,8 +375,8 @@ class ArrayStoreTest extends TestCase
 
     public function testMultipleStoresWithDifferentPrefixes(): void
     {
-        $store1 = new ArrayStore('prefix1');
-        $store2 = new ArrayStore('prefix2');
+        $store1 = new ArrayStore('prefix1', $this->clock);
+        $store2 = new ArrayStore('prefix2', $this->clock);
         
         $store1->put('same_key', 'value1', null);
         $store2->put('same_key', 'value2', null);
@@ -389,8 +392,8 @@ class ArrayStoreTest extends TestCase
         // Verify it's stored
         $this->assertEquals('value', $this->store->get('expiring'));
         
-        // Wait for expiration
-        sleep(2);
+        // Advance clock past expiration
+        $this->clock->advance(2);
         
         // Access expired item (should remove it)
         $this->assertNull($this->store->get('expiring'));
@@ -421,8 +424,8 @@ class ArrayStoreTest extends TestCase
         $this->store->put('key', 'value2', 1);
         $this->assertEquals('value2', $this->store->get('key'));
         
-        // Wait for new TTL to expire
-        sleep(2);
+        // Advance clock past new TTL expiration
+        $this->clock->advance(2);
         $this->assertNull($this->store->get('key'));
     }
 

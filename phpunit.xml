@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         colors="true"
-         executionOrder="depends,defects"
-         processIsolation="false"
-         stopOnError="false"
-         stopOnFailure="false"
-         stopOnIncomplete="false"
-         stopOnSkipped="false"
-         stopOnRisky="false"
-         testdox="true"
-         cacheDirectory=".phpunit.cache"
-         backupGlobals="false">
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    executionOrder="depends,defects"
+    processIsolation="false"
+    stopOnError="false"
+    stopOnFailure="false"
+    stopOnIncomplete="false"
+    stopOnSkipped="false"
+    stopOnRisky="false"
+    testdox="false"
+    cacheDirectory=".phpunit.cache"
+    backupGlobals="false">
     <testsuites>
         <testsuite name="BaseApi Test Suite">
             <directory suffix="Test.php">./tests</directory>
@@ -28,4 +28,11 @@
         <teamcity outputFile="build/logs/teamcity.txt"/>
         <testdoxText outputFile="build/logs/testdox.txt"/>
     </logging>
+    <extensions>
+        <bootstrap class="Ergebnis\PHPUnit\SlowTestDetector\Extension">
+            <parameter name="threshold" value="200"/>     <!-- ms: show tests >= 200ms -->
+            <parameter name="limit" value="20"/>          <!-- show top N slow tests -->
+            <parameter name="always_report" value="true"/> <!-- print every run -->
+        </bootstrap>
+    </extensions>
 </phpunit>

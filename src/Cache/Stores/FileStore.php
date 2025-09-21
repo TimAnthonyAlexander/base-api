@@ -2,6 +2,9 @@
 
 namespace BaseApi\Cache\Stores;
 
+use BaseApi\Time\ClockInterface;
+use BaseApi\Time\SystemClock;
+
 /**
  * File-based cache store.
  * 
@@ -13,12 +16,14 @@ class FileStore implements StoreInterface
     private string $directory;
     private string $prefix;
     private int $permissions;
+    private ClockInterface $clock;
 
-    public function __construct(string $directory, string $prefix = '', int $permissions = 0755)
+    public function __construct(string $directory, string $prefix = '', int $permissions = 0755, ?ClockInterface $clock = null)
     {
         $this->directory = $directory;
         $this->prefix = $prefix;
         $this->permissions = $permissions;
+        $this->clock = $clock ?? new SystemClock();
 
         $this->ensureDirectoryExists();
     }
@@ -44,7 +49,7 @@ class FileStore implements StoreInterface
         }
 
         // Check if expired
-        if ($data['expires_at'] !== null && $data['expires_at'] < time()) {
+        if ($data['expires_at'] !== null && $data['expires_at'] < $this->clock->now()) {
             @unlink($filePath);
             return null;
         }
@@ -55,12 +60,13 @@ class FileStore implements StoreInterface
     public function put(string $key, mixed $value, ?int $seconds): void
     {
         $filePath = $this->getFilePath($key);
-        $expiresAt = $seconds ? time() + $seconds : null;
+        $now = $this->clock->now();
+        $expiresAt = $seconds ? $now + $seconds : null;
 
         $data = [
             'value' => $value,
             'expires_at' => $expiresAt,
-            'created_at' => time(),
+            'created_at' => $now,
         ];
 
         $serialized = serialize($data);
@@ -129,7 +135,7 @@ class FileStore implements StoreInterface
             if ($contents !== false) {
                 $data = unserialize($contents);
                 if ($data !== false && $data['expires_at'] !== null) {
-                    $ttl = max(0, $data['expires_at'] - time());
+                    $ttl = max(0, $data['expires_at'] - $this->clock->now());
                 }
             }
         }
@@ -161,7 +167,7 @@ class FileStore implements StoreInterface
         }
 
         $removed = 0;
-        $now = time();
+        $now = $this->clock->now();
 
         foreach ($files as $file) {
             $contents = @file_get_contents($file);
@@ -207,7 +213,7 @@ class FileStore implements StoreInterface
         $totalFiles = count($files);
         $expiredFiles = 0;
         $totalSize = 0;
-        $now = time();
+        $now = $this->clock->now();
 
         foreach ($files as $file) {
             $totalSize += filesize($file);

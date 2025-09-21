@@ -2,6 +2,9 @@
 
 namespace BaseApi\Cache\Stores;
 
+use BaseApi\Time\ClockInterface;
+use BaseApi\Time\SystemClock;
+
 /**
  * In-memory array cache store.
  * 
@@ -12,10 +15,12 @@ class ArrayStore implements StoreInterface
 {
     private array $storage = [];
     private string $prefix;
+    private ClockInterface $clock;
 
-    public function __construct(string $prefix = '')
+    public function __construct(string $prefix = '', ?ClockInterface $clock = null)
     {
         $this->prefix = $prefix;
+        $this->clock = $clock ?? new SystemClock();
     }
 
     public function get(string $key): mixed
@@ -29,7 +34,7 @@ class ArrayStore implements StoreInterface
         $item = $this->storage[$prefixedKey];
         
         // Check if expired
-        if ($item['expires_at'] !== null && $item['expires_at'] < time()) {
+        if ($item['expires_at'] !== null && $item['expires_at'] < $this->clock->now()) {
             unset($this->storage[$prefixedKey]);
             return null;
         }
@@ -40,7 +45,7 @@ class ArrayStore implements StoreInterface
     public function put(string $key, mixed $value, ?int $seconds): void
     {
         $prefixedKey = $this->prefixedKey($key);
-        $expiresAt = $seconds !== null ? time() + $seconds : null;
+        $expiresAt = $seconds !== null ? $this->clock->now() + $seconds : null;
 
         $this->storage[$prefixedKey] = [
             'value' => $value,
@@ -81,7 +86,7 @@ class ArrayStore implements StoreInterface
         $ttl = null;
         if (isset($this->storage[$prefixedKey])) {
             $expiresAt = $this->storage[$prefixedKey]['expires_at'];
-            $ttl = $expiresAt ? max(0, $expiresAt - time()) : null;
+            $ttl = $expiresAt ? max(0, $expiresAt - $this->clock->now()) : null;
         }
         
         $this->put($key, $new, $ttl);
@@ -108,7 +113,7 @@ class ArrayStore implements StoreInterface
         $memoryUsage = 0;
 
         foreach ($this->storage as $item) {
-            if ($item['expires_at'] !== null && $item['expires_at'] < time()) {
+            if ($item['expires_at'] !== null && $item['expires_at'] < $this->clock->now()) {
                 $expiredItems++;
             }
             // Rough memory estimation
@@ -129,7 +134,7 @@ class ArrayStore implements StoreInterface
     public function cleanup(): int
     {
         $removed = 0;
-        $now = time();
+        $now = $this->clock->now();
 
         foreach ($this->storage as $key => $item) {
             if ($item['expires_at'] !== null && $item['expires_at'] < $now) {
