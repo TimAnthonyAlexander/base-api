@@ -11,53 +11,6 @@ const queueEnvVars = [
         type: 'enum' as const,
         options: ['sync', 'database'],
     },
-    {
-        key: 'QUEUE_DB_CONNECTION',
-        default: 'default',
-        description: 'Database connection for database queue driver',
-    },
-    {
-        key: 'QUEUE_WORKER_SLEEP',
-        default: '3',
-        description: 'Seconds to sleep when no jobs are available',
-        type: 'number' as const,
-    },
-    {
-        key: 'QUEUE_WORKER_MAX_JOBS',
-        default: '1000',
-        description: 'Maximum jobs to process before worker restart',
-        type: 'number' as const,
-    },
-    {
-        key: 'QUEUE_WORKER_MAX_TIME',
-        default: '3600',
-        description: 'Maximum seconds before worker restart',
-        type: 'number' as const,
-    },
-    {
-        key: 'QUEUE_WORKER_MEMORY',
-        default: '128',
-        description: 'Memory limit in MB before worker restart',
-        type: 'number' as const,
-    },
-    {
-        key: 'QUEUE_WORKER_TIMEOUT',
-        default: '60',
-        description: 'Job execution timeout in seconds (planned feature)',
-        type: 'number' as const,
-    },
-    {
-        key: 'QUEUE_FAILED_RETENTION',
-        default: '30',
-        description: 'Days to retain failed jobs before cleanup',
-        type: 'number' as const,
-    },
-    {
-        key: 'QUEUE_FAILED_CLEANUP',
-        default: 'true',
-        description: 'Enable automatic cleanup of old failed jobs',
-        type: 'boolean' as const,
-    },
 ];
 
 export default function QueueConfiguration() {
@@ -188,7 +141,7 @@ return [
 
     'queue' => [
         // Default queue driver
-        'default' => env('QUEUE_DRIVER', 'sync'),
+        'default' => $_ENV['QUEUE_DRIVER'] ?? 'sync',
 
         // Driver configurations
         'drivers' => [
@@ -199,23 +152,7 @@ return [
             'database' => [
                 'driver' => 'database',
                 'table' => 'jobs',
-                'connection' => env('QUEUE_DB_CONNECTION', 'default'),
             ],
-        ],
-
-        // Worker configuration
-        'worker' => [
-            'sleep' => env('QUEUE_WORKER_SLEEP', 3),
-            'max_jobs' => env('QUEUE_WORKER_MAX_JOBS', 1000),
-            'max_time' => env('QUEUE_WORKER_MAX_TIME', 3600),
-            'memory_limit' => env('QUEUE_WORKER_MEMORY', 128),
-            'timeout' => env('QUEUE_WORKER_TIMEOUT', 60), // Planned feature
-        ],
-
-        // Failed job handling
-        'failed' => [
-            'retention_days' => env('QUEUE_FAILED_RETENTION', 30),
-            'cleanup_enabled' => env('QUEUE_FAILED_CLEANUP', true),
         ],
     ],
 ];`} />
@@ -230,19 +167,7 @@ return [
 
             <CodeBlock language="bash" code={`# .env.local - Development
 QUEUE_DRIVER=sync
-# No worker settings needed - jobs execute immediately
-# Worker settings are ignored when using sync driver`} />
-
-            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
-                Staging Settings
-            </Typography>
-
-            <CodeBlock language="bash" code={`# .env.staging - Staging
-QUEUE_DRIVER=database
-QUEUE_WORKER_SLEEP=5
-QUEUE_WORKER_MAX_JOBS=100
-QUEUE_WORKER_MEMORY=64
-QUEUE_FAILED_RETENTION=7`} />
+# Jobs execute immediately - no background processing needed`} />
 
             <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
                 Production Settings
@@ -250,13 +175,7 @@ QUEUE_FAILED_RETENTION=7`} />
 
             <CodeBlock language="bash" code={`# .env.production - Production
 QUEUE_DRIVER=database
-QUEUE_WORKER_SLEEP=3
-QUEUE_WORKER_MAX_JOBS=1000
-QUEUE_WORKER_MAX_TIME=3600
-QUEUE_WORKER_MEMORY=128
-QUEUE_WORKER_TIMEOUT=60
-QUEUE_FAILED_RETENTION=30
-QUEUE_FAILED_CLEANUP=true`} />
+# Worker settings are configured via command-line options when running workers`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Database Schema
@@ -290,14 +209,14 @@ CREATE INDEX jobs_status_index ON jobs (status);`} />
             </Typography>
 
             <Typography>
-                Optimize worker performance for your deployment:
+                Configure worker performance using command-line options when running <code>./mason queue:work</code>:
             </Typography>
 
             <TableContainer component={Paper} sx={{ my: 3 }}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell><strong>Setting</strong></TableCell>
+                            <TableCell><strong>Option</strong></TableCell>
                             <TableCell><strong>Low Traffic</strong></TableCell>
                             <TableCell><strong>Medium Traffic</strong></TableCell>
                             <TableCell><strong>High Traffic</strong></TableCell>
@@ -305,28 +224,28 @@ CREATE INDEX jobs_status_index ON jobs (status);`} />
                     </TableHead>
                     <TableBody>
                         <TableRow>
-                            <TableCell><code>QUEUE_WORKER_SLEEP</code></TableCell>
+                            <TableCell><code>--sleep</code></TableCell>
                             <TableCell>5-10 seconds</TableCell>
                             <TableCell>3-5 seconds</TableCell>
                             <TableCell>1-2 seconds</TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell><code>QUEUE_WORKER_MAX_JOBS</code></TableCell>
+                            <TableCell><code>--max-jobs</code></TableCell>
                             <TableCell>100-500</TableCell>
                             <TableCell>500-1000</TableCell>
                             <TableCell>1000-2000</TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell><code>QUEUE_WORKER_MEMORY</code></TableCell>
+                            <TableCell><code>--memory</code></TableCell>
                             <TableCell>64-128 MB</TableCell>
                             <TableCell>128-256 MB</TableCell>
                             <TableCell>256-512 MB</TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell><code>QUEUE_WORKER_TIMEOUT</code></TableCell>
-                            <TableCell>60-120 seconds</TableCell>
-                            <TableCell>60-300 seconds</TableCell>
-                            <TableCell>300-600 seconds</TableCell>
+                            <TableCell><code>--max-time</code></TableCell>
+                            <TableCell>1800-3600 seconds</TableCell>
+                            <TableCell>3600-7200 seconds</TableCell>
+                            <TableCell>3600-14400 seconds</TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell>Number of Workers</TableCell>
@@ -339,25 +258,21 @@ CREATE INDEX jobs_status_index ON jobs (status);`} />
             </TableContainer>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-                Monitoring Configuration
+                Worker Command Usage
             </Typography>
 
             <Typography>
-                Configure logging and monitoring for queue operations:
+                Start a queue worker with custom options:
             </Typography>
 
-            <CodeBlock language="php" code={`<?php
+            <CodeBlock language="bash" code={`# Basic worker
+./mason queue:work
 
-// In config/app.php - extend logging configuration
-'logging' => [
-    'channels' => [
-        'queue' => [
-            'driver' => 'file',
-            'path' => storage_path('logs/queue.log'),
-            'level' => 'info',
-        ],
-    ],
-],`} />
+# Worker with custom settings
+./mason queue:work --queue=emails --sleep=5 --max-jobs=500 --memory=256
+
+# High-performance worker
+./mason queue:work --sleep=1 --max-jobs=2000 --max-time=7200 --memory=512`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Security Considerations
@@ -408,25 +323,19 @@ CREATE INDEX jobs_status_index ON jobs (status);`} />
                 <ListItem>
                     <ListItemText
                         primary="High Memory Usage"
-                        secondary="Reduce QUEUE_WORKER_MEMORY or QUEUE_WORKER_MAX_JOBS settings"
+                        secondary="Reduce --memory or --max-jobs options when starting workers"
                     />
                 </ListItem>
                 <ListItem>
                     <ListItemText
-                        primary="Jobs Timing Out"
-                        secondary="Increase QUEUE_WORKER_MAX_TIME or optimize job logic"
+                        primary="Workers Running Too Long"
+                        secondary="Use --max-time option to automatically restart workers"
                     />
                 </ListItem>
                 <ListItem>
                     <ListItemText
                         primary="Database Lock Contention"
-                        secondary="Reduce number of workers or increase QUEUE_WORKER_SLEEP"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemText
-                        primary="Configuration Options Not Working"
-                        secondary="Some options like QUEUE_WORKER_TIMEOUT are planned but not yet implemented"
+                        secondary="Reduce number of workers or increase --sleep interval"
                     />
                 </ListItem>
             </List>
@@ -444,13 +353,13 @@ CREATE INDEX jobs_status_index ON jobs (status);`} />
                 Validate your queue configuration:
             </Typography>
 
-            <CodeBlock language="bash" code={`# Test queue installation
+            <CodeBlock language="bash" code={`# Install queue tables
 ./mason queue:install
 
-# Check database migration
+# Apply database migration
 ./mason migrate:apply
 
-# Verify worker configuration
+# Test worker (process 1 job then stop)
 ./mason queue:work --max-jobs=1
 
 # Check queue status
@@ -460,17 +369,15 @@ CREATE INDEX jobs_status_index ON jobs (status);`} />
                 <strong>Configuration Best Practices:</strong>
                 <br />• Use <code>sync</code> driver for development and testing (default)
                 <br />• Use <code>database</code> driver for production deployments
-                <br />• Set timeout values appropriate for your longest-running jobs
-                <br />• Set memory and time limits appropriate for your server resources
-                <br />• Monitor worker performance and adjust settings accordingly
-                <br />• Use environment-specific configuration files
-                <br />• Test configuration changes in staging first
+                <br />• Configure worker options via command-line for your server resources
+                <br />• Monitor worker performance and adjust command-line options accordingly
+                <br />• Test configuration in staging before production deployment
                 <br />• Essential database indexes are created automatically by <code>queue:install</code>
             </Alert>
 
-            <Callout type="tip" title="Framework Configuration">
-                BaseAPI's queue system includes sensible defaults in the framework configuration.
-                You only need to override settings that differ from the defaults in your application config.
+            <Callout type="tip" title="Simple Configuration">
+                BaseAPI's queue system has minimal configuration - just set QUEUE_DRIVER to 'sync' or 'database'.
+                Worker performance is controlled through command-line options for maximum flexibility.
             </Callout>
         </Box>
     );

@@ -3,9 +3,11 @@
 /**
  * BaseAPI Queue Configuration
  * 
- * This configuration defines queue drivers and worker settings for background
- * job processing. The queue system allows asynchronous processing of tasks
- * like email sending, image processing, and API calls.
+ * This configuration defines queue drivers for background job processing.
+ * The queue system allows asynchronous processing of tasks like email
+ * sending, image processing, and API calls.
+ * 
+ * Worker settings are configured via command-line options when running workers.
  */
 
 return [
@@ -38,65 +40,7 @@ return [
         'database' => [
             'driver' => 'database',
             'table' => 'jobs',
-            'connection' => $_ENV['QUEUE_DB_CONNECTION'] ?? 'default',
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Worker Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Default settings for queue workers. These can be overridden using
-    | command-line options when running workers.
-    |
-    */
-    'worker' => [
-        // Default sleep time in seconds between queue checks
-        'sleep' => $_ENV['QUEUE_WORKER_SLEEP'] ?? 3,
-
-        // Maximum number of jobs to process before restarting worker
-        'max_jobs' => $_ENV['QUEUE_WORKER_MAX_JOBS'] ?? 1000,
-
-        // Maximum time in seconds before restarting worker
-        'max_time' => $_ENV['QUEUE_WORKER_MAX_TIME'] ?? 3600,
-
-        // Memory limit in MB before restarting worker
-        'memory_limit' => $_ENV['QUEUE_WORKER_MEMORY'] ?? 128,
-
-        // Default timeout for job execution in seconds
-        'timeout' => $_ENV['QUEUE_WORKER_TIMEOUT'] ?? 60,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Failed Job Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Settings for handling failed jobs, including retention and cleanup.
-    |
-    */
-    'failed' => [
-        // Number of days to retain failed jobs before cleanup
-        'retention_days' => $_ENV['QUEUE_FAILED_RETENTION'] ?? 30,
-
-        // Whether to enable automatic cleanup of old failed jobs
-        'cleanup_enabled' => $_ENV['QUEUE_FAILED_CLEANUP'] ?? true,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Batch Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Settings for job batching (future enhancement).
-    |
-    */
-    'batches' => [
-        // Table to store batch information
-        'table' => 'job_batches',
-
-        // Default batch timeout in seconds
-        'timeout' => 3600,
-    ],
 ];
