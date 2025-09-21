@@ -1,10 +1,11 @@
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import {
     Box,
     CssBaseline,
     ThemeProvider,
     useMediaQuery,
+    useTheme,
     CircularProgress,
 } from '@mui/material';
 import { createAppTheme } from '../theme';
@@ -13,6 +14,31 @@ import AppDrawer from './AppDrawer';
 import ScrollToTop from '../components/ScrollToTop';
 
 const DRAWER_WIDTH = 280;
+
+function useSyncThemeColorWithStatusBar() {
+  const theme = useTheme();
+
+  useEffect(() => {
+    const color =
+      theme.palette.mode === 'dark'
+        ? theme.palette.background.default || '#000000'
+        : theme.palette.background.default || '#ffffff';
+
+    let tag = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (!tag) {
+      tag = document.createElement('meta');
+      tag.name = 'theme-color';
+      document.head.appendChild(tag);
+    }
+    tag.content = color;
+    document.body.style.backgroundColor = color; // avoids flash behind the bar
+  }, [theme.palette.mode, theme.palette.background.default]);
+}
+
+function ThemeColorSyncProvider() {
+  useSyncThemeColorWithStatusBar();
+  return null;
+}
 
 export default function RootLayout() {
     const [darkMode, setDarkMode] = useState(() => {
@@ -38,6 +64,7 @@ export default function RootLayout() {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <ScrollToTop />
+            <ThemeColorSyncProvider />
             <Box sx={{ display: 'flex', minHeight: '100vh' }}>
                 <AppHeader
                     drawerWidth={DRAWER_WIDTH}
