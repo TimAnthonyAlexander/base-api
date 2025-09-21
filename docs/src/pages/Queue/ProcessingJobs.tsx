@@ -27,6 +27,12 @@ export default function ProcessingJobs() {
                 monitoring capabilities.
             </Typography>
 
+            <Callout type="info" title="Available Queue Commands">
+                BaseAPI provides the following queue commands: <code>queue:work</code> (process jobs), 
+                <code>queue:status</code> (view queue statistics), <code>queue:retry</code> (retry failed jobs), 
+                and <code>queue:install</code> (create jobs table).
+            </Callout>
+
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Starting Workers
             </Typography>
@@ -35,7 +41,7 @@ export default function ProcessingJobs() {
                 Use the <code>queue:work</code> command to start processing jobs:
             </Typography>
 
-            <CodeBlock language="bash" code={`# Basic worker - processes default queue
+            <CodeBlock language="bash" code={`# Basic worker - processes default queue (sleeps 3s when no jobs)
 ./mason queue:work`} />
 
             <CodeBlock language="bash" code={`# Process specific queue
@@ -191,10 +197,28 @@ kill -INT <worker_pid>`} />
             </Typography>
 
             <CodeBlock language="bash" code={`# Retry specific failed job by ID
-./mason queue:retry --id=job_uuid_here`} />
+./mason queue:retry --id=job_uuid_here
 
-            <CodeBlock language="bash" code={`# View failed jobs (would require additional implementation)
-./mason queue:failed`} />
+# Retry all failed jobs (interactive)
+./mason queue:retry`} />
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Viewing Failed Jobs
+            </Typography>
+
+            <Typography>
+                Use queue:status to see job statistics, or query the database directly for detailed failed job information:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# View overall queue statistics (includes failed job count)
+./mason queue:status`} />
+
+            <CodeBlock language="sql" code={`-- Query failed jobs directly from database
+SELECT id, queue, error, failed_at, attempts 
+FROM jobs 
+WHERE status = 'failed' 
+ORDER BY failed_at DESC 
+LIMIT 10;`} />
 
             <Typography>
                 Jobs are automatically retried based on their configuration:
@@ -223,7 +247,7 @@ class RetryableJob extends Job
         error_log("Job permanently failed: " . $exception->getMessage());
         
         // Send notification to administrators
-        dispatch(new NotifyAdminsJob('Job Failed', $exception->getMessage()));
+        dispatch_later(new NotifyAdminsJob('Job Failed', $exception->getMessage()))->dispatch();
     }
 }`} />
 
@@ -335,11 +359,11 @@ DELETE FROM jobs WHERE status = 'completed' AND completed_at < DATE_SUB(NOW(), I
                 Common debugging techniques for queue workers:
             </Typography>
 
-            <CodeBlock language="bash" code={`# Run worker with verbose output
-./mason queue:work -v
-
-# Test job processing manually
+            <CodeBlock language="bash" code={`# Test job processing manually (single job)
 ./mason queue:work --max-jobs=1
+
+# Process with shorter sleep for testing
+./mason queue:work --sleep=1
 
 # Check worker logs
 tail -f storage/logs/worker.log
@@ -359,7 +383,10 @@ watch "ps aux | grep queue:work"`} />
             <CodeBlock language="bash" code={`# Check queue status regularly
 watch -n 30 "./mason queue:status"
 
-# Monitor failed jobs
+# Monitor worker output and job processing
+tail -f storage/logs/worker.log
+
+# Monitor application logs for job failures
 tail -f storage/logs/baseapi.log | grep "Job failed"
 
 # System monitoring
