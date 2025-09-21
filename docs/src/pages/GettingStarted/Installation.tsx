@@ -19,6 +19,7 @@ import {
 import { Link } from 'react-router-dom';
 import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
+import ReactMarkdown from 'react-markdown';
 
 const requirements = [
     'PHP 8.4 or higher',
@@ -36,25 +37,24 @@ php --version
 
 # Check Composer installation
 composer --version`,
+        extraContent: 'Composer can be installed by following the instructions on [Composer Official Website](https://getcomposer.org/download/).',
     },
     {
         label: 'Create New Project',
         content: 'Use Composer to create a new BaseAPI project from the template.',
-        code: `composer create-project baseapi/baseapi-template my-api
-cd my-api`,
+        code: `composer create-project baseapi/baseapi-template my-api`,
+        extraContent: 'Replace `my-api` with your desired project directory name. This will create a new folder with all necessary files. \n Source: [BaseAPI Template REPO](https://github.com/timanthonyalexander/base-api-template)',
     },
     {
         label: 'Configure Environment',
         content: 'The .env file is automatically created from .env.example during installation.',
-        code: `# View your configuration
-cat .env
-
-# The default configuration uses SQLite and is ready to go!`,
+        extraContent: 'You can optionally customize this file if you want to change database settings, default port, or other configurations. Uses SQLite per default.',
     },
     {
         label: 'Start Development Server',
         content: 'Launch the built-in development server to test your installation.',
         code: `php bin/console serve`,
+        extraContent: 'All built-in BaseAPI commands are run via the `php bin/console` command.',
     },
     {
         label: 'Test Installation',
@@ -91,14 +91,6 @@ export default function Installation() {
                 </List>
             </Box>
 
-            <Callout type="tip">
-                <Typography>
-                    <strong>First time with PHP?</strong> Check out our{' '}
-                    <Link to="/troubleshooting/common-errors">troubleshooting guide</Link>{' '}
-                    for help setting up your PHP development environment.
-                </Typography>
-            </Callout>
-
             {/* Installation Steps */}
             <Box sx={{ mb: 4 }}>
                 <Typography variant="h2" gutterBottom>
@@ -123,6 +115,18 @@ export default function Installation() {
                                         code={step.code}
                                     />
                                 )}
+                                {step.extraContent !== undefined &&
+                                    <Typography color="text.secondary"
+                                        sx={{
+                                            whiteSpace: 'pre-wrap',
+                                        }}
+                                    >
+                                        <ReactMarkdown
+                                        >
+                                            {step.extraContent}
+                                        </ReactMarkdown>
+                                    </Typography>
+                                }
                             </StepContent>
                         </Step>
                     ))}
@@ -131,42 +135,13 @@ export default function Installation() {
 
             <Callout type="success">
                 <Typography>
-                    <strong>Installation complete!</strong> Your API is now running at{' '}
-                    <code>http://localhost:7879</code>. The health endpoint should return a success response.
+                    <strong>Installation complete!</strong> Your API is now running at{' '} <code>http://localhost:7879</code>.<br />
+                    The health endpoint should return a success response.
                 </Typography>
             </Callout>
 
-            {/* What's Included */}
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h2" gutterBottom>
-                    What's Included
-                </Typography>
-
-                <Typography>
-                    The BaseAPI template comes with everything you need to start building:
-                </Typography>
-
-                <List>
-                    {[
-                        'User model with authentication endpoints',
-                        'Basic controllers (Login, Signup, Me, Health, Logout)',
-                        'Database configuration (SQLite by default)',
-                        'CORS and security middleware',
-                        'Rate limiting configuration',
-                        'Logging setup',
-                    ].map((item, index) => (
-                        <ListItem key={index} disableGutters>
-                            <ListItemIcon>
-                                <CheckIcon color="primary" />
-                            </ListItemIcon>
-                            <ListItemText primary={item} />
-                        </ListItem>
-                    ))}
-                </List>
-            </Box>
-
             {/* Next Steps */}
-            <Box sx={{ mb: 4 }}>
+            <Box sx={{ my: 4 }}>
                 <Typography variant="h2" gutterBottom>
                     Next Steps
                 </Typography>

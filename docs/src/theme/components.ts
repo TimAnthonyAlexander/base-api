@@ -31,11 +31,190 @@ export const components: Components<Theme> = {
   },
   MuiButton: {
     styleOverrides: {
-      root: {
+      root: ({ theme, ownerState }) => ({
         textTransform: 'none',
         borderRadius: 8,
         fontWeight: 500,
-      },
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        position: 'relative',
+        overflow: 'hidden',
+        
+        // Contained button styles
+        ...(ownerState.variant === 'contained' && {
+          background: theme.palette.mode === 'dark' 
+            ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
+            : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 2px 8px rgba(33, 150, 243, 0.2)'
+            : '0 2px 8px rgba(33, 150, 243, 0.15)',
+          color: '#ffffff',
+          
+          '&:hover': {
+            background: theme.palette.mode === 'dark'
+              ? `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 4px 16px rgba(33, 150, 243, 0.3)'
+              : '0 4px 16px rgba(33, 150, 243, 0.25)',
+            transform: 'translateY(-1px)',
+            color: '#ffffff',
+          },
+          
+          '&:focus': {
+            boxShadow: theme.palette.mode === 'dark'
+              ? `0 0 0 3px rgba(33, 150, 243, 0.4), 0 4px 16px rgba(33, 150, 243, 0.3)`
+              : `0 0 0 3px rgba(33, 150, 243, 0.3), 0 4px 16px rgba(33, 150, 243, 0.25)`,
+            color: '#ffffff',
+          },
+          
+          '&:active': {
+            transform: 'translateY(0)',
+            color: '#ffffff',
+          },
+        }),
+        
+        // Outlined button styles
+        ...(ownerState.variant === 'outlined' && {
+          borderColor: theme.palette.primary.main,
+          color: theme.palette.primary.main,
+          background: 'transparent',
+          
+          '&:hover': {
+            background: theme.palette.mode === 'dark'
+              ? `linear-gradient(135deg, rgba(33, 150, 243, 0.08) 0%, rgba(33, 150, 243, 0.12) 100%)`
+              : `linear-gradient(135deg, rgba(33, 150, 243, 0.04) 0%, rgba(33, 150, 243, 0.08) 100%)`,
+            borderColor: theme.palette.primary.light,
+            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 2px 8px rgba(33, 150, 243, 0.2)'
+              : '0 2px 8px rgba(33, 150, 243, 0.1)',
+            transform: 'translateY(-1px)',
+          },
+          
+          '&:focus': {
+            borderColor: theme.palette.primary.main,
+            boxShadow: theme.palette.mode === 'dark'
+              ? `0 0 0 3px rgba(33, 150, 243, 0.3)`
+              : `0 0 0 3px rgba(33, 150, 243, 0.2)`,
+            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+          },
+          
+          '&:active': {
+            transform: 'translateY(0)',
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(33, 150, 243, 0.12)'
+              : 'rgba(33, 150, 243, 0.08)',
+          },
+        }),
+        
+        // Text button styles
+        ...(ownerState.variant === 'text' && {
+          color: theme.palette.primary.main,
+          background: 'transparent',
+          
+          '&:hover': {
+            background: theme.palette.mode === 'dark'
+              ? `linear-gradient(135deg, rgba(33, 150, 243, 0.04) 0%, rgba(33, 150, 243, 0.08) 100%)`
+              : `linear-gradient(135deg, rgba(33, 150, 243, 0.02) 0%, rgba(33, 150, 243, 0.06) 100%)`,
+            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+            transform: 'translateY(-1px)',
+          },
+          
+          '&:focus': {
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(33, 150, 243, 0.08)'
+              : 'rgba(33, 150, 243, 0.04)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? `0 0 0 3px rgba(33, 150, 243, 0.2)`
+              : `0 0 0 3px rgba(33, 150, 243, 0.15)`,
+            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+          },
+          
+          '&:active': {
+            transform: 'translateY(0)',
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(33, 150, 243, 0.12)'
+              : 'rgba(33, 150, 243, 0.08)',
+          },
+        }),
+      }),
+    },
+  },
+  MuiChip: {
+    styleOverrides: {
+      root: ({ theme, ownerState }) => ({
+        borderRadius: 16,
+        fontWeight: 500,
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        
+        // Outlined chip styles
+        ...(ownerState.variant === 'outlined' && {
+          borderColor: theme.palette.primary.main,
+          color: theme.palette.primary.main,
+          backgroundColor: 'transparent',
+          
+          '&:hover': {
+            backgroundColor: theme.palette.mode === 'dark'
+              ? 'rgba(33, 150, 243, 0.08)'
+              : 'rgba(33, 150, 243, 0.04)',
+            borderColor: theme.palette.primary.light,
+            color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+            transform: 'translateY(-1px)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 2px 8px rgba(33, 150, 243, 0.15)'
+              : '0 2px 8px rgba(33, 150, 243, 0.1)',
+          },
+        }),
+        
+        // Filled chip styles
+        ...(ownerState.variant === 'filled' && {
+          backgroundColor: theme.palette.primary.main,
+          color: '#ffffff',
+          
+          '&:hover': {
+            backgroundColor: theme.palette.primary.dark,
+            color: '#ffffff',
+            transform: 'translateY(-1px)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 2px 8px rgba(33, 150, 243, 0.2)'
+              : '0 2px 8px rgba(33, 150, 243, 0.15)',
+          },
+        }),
+      }),
+    },
+  },
+  MuiIconButton: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        borderRadius: 8,
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        
+        '&:hover': {
+          backgroundColor: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.08)'
+            : 'rgba(0, 0, 0, 0.04)',
+          transform: 'translateY(-1px)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+            : '0 2px 8px rgba(0, 0, 0, 0.1)',
+        },
+        
+        '&:focus': {
+          backgroundColor: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.12)'
+            : 'rgba(0, 0, 0, 0.08)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 0 0 3px rgba(255, 255, 255, 0.2)'
+            : '0 0 0 3px rgba(0, 0, 0, 0.1)',
+        },
+        
+        '&:active': {
+          transform: 'translateY(0)',
+          backgroundColor: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.16)'
+            : 'rgba(0, 0, 0, 0.12)',
+        },
+      }),
     },
   },
   MuiPaper: {
