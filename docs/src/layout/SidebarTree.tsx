@@ -10,10 +10,95 @@ import {
 import {
   ExpandLess,
   ExpandMore,
-  Home as HomeIcon,
+  Home,
+  RocketLaunch,
+  Download,
+  Api,
+  Folder,
+  AccountTree,
+  Visibility,
+  Route,
+  SettingsInputComponent,
+  DataObject,
+  SyncAlt,
+  Verified,
+  CloudUpload,
+  Queue,
+  AddTask,
+  PlayArrow,
+  Tune,
+  Storage,
+  Power,
+  Settings,
+  Nature,
+  Cached,
+  Rocket,
+  Hub,
+  Inventory2,
+  Terminal,
+  Build,
+  BugReport,
+  Language,
+  Security,
+  MenuBook,
+  LibraryBooks,
+  Public,
+  HelpOutline,
+  Error,
+  Quiz,
+  People,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { NAV, type NavNode } from '../data/nav';
+
+// Icon mapping for dynamic icon rendering
+const iconMap = {
+  home: Home,
+  rocket_launch: RocketLaunch,
+  download: Download,
+  api: Api,
+  folder: Folder,
+  architecture: AccountTree,
+  visibility: Visibility,
+  route: Route,
+  settings_input_component: SettingsInputComponent,
+  schema: DataObject,
+  sync_alt: SyncAlt,
+  verified: Verified,
+  cloud_upload: CloudUpload,
+  queue: Queue,
+  add_task: AddTask,
+  play_arrow: PlayArrow,
+  tune: Tune,
+  storage: Storage,
+  power: Power,
+  settings: Settings,
+  eco: Nature,
+  cached: Cached,
+  rocket: Rocket,
+  hub: Hub,
+  inventory_2: Inventory2,
+  terminal: Terminal,
+  build: Build,
+  bug_report: BugReport,
+  language: Language,
+  security: Security,
+  menu_book: MenuBook,
+  library_books: LibraryBooks,
+  http: Public,
+  help_outline: HelpOutline,
+  error: Error,
+  quiz: Quiz,
+  people: People,
+};
+
+// Function to render icon dynamically
+function renderIcon(iconName?: string) {
+  if (!iconName) return null;
+  const IconComponent = iconMap[iconName as keyof typeof iconMap];
+  if (!IconComponent) return null;
+  return <IconComponent sx={{ mr: 1, fontSize: 18 }} />;
+}
 
 interface SidebarTreeProps {
   onItemClick?: () => void;
@@ -68,7 +153,7 @@ function TreeItem({ node, level, onItemClick }: TreeItemProps) {
           },
         }}
       >
-        {node.icon === 'home' && <HomeIcon sx={{ mr: 1, fontSize: 18 }} />}
+        {renderIcon(node.icon)}
         <ListItemText
           primary={node.title}
           primaryTypographyProps={{
@@ -93,6 +178,7 @@ function TreeItem({ node, level, onItemClick }: TreeItemProps) {
           backgroundColor: hasActiveChild ? 'action.selected' : 'transparent',
         }}
       >
+        {renderIcon(node.icon)}
         <ListItemText
           primary={
             <Typography

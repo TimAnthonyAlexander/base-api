@@ -46,7 +46,7 @@ class UserController extends Controller
     // Dependencies are automatically injected
     public function __construct(
         private EmailService $emailService,
-        private UserService $userService
+        private UserService $userService,
     ) {}
     
     public string $email = '';
