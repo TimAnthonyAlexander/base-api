@@ -24,6 +24,8 @@ class QueryBuilder
 
     private array $joins = [];
 
+    private bool $forUpdate = false;
+
     public function __construct(private Connection $connection)
     {
     }
@@ -39,6 +41,7 @@ class QueryBuilder
         $this->offsetCount = null;
         $this->joins = [];
         $this->bindings = [];
+        $this->forUpdate = false;
         return $this;
     }
 
@@ -335,6 +338,12 @@ class QueryBuilder
     public function offset(int $count): self
     {
         $this->offsetCount = max(0, $count);
+        return $this;
+    }
+
+    public function lockForUpdate(): self
+    {
+        $this->forUpdate = true;
         return $this;
     }
 
@@ -708,6 +717,10 @@ class QueryBuilder
 
         if ($this->offsetCount !== null) {
             $sql .= ' OFFSET ' . $this->offsetCount;
+        }
+
+        if ($this->forUpdate) {
+            $sql .= ' FOR UPDATE';
         }
 
         return $sql;
