@@ -1,6 +1,5 @@
 import { Box, Typography, Paper, Alert } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
-import Admonition from '../../components/Admonition';
 
 export default function FileStorage() {
     return (
