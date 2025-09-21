@@ -203,7 +203,7 @@ export default function FirstApi() {
 
                         <CodeBlock
                             language="bash"
-                            code="php bin/console make:model Product"
+                            code="php mason make:model Product"
                             title="Generate Product model"
                         />
 
@@ -244,10 +244,10 @@ export default function FirstApi() {
                         <CodeBlock
                             language="bash"
                             code={`# Generate migrations from your model changes
-php bin/console migrate:generate
+php mason migrate:generate
 
 # Apply the migrations to your database
-php bin/console migrate:apply`}
+php mason migrate:apply`}
                         />
 
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
@@ -273,7 +273,7 @@ php bin/console migrate:apply`}
 
                         <CodeBlock
                             language="bash"
-                            code="php bin/console make:controller ProductController"
+                            code="php mason make:controller ProductController"
                             title="Generate ProductController"
                         />
 

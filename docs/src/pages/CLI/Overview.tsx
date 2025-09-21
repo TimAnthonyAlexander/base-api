@@ -19,7 +19,7 @@ export default function CLIOverview() {
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                All CLI commands are accessed through <code>php bin/console</code> and include helpful
+                All CLI commands are accessed through <code>php mason</code> and include helpful
                 documentation and examples built-in.
             </Alert>
 
@@ -32,13 +32,13 @@ export default function CLIOverview() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Show all available commands
-php bin/console
+php mason
 
 # Get help for a specific command
-php bin/console migrate:generate --help
+php mason migrate:generate --help
 
 # Get version information
-php bin/console --version`} />
+php mason --version`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Development Workflow
@@ -49,22 +49,22 @@ php bin/console --version`} />
             </Typography>
 
             <CodeBlock language="bash" code={`# 1. Start development server
-php bin/console serve
+php mason serve
 
 # 2. Create a new model
-php bin/console make:model Product
+php mason make:model Product
 
 # 3. Create a controller
-php bin/console make:controller ProductController
+php mason make:controller ProductController
 
 # 4. Generate migrations from models
-php bin/console migrate:generate
+php mason migrate:generate
 
 # 5. Apply migrations to database
-php bin/console migrate:apply
+php mason migrate:apply
 
 # 6. Generate API documentation
-php bin/console types:generate --openapi --typescript`} />
+php mason types:generate --openapi --typescript`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Complete Command Reference
@@ -93,32 +93,32 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>serve</code></TableCell>
                             <TableCell>Start the development server</TableCell>
                             <TableCell>
-                                <code>php bin/console serve</code><br />
-                                <code>php bin/console serve --host=0.0.0.0 --port=8080</code>
+                                <code>php mason serve</code><br />
+                                <code>php mason serve --host=0.0.0.0 --port=8080</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>make:controller</code></TableCell>
                             <TableCell>Generate a new controller class</TableCell>
                             <TableCell>
-                                <code>php bin/console make:controller UserController</code><br />
-                                <code>php bin/console make:controller Admin/UserController</code>
+                                <code>php mason make:controller UserController</code><br />
+                                <code>php mason make:controller Admin/UserController</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>make:model</code></TableCell>
                             <TableCell>Generate a new model class</TableCell>
                             <TableCell>
-                                <code>php bin/console make:model User</code><br />
-                                <code>php bin/console make:model Product --with-controller</code>
+                                <code>php mason make:model User</code><br />
+                                <code>php mason make:model Product --with-controller</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>make:service</code></TableCell>
                             <TableCell>Generate a new service class</TableCell>
                             <TableCell>
-                                <code>php bin/console make:service EmailService</code><br />
-                                <code>php bin/console make:service Payment/StripeService</code>
+                                <code>php mason make:service EmailService</code><br />
+                                <code>php mason make:service Payment/StripeService</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -144,32 +144,32 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>migrate:generate</code></TableCell>
                             <TableCell>Generate migrations from model definitions</TableCell>
                             <TableCell>
-                                <code>php bin/console migrate:generate</code><br />
-                                <code>php bin/console migrate:generate --dry-run</code>
+                                <code>php mason migrate:generate</code><br />
+                                <code>php mason migrate:generate --dry-run</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>migrate:apply</code></TableCell>
                             <TableCell>Apply pending migrations to database</TableCell>
                             <TableCell>
-                                <code>php bin/console migrate:apply</code><br />
-                                <code>php bin/console migrate:apply --force</code>
+                                <code>php mason migrate:apply</code><br />
+                                <code>php mason migrate:apply --force</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>migrate:rollback</code></TableCell>
                             <TableCell>Rollback the last migration batch</TableCell>
                             <TableCell>
-                                <code>php bin/console migrate:rollback</code><br />
-                                <code>php bin/console migrate:rollback --steps=3</code>
+                                <code>php mason migrate:rollback</code><br />
+                                <code>php mason migrate:rollback --steps=3</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>db:seed</code></TableCell>
                             <TableCell>Seed database with test data</TableCell>
                             <TableCell>
-                                <code>php bin/console db:seed</code><br />
-                                <code>php bin/console db:seed --class=UserSeeder</code>
+                                <code>php mason db:seed</code><br />
+                                <code>php mason db:seed --class=UserSeeder</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -195,33 +195,33 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>cache:clear</code></TableCell>
                             <TableCell>Clear all or specific cache entries</TableCell>
                             <TableCell>
-                                <code>php bin/console cache:clear</code><br />
-                                <code>php bin/console cache:clear --driver=redis</code><br />
-                                <code>php bin/console cache:clear --tags=users,products</code>
+                                <code>php mason cache:clear</code><br />
+                                <code>php mason cache:clear --driver=redis</code><br />
+                                <code>php mason cache:clear --tags=users,products</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>cache:stats</code></TableCell>
                             <TableCell>Display cache statistics and hit rates</TableCell>
                             <TableCell>
-                                <code>php bin/console cache:stats</code><br />
-                                <code>php bin/console cache:stats --driver=file</code>
+                                <code>php mason cache:stats</code><br />
+                                <code>php mason cache:stats --driver=file</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>cache:cleanup</code></TableCell>
                             <TableCell>Remove expired cache entries</TableCell>
                             <TableCell>
-                                <code>php bin/console cache:cleanup</code><br />
-                                <code>php bin/console cache:cleanup --force</code>
+                                <code>php mason cache:cleanup</code><br />
+                                <code>php mason cache:cleanup --force</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>cache:warm</code></TableCell>
                             <TableCell>Warm up cache with essential data</TableCell>
                             <TableCell>
-                                <code>php bin/console cache:warm</code><br />
-                                <code>php bin/console cache:warm --routes --config</code>
+                                <code>php mason cache:warm</code><br />
+                                <code>php mason cache:warm --routes --config</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -247,26 +247,26 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>types:generate</code></TableCell>
                             <TableCell>Generate OpenAPI specs and TypeScript types</TableCell>
                             <TableCell>
-                                <code>php bin/console types:generate</code><br />
-                                <code>php bin/console types:generate --openapi --typescript</code><br />
-                                <code>php bin/console types:generate --output=dist/</code>
+                                <code>php mason types:generate</code><br />
+                                <code>php mason types:generate --openapi --typescript</code><br />
+                                <code>php mason types:generate --output=dist/</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>docs:generate</code></TableCell>
                             <TableCell>Generate API documentation from annotations</TableCell>
                             <TableCell>
-                                <code>php bin/console docs:generate</code><br />
-                                <code>php bin/console docs:generate --format=html</code>
+                                <code>php mason docs:generate</code><br />
+                                <code>php mason docs:generate --format=html</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>routes:list</code></TableCell>
                             <TableCell>List all registered routes</TableCell>
                             <TableCell>
-                                <code>php bin/console routes:list</code><br />
-                                <code>php bin/console routes:list --method=GET</code><br />
-                                <code>php bin/console routes:list --filter=user</code>
+                                <code>php mason routes:list</code><br />
+                                <code>php mason routes:list --method=GET</code><br />
+                                <code>php mason routes:list --filter=user</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -292,43 +292,43 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>i18n:scan</code></TableCell>
                             <TableCell>Scan codebase for translation tokens</TableCell>
                             <TableCell>
-                                <code>php bin/console i18n:scan</code><br />
-                                <code>php bin/console i18n:scan --update</code><br />
-                                <code>php bin/console i18n:scan --path=app/Controllers</code>
+                                <code>php mason i18n:scan</code><br />
+                                <code>php mason i18n:scan --update</code><br />
+                                <code>php mason i18n:scan --path=app/Controllers</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>i18n:add-lang</code></TableCell>
                             <TableCell>Add a new language to the project</TableCell>
                             <TableCell>
-                                <code>php bin/console i18n:add-lang fr</code><br />
-                                <code>php bin/console i18n:add-lang de --copy-from=en</code>
+                                <code>php mason i18n:add-lang fr</code><br />
+                                <code>php mason i18n:add-lang de --copy-from=en</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>i18n:fill</code></TableCell>
                             <TableCell>Fill missing translations using AI providers</TableCell>
                             <TableCell>
-                                <code>php bin/console i18n:fill</code><br />
-                                <code>php bin/console i18n:fill --provider=openai --locale=fr</code><br />
-                                <code>php bin/console i18n:fill --provider=deepl --all</code>
+                                <code>php mason i18n:fill</code><br />
+                                <code>php mason i18n:fill --provider=openai --locale=fr</code><br />
+                                <code>php mason i18n:fill --provider=deepl --all</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>i18n:lint</code></TableCell>
                             <TableCell>Validate translation files</TableCell>
                             <TableCell>
-                                <code>php bin/console i18n:lint</code><br />
-                                <code>php bin/console i18n:lint --locale=fr</code><br />
-                                <code>php bin/console i18n:lint --fix</code>
+                                <code>php mason i18n:lint</code><br />
+                                <code>php mason i18n:lint --locale=fr</code><br />
+                                <code>php mason i18n:lint --fix</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>i18n:export</code></TableCell>
                             <TableCell>Export translations to external formats</TableCell>
                             <TableCell>
-                                <code>php bin/console i18n:export --format=po</code><br />
-                                <code>php bin/console i18n:export --format=csv --locale=fr</code>
+                                <code>php mason i18n:export --format=po</code><br />
+                                <code>php mason i18n:export --format=csv --locale=fr</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -354,36 +354,36 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>queue:work</code></TableCell>
                             <TableCell>Process jobs in the queue</TableCell>
                             <TableCell>
-                                <code>php bin/console queue:work</code><br />
-                                <code>php bin/console queue:work --queue=emails --sleep=3</code>
+                                <code>php mason queue:work</code><br />
+                                <code>php mason queue:work --queue=emails --sleep=3</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>queue:status</code></TableCell>
                             <TableCell>Display queue status and statistics</TableCell>
                             <TableCell>
-                                <code>php bin/console queue:status</code>
+                                <code>php mason queue:status</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>queue:retry</code></TableCell>
                             <TableCell>Retry failed jobs by ID</TableCell>
                             <TableCell>
-                                <code>php bin/console queue:retry --id=job_uuid</code>
+                                <code>php mason queue:retry --id=job_uuid</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>queue:install</code></TableCell>
                             <TableCell>Create the jobs table migration</TableCell>
                             <TableCell>
-                                <code>php bin/console queue:install</code>
+                                <code>php mason queue:install</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>make:job</code></TableCell>
                             <TableCell>Generate a new job class</TableCell>
                             <TableCell>
-                                <code>php bin/console make:job SendEmailJob</code>
+                                <code>php mason make:job SendEmailJob</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -409,41 +409,41 @@ php bin/console types:generate --openapi --typescript`} />
                             <TableCell><code>config:cache</code></TableCell>
                             <TableCell>Cache configuration files for performance</TableCell>
                             <TableCell>
-                                <code>php bin/console config:cache</code><br />
-                                <code>php bin/console config:cache --clear</code>
+                                <code>php mason config:cache</code><br />
+                                <code>php mason config:cache --clear</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>optimize</code></TableCell>
                             <TableCell>Optimize application for production</TableCell>
                             <TableCell>
-                                <code>php bin/console optimize</code><br />
-                                <code>php bin/console optimize --force</code>
+                                <code>php mason optimize</code><br />
+                                <code>php mason optimize --force</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>env:decrypt</code></TableCell>
                             <TableCell>Decrypt environment files</TableCell>
                             <TableCell>
-                                <code>php bin/console env:decrypt</code><br />
-                                <code>php bin/console env:decrypt --key=your-key</code>
+                                <code>php mason env:decrypt</code><br />
+                                <code>php mason env:decrypt --key=your-key</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>env:encrypt</code></TableCell>
                             <TableCell>Encrypt environment files for secure storage</TableCell>
                             <TableCell>
-                                <code>php bin/console env:encrypt</code><br />
-                                <code>php bin/console env:encrypt --env=production</code>
+                                <code>php mason env:encrypt</code><br />
+                                <code>php mason env:encrypt --env=production</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>queue:work</code></TableCell>
                             <TableCell>Process background job queues</TableCell>
                             <TableCell>
-                                <code>php bin/console queue:work</code><br />
-                                <code>php bin/console queue:work --queue=emails</code><br />
-                                <code>php bin/console queue:work --timeout=60</code>
+                                <code>php mason queue:work</code><br />
+                                <code>php mason queue:work --queue=emails</code><br />
+                                <code>php mason queue:work --timeout=60</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>

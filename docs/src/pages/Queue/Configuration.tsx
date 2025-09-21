@@ -429,16 +429,16 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
             </Typography>
 
             <CodeBlock language="bash" code={`# Test queue installation
-./bin/console queue:install
+./mason queue:install
 
 # Check database migration
-./bin/console migrate:apply
+./mason migrate:apply
 
 # Verify worker configuration
-./bin/console queue:work --max-jobs=1
+./mason queue:work --max-jobs=1
 
 # Check queue status
-./bin/console queue:status`} />
+./mason queue:status`} />
 
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Configuration Best Practices:</strong>

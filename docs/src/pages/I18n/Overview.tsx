@@ -136,7 +136,7 @@ class AuthController extends Controller
 }`} />
 
             <CodeBlock language="bash" code={`# Step 3: Scan your codebase to extract translation tokens
-php bin/console i18n:scan --update
+php mason i18n:scan --update
 
 # This creates/updates translations/en/auth.json with:
 {
@@ -145,15 +145,15 @@ php bin/console i18n:scan --update
 }`} />
 
             <CodeBlock language="bash" code={`# Step 4: Add additional languages
-php bin/console i18n:add-lang fr --copy-from=en
-php bin/console i18n:add-lang es --copy-from=en
+php mason i18n:add-lang fr --copy-from=en
+php mason i18n:add-lang es --copy-from=en
 
 # Step 5: Use AI to fill missing translations
-php bin/console i18n:fill --provider=openai --locale=fr
-php bin/console i18n:fill --provider=openai --locale=es
+php mason i18n:fill --provider=openai --locale=fr
+php mason i18n:fill --provider=openai --locale=es
 
 # Step 6: Validate all translations
-php bin/console i18n:lint --fix`} />
+php mason i18n:lint --fix`} />
 
             {/* Scenario 2: Adding New Features */}
             <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
@@ -206,14 +206,14 @@ class ProfileController extends Controller
 # 1. Write your code with I18n tokens (shown above)
 
 # 2. Scan for new tokens and update base language
-php bin/console i18n:scan --update
+php mason i18n:scan --update
 
 # 3. Check what tokens were added
 cat translations/en/user.json
 cat translations/en/validation.json
 
 # 4. Fill missing translations for all languages
-php bin/console i18n:fill --provider=deepl --all
+php mason i18n:fill --provider=deepl --all
 
 # 5. Review and refine translations manually
 # Edit translations/fr/user.json, translations/es/user.json, etc.
@@ -223,7 +223,7 @@ curl -H "Accept-Language: fr" http://localhost:7879/users/123/profile
 curl -H "Accept-Language: es" http://localhost:7879/users/123/profile
 
 # 7. Validate everything is correct
-php bin/console i18n:lint`} />
+php mason i18n:lint`} />
 
             {/* Scenario 3: Managing Large Translation Projects */}
             <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
@@ -242,23 +242,23 @@ php bin/console i18n:lint`} />
 # - admin.* for admin interface
 
 # 2. Export translations for external translation services
-php bin/console i18n:export --format=csv --locale=en > translations_en.csv
-php bin/console i18n:export --format=po --locale=en > translations_en.po
+php mason i18n:export --format=csv --locale=en > translations_en.csv
+php mason i18n:export --format=po --locale=en > translations_en.po
 
 # 3. Send files to translators, receive back translated versions
 
 # 4. Import translated files
-php bin/console i18n:import --format=csv --locale=fr translations_fr.csv
-php bin/console i18n:import --format=po --locale=de translations_de.po
+php mason i18n:import --format=csv --locale=fr translations_fr.csv
+php mason i18n:import --format=po --locale=de translations_de.po
 
 # 5. Use AI to fill any missing translations
-php bin/console i18n:fill --provider=deepl --missing-only
+php mason i18n:fill --provider=deepl --missing-only
 
 # 6. Validate and lint all translations
-php bin/console i18n:lint --strict
+php mason i18n:lint --strict
 
 # 7. Generate translation reports
-php bin/console i18n:stats --detailed`} />
+php mason i18n:stats --detailed`} />
 
             {/* Translation File Examples */}
             <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
@@ -350,11 +350,11 @@ curl "http://localhost:7879/auth/login?lang=es" \\
   -X POST -d '{"email":"test","password":"wrong"}'
 
 # Test token resolution
-php bin/console i18n:test auth.login_success --locale=fr --params='{"name":"Jean"}'
+php mason i18n:test auth.login_success --locale=fr --params='{"name":"Jean"}'
 # Output: "Bon retour, Jean !"
 
 # Generate missing translation report
-php bin/console i18n:missing --locale=es
+php mason i18n:missing --locale=es
 # Shows which tokens are missing translations`} />
 
             {/* CI/CD Integration */}
@@ -381,13 +381,13 @@ jobs:
       run: composer install
       
     - name: Scan for new translations
-      run: php bin/console i18n:scan --ci
+      run: php mason i18n:scan --ci
       
     - name: Validate translation syntax
-      run: php bin/console i18n:lint --strict
+      run: php mason i18n:lint --strict
       
     - name: Check for missing translations
-      run: php bin/console i18n:missing --fail-on-missing`} />
+      run: php mason i18n:missing --fail-on-missing`} />
 
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>I18n Best Practices:</strong>

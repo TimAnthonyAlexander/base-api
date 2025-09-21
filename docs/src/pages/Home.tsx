@@ -64,14 +64,14 @@ const quickStartCode = `composer create-project baseapi/baseapi-template my-api
 cd my-api
 
 # Start the development server
-php bin/console serve
+php mason serve
 
 # Create your first model
-php bin/console make:model Product
+php mason make:model Product
 
 # Generate and apply migrations
-php bin/console migrate:generate
-php bin/console migrate:apply`;
+php mason migrate:generate
+php mason migrate:apply`;
 
 export default function Home() {
     return (

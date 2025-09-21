@@ -187,13 +187,13 @@ chmod -R 755 storage/
 chown -R www-data:www-data storage/
 
 # Create your first model
-php bin/console make:model User
+php mason make:model User
 
 # Generate migrations from your models
-php bin/console migrate:generate
+php mason migrate:generate
 
 # Apply migrations to database
-php bin/console migrate:apply`
+php mason migrate:apply`
     },
     {
         id: 'migration-syntax-error',
@@ -216,7 +216,7 @@ class User extends BaseModel
 cat storage/migrations.json
 
 # Regenerate migrations after fixing models  
-php bin/console migrate:generate
+php mason migrate:generate
 
 # Check individual migration SQL statements
 cat storage/migrations.json | jq '.migrations[].sql'`
@@ -273,7 +273,7 @@ chmod 600 .env`
         cause: 'Controller class doesn\'t exist or has incorrect namespace/filename.',
         solution: 'Ensure controller file exists with proper namespace and class name.',
         code: `# Generate controller with correct structure
-php bin/console make:controller UserController
+php mason make:controller UserController
 
 # Verify namespace matches directory structure
 // app/Controllers/UserController.php
@@ -306,7 +306,7 @@ class UserController extends Controller
 }
 
 # List routes to verify
-php bin/console routes:list`
+php mason routes:list`
     },
     {
         id: 'validation-failed',
@@ -380,7 +380,7 @@ chmod -R 755 storage/cache
 chown -R www-data:www-data storage/cache
 
 # Clear any existing cache files
-php bin/console cache:clear
+php mason cache:clear
 
 # Verify cache configuration
 CACHE_DRIVER=file
@@ -424,7 +424,7 @@ export default function CommonErrors() {
         <Box>
             {/* Header Section */}
             <Box sx={{ mb: 6 }}>
-                <Typography variant="h1" gutterBottom sx={{ 
+                <Typography variant="h1" gutterBottom sx={{
                     background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
@@ -437,16 +437,16 @@ export default function CommonErrors() {
                     Comprehensive reference for BaseAPI errors with causes and solutions
                 </Typography>
                 <Typography color="text.secondary" sx={{ maxWidth: '700px', lineHeight: 1.7 }}>
-                    Find specific error messages you might encounter, understand their root causes, 
+                    Find specific error messages you might encounter, understand their root causes,
                     and get step-by-step solutions. Use the search to quickly locate your issue.
                 </Typography>
             </Box>
 
             {/* Search and Filter */}
-            <Box sx={{ 
-                mb: 6, 
-                p: 3, 
-                borderRadius: 3, 
+            <Box sx={{
+                mb: 6,
+                p: 3,
+                borderRadius: 3,
                 border: theme => `1px solid ${theme.palette.divider}`,
                 background: theme => theme.palette.mode === 'dark'
                     ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.04) 100%)'
@@ -504,7 +504,7 @@ export default function CommonErrors() {
 
                     {filteredErrors.map((error) => (
                         <Accordion key={error.id}>
-                            <AccordionSummary 
+                            <AccordionSummary
                                 expandIcon={<ExpandIcon />}
                                 sx={{
                                     '&:hover': {
@@ -515,27 +515,27 @@ export default function CommonErrors() {
                                 }}
                             >
                                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, width: '100%' }}>
-                                    <Box sx={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
+                                    <Box sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
                                         justifyContent: 'center',
                                         minWidth: 40,
                                         height: 40,
                                         borderRadius: 2,
-                                        background: error.type === 'error' ? 'rgba(244, 67, 54, 0.1)' 
-                                                 : error.type === 'warning' ? 'rgba(255, 152, 0, 0.1)'
-                                                 : 'rgba(33, 150, 243, 0.1)',
+                                        background: error.type === 'error' ? 'rgba(244, 67, 54, 0.1)'
+                                            : error.type === 'warning' ? 'rgba(255, 152, 0, 0.1)'
+                                                : 'rgba(33, 150, 243, 0.1)',
                                         mt: 0.5
                                     }}>
                                         {getErrorIcon(error.type)}
                                     </Box>
                                     <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                                        <Typography 
-                                            variant="h6" 
-                                            component="div" 
+                                        <Typography
+                                            variant="h6"
+                                            component="div"
                                             className="error-title"
-                                            sx={{ 
-                                                fontWeight: 600, 
+                                            sx={{
+                                                fontWeight: 600,
                                                 mb: 1,
                                                 transition: 'color 0.2s ease',
                                                 lineHeight: 1.3
@@ -543,15 +543,15 @@ export default function CommonErrors() {
                                         >
                                             {error.title}
                                         </Typography>
-                                        <Typography 
-                                            variant="body2" 
-                                            color="text.secondary" 
-                                            sx={{ 
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{
                                                 fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                                                 fontSize: '0.85rem',
                                                 lineHeight: 1.4,
-                                                background: theme => theme.palette.mode === 'dark' 
-                                                    ? 'rgba(255, 255, 255, 0.04)' 
+                                                background: theme => theme.palette.mode === 'dark'
+                                                    ? 'rgba(255, 255, 255, 0.04)'
                                                     : 'rgba(0, 0, 0, 0.04)',
                                                 px: 2,
                                                 py: 1,
@@ -584,16 +584,16 @@ export default function CommonErrors() {
                             <AccordionDetails>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                                     {/* Cause Section */}
-                                    <Box sx={{ 
-                                        p: 3, 
-                                        borderRadius: 2, 
+                                    <Box sx={{
+                                        p: 3,
+                                        borderRadius: 2,
                                         border: '1px solid rgba(244, 67, 54, 0.2)',
                                         background: theme => theme.palette.mode === 'dark'
                                             ? 'rgba(244, 67, 54, 0.05)'
                                             : 'rgba(244, 67, 54, 0.02)'
                                     }}>
-                                        <Typography variant="h6" gutterBottom sx={{ 
-                                            color: 'error.main', 
+                                        <Typography variant="h6" gutterBottom sx={{
+                                            color: 'error.main',
                                             fontWeight: 600,
                                             display: 'flex',
                                             alignItems: 'center',
@@ -609,16 +609,16 @@ export default function CommonErrors() {
                                     </Box>
 
                                     {/* Solution Section */}
-                                    <Box sx={{ 
-                                        p: 3, 
-                                        borderRadius: 2, 
+                                    <Box sx={{
+                                        p: 3,
+                                        borderRadius: 2,
                                         border: '1px solid rgba(76, 175, 80, 0.2)',
                                         background: theme => theme.palette.mode === 'dark'
                                             ? 'rgba(76, 175, 80, 0.05)'
                                             : 'rgba(76, 175, 80, 0.02)'
                                     }}>
-                                        <Typography variant="h6" gutterBottom sx={{ 
-                                            color: 'success.main', 
+                                        <Typography variant="h6" gutterBottom sx={{
+                                            color: 'success.main',
                                             fontWeight: 600,
                                             display: 'flex',
                                             alignItems: 'center',
@@ -636,22 +636,22 @@ export default function CommonErrors() {
                                     {/* Code Example */}
                                     {error.code && (
                                         <Box>
-                                            <Typography variant="h6" gutterBottom sx={{ 
+                                            <Typography variant="h6" gutterBottom sx={{
                                                 fontWeight: 600,
                                                 mb: 2,
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 gap: 1
                                             }}>
-                                                <Box sx={{ 
-                                                    width: 6, 
-                                                    height: 6, 
-                                                    borderRadius: '50%', 
-                                                    background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)' 
+                                                <Box sx={{
+                                                    width: 6,
+                                                    height: 6,
+                                                    borderRadius: '50%',
+                                                    background: 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)'
                                                 }} />
                                                 Code Example
                                             </Typography>
-                                            <Box sx={{ 
+                                            <Box sx={{
                                                 border: theme => `1px solid ${theme.palette.divider}`,
                                                 borderRadius: 2,
                                                 overflow: 'hidden'
@@ -667,7 +667,7 @@ export default function CommonErrors() {
                                     {/* Related Errors */}
                                     {error.relatedErrors && (
                                         <Box>
-                                            <Typography variant="h6" gutterBottom sx={{ 
+                                            <Typography variant="h6" gutterBottom sx={{
                                                 fontWeight: 600,
                                                 mb: 2,
                                                 display: 'flex',
@@ -689,7 +689,7 @@ export default function CommonErrors() {
                                                             onClick={() => {
                                                                 document.getElementById(relatedId)?.scrollIntoView({ behavior: 'smooth' });
                                                             }}
-                                                            sx={{ 
+                                                            sx={{
                                                                 cursor: 'pointer',
                                                                 fontWeight: 500,
                                                                 '&:hover': {
@@ -712,16 +712,16 @@ export default function CommonErrors() {
             )}
 
             {/* Quick Help Section */}
-            <Box sx={{ 
-                mt: 8, 
-                p: 4, 
-                borderRadius: 3, 
+            <Box sx={{
+                mt: 8,
+                p: 4,
+                borderRadius: 3,
                 background: theme => theme.palette.mode === 'dark'
                     ? 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(156, 39, 176, 0.05) 100%)'
                     : 'linear-gradient(135deg, rgba(33, 150, 243, 0.02) 0%, rgba(156, 39, 176, 0.02) 100%)',
                 border: theme => `1px solid ${theme.palette.divider}`
             }}>
-                <Typography variant="h2" gutterBottom sx={{ 
+                <Typography variant="h2" gutterBottom sx={{
                     mb: 3,
                     background: 'linear-gradient(135deg, #2196f3 0%, #9c27b0 100%)',
                     backgroundClip: 'text',
@@ -736,13 +736,13 @@ export default function CommonErrors() {
                         { title: '1. Enable Debug Mode', desc: 'Set APP_DEBUG=true in .env for detailed error messages and stack traces' },
                         { title: '2. Check Application Logs', desc: 'Review logs in storage/logs/app.log for detailed error information' },
                         { title: '3. Verify File Permissions', desc: 'Ensure storage/ directory is writable by web server (755 or 775 permissions)' },
-                        { title: '4. Clear Cache', desc: 'Run \'php bin/console cache:clear\' to clear any cached configuration or data' },
+                        { title: '4. Clear Cache', desc: 'Run \'php mason cache:clear\' to clear any cached configuration or data' },
                         { title: '5. Check System Requirements', desc: 'Verify PHP version (8.4+), required extensions, and database connectivity' },
                         { title: '6. Review Configuration', desc: 'Double-check .env file settings, especially database and cache configuration' }
                     ].map((step, index) => (
-                        <Box key={index} sx={{ 
-                            p: 3, 
-                            borderRadius: 2, 
+                        <Box key={index} sx={{
+                            p: 3,
+                            borderRadius: 2,
                             background: theme => theme.palette.mode === 'dark'
                                 ? 'rgba(255, 255, 255, 0.02)'
                                 : 'rgba(255, 255, 255, 0.7)',
@@ -765,10 +765,10 @@ export default function CommonErrors() {
                     ))}
                 </Box>
 
-                <Alert 
-                    severity="info" 
-                    sx={{ 
-                        mt: 4, 
+                <Alert
+                    severity="info"
+                    sx={{
+                        mt: 4,
                         borderRadius: 2,
                         border: '1px solid rgba(33, 150, 243, 0.2)',
                         background: theme => theme.palette.mode === 'dark'

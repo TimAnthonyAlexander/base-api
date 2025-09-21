@@ -32,7 +32,7 @@ export default function CRUDAPI() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate the Product model
-php bin/console make:model Product`} />
+php mason make:model Product`} />
 
             <CodeBlock language="php" code={`<?php
 // app/Models/Product.php
@@ -68,7 +68,7 @@ class Product extends BaseModel
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate the Product controller
-php bin/console make:controller ProductController`} />
+php mason make:controller ProductController`} />
 
             <CodeBlock language="php" code={`<?php
 // app/Controllers/ProductController.php
@@ -232,13 +232,13 @@ $router->delete('/products/{id}', [
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate migrations from your model changes
-php bin/console migrate:generate
+php mason migrate:generate
 
 # Review the generated migrations (optional)
 cat storage/migrations.json
 
 # Apply migrations to create the database table
-php bin/console migrate:apply`} />
+php mason migrate:apply`} />
 
             <Typography>
                 The migration system will automatically detect your Product model and generate the necessary

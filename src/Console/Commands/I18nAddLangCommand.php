@@ -17,46 +17,46 @@ class I18nAddLangCommand implements Command
     {
         return 'i18n:add-lang';
     }
-    
+
     #[Override]
     public function description(): string
     {
         return 'Add new language(s) to the translation system';
     }
-    
+
     #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         if ($args === []) {
-            echo "Usage: php bin/console i18n:add-lang <lang1> [lang2] [lang3] [options]\n";
+            echo "Usage: php mason i18n:add-lang <lang1> [lang2] [lang3] [options]\n";
             echo "Options:\n";
             echo "  --seed    Copy default locale values to aid translators\n";
             echo "  --auto    Auto-translate using configured provider\n";
             return 1;
         }
-        
+
         $seed = in_array('--seed', $args);
         $auto = in_array('--auto', $args);
-        
+
         // Filter out option flags to get language codes
         $languages = array_filter($args, fn($arg): bool => !str_starts_with((string) $arg, '--'));
-        
+
         // Load the complete i18n config
         $configPath = App::basePath('config/i18n.php');
         $config = file_exists($configPath) ? require $configPath : [];
         $defaultLocale = $config['default'] ?? 'en';
-        
+
         foreach ($languages as $language) {
             $this->addLanguage($language, $defaultLocale, $seed, $auto);
         }
-        
+
         return 0;
     }
-    
+
     private function addLanguage(string $language, string $defaultLocale, bool $seed, bool $auto): void
     {
         echo sprintf('Adding language: %s%s', $language, PHP_EOL);
-        
+
         // Create language directory
         $languageDir = App::basePath('translations/' . $language);
         if (!is_dir($languageDir)) {
@@ -65,18 +65,18 @@ class I18nAddLangCommand implements Command
         } else {
             echo sprintf('  ℹ️  Directory already exists: %s%s', $languageDir, PHP_EOL);
         }
-        
+
         // Get all namespaces from default locale
         $namespaces = I18n::getAvailableNamespaces($defaultLocale);
-        
+
         if ($namespaces === []) {
             echo "  ⚠️  No translation files found in default locale ({$defaultLocale})\n";
             return;
         }
-        
+
         $i18n = I18n::getInstance();
         $provider = null;
-        
+
         if ($auto) {
             try {
                 $provider = TranslationProviderFactory::create();
@@ -89,18 +89,18 @@ class I18nAddLangCommand implements Command
                 $provider = null;
             }
         }
-        
+
         foreach ($namespaces as $namespace) {
             echo sprintf('  Processing namespace: %s%s', $namespace, PHP_EOL);
-            
+
             // Load default translations
             $defaultTranslations = $i18n->loadTranslations($defaultLocale, $namespace);
-            
+
             // Load existing translations for this language (if any)
             $existingTranslations = $i18n->loadTranslations($language, $namespace);
-            
+
             $newTranslations = [];
-            
+
             foreach ($defaultTranslations as $token => $value) {
                 if (isset($existingTranslations[$token])) {
                     // Keep existing translation
@@ -124,7 +124,7 @@ class I18nAddLangCommand implements Command
                     $newTranslations[$token] = '';
                 }
             }
-            
+
             // Add metadata if auto-translated
             if ($auto && $provider) {
                 $metadata = $existingTranslations['__meta'] ?? [];
@@ -132,10 +132,10 @@ class I18nAddLangCommand implements Command
                 $metadata['last_sync'] = date('c');
                 $newTranslations = ['__meta' => $metadata] + $newTranslations;
             }
-            
+
             // Save translations
             $i18n->saveTranslations($language, $namespace, $newTranslations);
-            
+
             $newCount = count($defaultTranslations) - count($existingTranslations);
             if ($newCount > 0) {
                 echo "    ✅ Added {$newCount} translations to {$namespace}.json\n";
@@ -143,7 +143,7 @@ class I18nAddLangCommand implements Command
                 echo "    ℹ️  No new translations needed for {$namespace}.json\n";
             }
         }
-        
+
         echo "  ✅ Language {$language} setup complete\n\n";
     }
 }

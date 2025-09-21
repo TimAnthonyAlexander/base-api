@@ -22,8 +22,8 @@ export default function ProcessingJobs() {
             </Typography>
 
             <Typography>
-                Queue workers are background processes that continuously pull jobs from queues and execute them. 
-                BaseAPI provides robust worker management with memory limits, graceful shutdown, and comprehensive 
+                Queue workers are background processes that continuously pull jobs from queues and execute them.
+                BaseAPI provides robust worker management with memory limits, graceful shutdown, and comprehensive
                 monitoring capabilities.
             </Typography>
 
@@ -36,16 +36,16 @@ export default function ProcessingJobs() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Basic worker - processes default queue
-./bin/console queue:work
+./mason queue:work
 
 # Process specific queue
-./bin/console queue:work --queue=emails
+./mason queue:work --queue=emails
 
 # Custom sleep time when no jobs available
-./bin/console queue:work --sleep=5
+./mason queue:work --sleep=5
 
 # Limit memory usage and job count
-./bin/console queue:work --max-jobs=1000 --memory=128`} />
+./mason queue:work --max-jobs=1000 --memory=128`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Worker Options
@@ -83,13 +83,13 @@ export default function ProcessingJobs() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Process high priority queue
-./bin/console queue:work --queue=high --sleep=1
+./mason queue:work --queue=high --sleep=1
 
 # Process email queue
-./bin/console queue:work --queue=emails --sleep=3
+./mason queue:work --queue=emails --sleep=3
 
 # Process default queue
-./bin/console queue:work --queue=default --sleep=5`} />
+./mason queue:work --queue=default --sleep=5`} />
 
             <Typography>
                 Example of dispatching to different queues:
@@ -121,7 +121,7 @@ dispatch_later(new ProcessDataJob($data))
             </Typography>
 
             <CodeBlock language="bash" code={`# Check queue status
-./bin/console queue:status
+./mason queue:status
 
 # Output example:
 # Queue Status:
@@ -178,7 +178,7 @@ kill -TERM <worker_pid>
 kill -INT <worker_pid>`} />
 
             <Callout type="info" title="Signal Handling">
-                Workers complete the current job before shutting down when receiving SIGTERM or SIGINT signals. 
+                Workers complete the current job before shutting down when receiving SIGTERM or SIGINT signals.
                 This ensures jobs aren't interrupted mid-execution.
             </Callout>
 
@@ -191,10 +191,10 @@ kill -INT <worker_pid>`} />
             </Typography>
 
             <CodeBlock language="bash" code={`# Retry specific failed job by ID
-./bin/console queue:retry --id=job_uuid_here
+./mason queue:retry --id=job_uuid_here
 
 # View failed jobs (would require additional implementation)
-./bin/console queue:failed`} />
+./mason queue:failed`} />
 
             <Typography>
                 Jobs are automatically retried based on their configuration:
@@ -241,7 +241,7 @@ class RetryableJob extends Job
 
             <CodeBlock language="ini" code={`[program:baseapi-queue-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /path/to/your/app/bin/console queue:work --sleep=3 --max-jobs=1000
+command=php /path/to/your/app/mason queue:work --sleep=3 --max-jobs=1000
 directory=/path/to/your/app
 autostart=true
 autorestart=true
@@ -261,17 +261,17 @@ stopwaitsecs=3600`} />
 
             <CodeBlock language="ini" code={`# High priority worker
 [program:baseapi-high-queue]
-command=php /path/to/app/bin/console queue:work --queue=high --sleep=1
+command=php /path/to/app/mason queue:work --queue=high --sleep=1
 numprocs=2
 
 # Email worker
 [program:baseapi-email-queue]
-command=php /path/to/app/bin/console queue:work --queue=emails --sleep=3
+command=php /path/to/app/mason queue:work --queue=emails --sleep=3
 numprocs=2
 
 # Default queue worker
 [program:baseapi-default-queue]
-command=php /path/to/app/bin/console queue:work --queue=default --sleep=5
+command=php /path/to/app/mason queue:work --queue=default --sleep=5
 numprocs=1`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -336,10 +336,10 @@ DELETE FROM jobs WHERE status = 'completed' AND completed_at < DATE_SUB(NOW(), I
             </Typography>
 
             <CodeBlock language="bash" code={`# Run worker with verbose output
-./bin/console queue:work -v
+./mason queue:work -v
 
 # Test job processing manually
-./bin/console queue:work --max-jobs=1
+./mason queue:work --max-jobs=1
 
 # Check worker logs
 tail -f storage/logs/worker.log
@@ -357,7 +357,7 @@ watch "ps aux | grep queue:work"`} />
             </Typography>
 
             <CodeBlock language="bash" code={`# Check queue status regularly
-watch -n 30 "./bin/console queue:status"
+watch -n 30 "./mason queue:status"
 
 # Monitor failed jobs
 tail -f storage/logs/baseapi.log | grep "Job failed"
@@ -375,7 +375,7 @@ tail -f storage/logs/baseapi.log | grep "Job failed"
             </Alert>
 
             <Callout type="tip" title="Development vs Production">
-                During development, run workers manually for debugging. In production, use process managers 
+                During development, run workers manually for debugging. In production, use process managers
                 to ensure workers automatically restart and stay running.
             </Callout>
 

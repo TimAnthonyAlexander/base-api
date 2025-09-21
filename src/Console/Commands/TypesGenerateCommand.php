@@ -117,7 +117,7 @@ class TypesGenerateCommand implements Command
 Generate OpenAPI spec and TypeScript definitions
 
 Usage:
-  php bin/console types:generate [options]
+  php mason types:generate [options]
 
 Options:
   --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
@@ -127,10 +127,10 @@ Options:
   --help, -h             Show this help message
 
 Examples:
-  php bin/console types:generate
-  php bin/console types:generate --out-ts=web/types/baseapi.d.ts
-  php bin/console types:generate --out-openapi=storage/openapi.json
-  php bin/console types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
+  php mason types:generate
+  php mason types:generate --out-ts=web/types/baseapi.d.ts
+  php mason types:generate --out-openapi=storage/openapi.json
+  php mason types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
 
 HELP;
     }
@@ -148,11 +148,9 @@ HELP;
 
         // Mock the App::router() method by creating a temporary class
         $mockRouter = new class($routes) {
-            public function __construct(private array &$routes)
-            {
-            }
-            
-            public function getRoutes(): array 
+            public function __construct(private array &$routes) {}
+
+            public function getRoutes(): array
             {
                 return $this->routes;
             }
@@ -414,7 +412,15 @@ HELP;
         }
 
         return in_array($typeName, [
-            'string', 'int', 'integer', 'float', 'double', 'bool', 'boolean', 'array', 'mixed'
+            'string',
+            'int',
+            'integer',
+            'float',
+            'double',
+            'bool',
+            'boolean',
+            'array',
+            'mixed'
         ]);
     }
 
@@ -659,7 +665,7 @@ HELP;
 
         // Header and base types
         $ts[] = "// Generated TypeScript definitions for BaseApi";
-        $ts[] = "// Do not edit manually - regenerate with: php bin/console types:generate";
+        $ts[] = "// Do not edit manually - regenerate with: php mason types:generate";
         $ts[] = "";
         $ts[] = "export type UUID = string;";
         $ts[] = "export type Envelope<T> = { data: T };";

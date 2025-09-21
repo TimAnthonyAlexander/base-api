@@ -24,7 +24,7 @@ export default function FAQ() {
                     <CodeBlock language="bash" code={`composer create-project baseapi/baseapi my-project
 cd my-project
 cp .env.example .env
-php bin/console serve`} />
+php mason serve`} />
                 </AccordionDetails>
             </Accordion>
 
@@ -49,13 +49,13 @@ php bin/console serve`} />
 APP_ENV=production
 
 # Clear cache
-php bin/console cache:clear
+php mason cache:clear
 
 # Apply migrations
-php bin/console migrate:apply
+php mason migrate:apply
 
 # Generate API docs
-php bin/console types:generate --openapi --typescript`} />
+php mason types:generate --openapi --typescript`} />
                 </AccordionDetails>
             </Accordion>
 

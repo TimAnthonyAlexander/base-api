@@ -3,11 +3,11 @@ import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
 const queueCommands = [
-    { command: 'queue:work', description: 'Start processing queue jobs', example: './bin/console queue:work' },
-    { command: 'queue:status', description: 'Display queue statistics', example: './bin/console queue:status' },
-    { command: 'queue:retry', description: 'Retry failed jobs', example: './bin/console queue:retry' },
-    { command: 'queue:install', description: 'Create the jobs table', example: './bin/console queue:install' },
-    { command: 'make:job', description: 'Generate a new job class', example: './bin/console make:job SendEmailJob' },
+    { command: 'queue:work', description: 'Start processing queue jobs', example: './mason queue:work' },
+    { command: 'queue:status', description: 'Display queue statistics', example: './mason queue:status' },
+    { command: 'queue:retry', description: 'Retry failed jobs', example: './mason queue:retry' },
+    { command: 'queue:install', description: 'Create the jobs table', example: './mason queue:install' },
+    { command: 'make:job', description: 'Generate a new job class', example: './mason make:job SendEmailJob' },
 ];
 
 export default function QueueOverview() {
@@ -42,14 +42,14 @@ export default function QueueOverview() {
             </Typography>
 
             <CodeBlock language="bash" code={`# 1. Install the queue system (creates jobs table)
-./bin/console queue:install
-./bin/console migrate:apply`} />
+./mason queue:install
+./mason migrate:apply`} />
 
             <CodeBlock language="bash" code={`# 2. Create your first job
-./bin/console make:job SendWelcomeEmailJob`} />
+./mason make:job SendWelcomeEmailJob`} />
 
             <CodeBlock language="bash" code={`# 3. Start processing jobs
-./bin/console queue:work`} />
+./mason queue:work`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Basic Job Example

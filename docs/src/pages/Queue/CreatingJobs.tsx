@@ -14,8 +14,8 @@ export default function CreatingJobs() {
             </Typography>
 
             <Typography>
-                Jobs are the core of the queue system. They define the work to be performed asynchronously 
-                in the background. BaseAPI provides a simple job class structure with built-in retry logic, 
+                Jobs are the core of the queue system. They define the work to be performed asynchronously
+                in the background. BaseAPI provides a simple job class structure with built-in retry logic,
                 failure handling, and configuration options.
             </Typography>
 
@@ -28,7 +28,7 @@ export default function CreatingJobs() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate a job class
-./bin/console make:job SendWelcomeEmailJob
+./mason make:job SendWelcomeEmailJob
 
 # Jobs are created in app/Jobs/ directory
 ls app/Jobs/
@@ -409,7 +409,7 @@ class BackupDatabaseJob extends Job
             </List>
 
             <Callout type="warning" title="Serialization Considerations">
-                Job objects are serialized when stored in the queue. Avoid storing large objects or resources 
+                Job objects are serialized when stored in the queue. Avoid storing large objects or resources
                 (like database connections) as job properties. Instead, resolve them in the <code>handle()</code> method.
             </Callout>
 

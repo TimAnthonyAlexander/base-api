@@ -338,8 +338,8 @@ $router->get('/users/{id}', [UserController::class]);`} />
                 </ListItem>
                 <ListItem>
                     <ListItemText
-                        primary="bin/console"
-                        secondary="Console command shim that forwards all commands to vendor/bin/console (the actual BaseAPI CLI)."
+                        primary="mason"
+                        secondary="Console command shim that forwards all commands to vendor/mason (the actual BaseAPI CLI)."
                     />
                 </ListItem>
                 <ListItem>
@@ -398,7 +398,7 @@ $router->get('/users/{id}', [UserController::class]);`} />
                 <ListItem>
                     <ListItemText
                         primary="2. Generate Migrations"
-                        secondary="Run php bin/console migrate:generate to create database schema"
+                        secondary="Run php mason migrate:generate to create database schema"
                     />
                 </ListItem>
                 <ListItem>
