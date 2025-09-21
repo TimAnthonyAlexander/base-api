@@ -83,19 +83,7 @@ return [
             'database' => [
                 'driver' => 'database',
                 'table' => 'jobs',
-                'connection' => 'default',
             ],
-        ],
-        'worker' => [
-            'sleep' => 3,
-            'max_jobs' => 1000,
-            'max_time' => 3600,
-            'memory_limit' => 128,
-            'timeout' => 60,
-        ],
-        'failed' => [
-            'retention_days' => 30,
-            'cleanup_enabled' => true,
         ],
     ],
 ];

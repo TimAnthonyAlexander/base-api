@@ -91,36 +91,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Tagged Cache
-    |--------------------------------------------------------------------------
-    |
-    | These settings control how tagged cache works, including tag storage
-    | and cleanup behavior.
-    |
-    */
-    'tags' => [
-        'separator' => '|',
-        'max_tags_per_key' => 10,
-        'cleanup_probability' => 0.01, // 1% chance of cleanup on operations
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Model Query Cache
-    |--------------------------------------------------------------------------
-    |
-    | Settings for automatic model query result caching.
-    |
-    */
-    'query_cache' => [
-        'enabled' => $_ENV['CACHE_QUERIES'] ?? false,
-        'default_ttl' => (int)($_ENV['CACHE_QUERY_TTL'] ?? 300), // 5 minutes
-        'prefix' => 'query',
-        'tag_prefix' => 'model',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Response Cache
     |--------------------------------------------------------------------------
     |
