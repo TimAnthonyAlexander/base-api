@@ -110,7 +110,7 @@ After making changes to BaseAPI core:
 
 2. **Test the functionality**:
    ```bash
-   php mason serve
+   ./mason serve
    # Test your changes in the running application
    ```
 

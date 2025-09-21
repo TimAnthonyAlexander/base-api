@@ -299,19 +299,19 @@ $router->get('/api/user/{id}', [
             </Typography>
 
             <CodeBlock language="bash" code={`# Clear all cache entries
-php mason cache:clear
+./mason cache:clear
 
 # Clear specific driver cache
-php mason cache:clear file
-php mason cache:clear redis
+./mason cache:clear file
+./mason cache:clear redis
 
 # Show cache statistics
-php mason cache:stats
-php mason cache:stats redis
+./mason cache:stats
+./mason cache:stats redis
 
 # Clean up expired entries (file driver only)
-php mason cache:cleanup
-php mason cache:cleanup file`} />
+./mason cache:cleanup
+./mason cache:cleanup file`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Tagged Cache Configuration

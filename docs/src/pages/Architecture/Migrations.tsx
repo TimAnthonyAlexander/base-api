@@ -29,10 +29,10 @@ export default function Migrations() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate migrations from your model changes
-php mason migrate:generate`} />
+./mason migrate:generate`} />
 
             <CodeBlock language="bash" code={`# Apply generated migrations (all)
-php mason migrate:apply`} />
+./mason migrate:apply`} />
 
             <Typography sx={{ mt: 2 }}>
                 These migrations are stored in <code>storage/migrations.json</code> by default.
@@ -284,13 +284,13 @@ object  -> JSONB`} />
             </List>
 
             <CodeBlock language="bash" code={`# Apply only safe (non-destructive) migrations
-php mason migrate:apply --safe`} />
+./mason migrate:apply --safe`} />
 
             <CodeBlock language="bash" code={`# Review what will be executed before applying
-php mason migrate:generate`} />
+./mason migrate:generate`} />
 
             <CodeBlock language="bash" code={`# Apply specific migrations by reviewing the execution plan
-php mason migrate:apply`} />
+./mason migrate:apply`} />
 
             <Alert severity="warning" sx={{ mt: 4 }}>
                 <strong>Production Safety:</strong> Always run <code>migrate:apply --safe</code> first in production

@@ -117,7 +117,7 @@ class TypesGenerateCommand implements Command
 Generate OpenAPI spec and TypeScript definitions
 
 Usage:
-  php mason types:generate [options]
+  ./mason types:generate [options]
 
 Options:
   --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
@@ -127,10 +127,10 @@ Options:
   --help, -h             Show this help message
 
 Examples:
-  php mason types:generate
-  php mason types:generate --out-ts=web/types/baseapi.d.ts
-  php mason types:generate --out-openapi=storage/openapi.json
-  php mason types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
+  ./mason types:generate
+  ./mason types:generate --out-ts=web/types/baseapi.d.ts
+  ./mason types:generate --out-openapi=storage/openapi.json
+  ./mason types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
 
 HELP;
     }
@@ -665,7 +665,7 @@ HELP;
 
         // Header and base types
         $ts[] = "// Generated TypeScript definitions for BaseApi";
-        $ts[] = "// Do not edit manually - regenerate with: php mason types:generate";
+        $ts[] = "// Do not edit manually - regenerate with: ./mason types:generate";
         $ts[] = "";
         $ts[] = "export type UUID = string;";
         $ts[] = "export type Envelope<T> = { data: T };";

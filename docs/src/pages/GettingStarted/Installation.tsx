@@ -53,8 +53,8 @@ composer --version`,
     {
         label: 'Start Development Server',
         content: 'Launch the built-in development server to test your installation.',
-        code: `php mason serve`,
-        extraContent: 'All built-in BaseAPI commands are run via the `php mason` command.',
+        code: `./mason serve`,
+        extraContent: 'All built-in BaseAPI commands are run via the `./mason` command.',
     },
     {
         label: 'Test Installation',

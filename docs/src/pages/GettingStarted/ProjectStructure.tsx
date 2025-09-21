@@ -398,7 +398,7 @@ $router->get('/users/{id}', [UserController::class]);`} />
                 <ListItem>
                     <ListItemText
                         primary="2. Generate Migrations"
-                        secondary="Run php mason migrate:generate to create database schema"
+                        secondary="Run ./mason migrate:generate to create database schema"
                     />
                 </ListItem>
                 <ListItem>

@@ -33,16 +33,16 @@ export default function OpenAPI() {
             </Typography>
 
             <CodeBlock language="bash" code={`# Generate OpenAPI specification only
-php mason types:generate --openapi
+./mason types:generate --openapi
 
 # Generate both OpenAPI and TypeScript types
-php mason types:generate --openapi --typescript
+./mason types:generate --openapi --typescript
 
 # Generate with custom output paths
-php mason types:generate --openapi --output-openapi custom-api.json
+./mason types:generate --openapi --output-openapi custom-api.json
 
 # Generate for specific version
-php mason types:generate --openapi --version "1.2.0"`} />
+./mason types:generate --openapi --version "1.2.0"`} />
 
             <Typography>
                 This generates an <code>openapi.json</code> file in your project root containing the complete
@@ -456,7 +456,7 @@ jobs:
         run: composer install --no-dev --optimize-autoloader
         
       - name: Generate OpenAPI spec
-        run: php mason types:generate --openapi --typescript
+        run: ./mason types:generate --openapi --typescript
         
       - name: Deploy docs
         run: |

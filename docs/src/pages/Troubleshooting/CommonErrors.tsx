@@ -187,13 +187,13 @@ chmod -R 755 storage/
 chown -R www-data:www-data storage/
 
 # Create your first model
-php mason make:model User
+./mason make:model User
 
 # Generate migrations from your models
-php mason migrate:generate
+./mason migrate:generate
 
 # Apply migrations to database
-php mason migrate:apply`
+./mason migrate:apply`
     },
     {
         id: 'migration-syntax-error',
@@ -216,7 +216,7 @@ class User extends BaseModel
 cat storage/migrations.json
 
 # Regenerate migrations after fixing models  
-php mason migrate:generate
+./mason migrate:generate
 
 # Check individual migration SQL statements
 cat storage/migrations.json | jq '.migrations[].sql'`
@@ -273,7 +273,7 @@ chmod 600 .env`
         cause: 'Controller class doesn\'t exist or has incorrect namespace/filename.',
         solution: 'Ensure controller file exists with proper namespace and class name.',
         code: `# Generate controller with correct structure
-php mason make:controller UserController
+./mason make:controller UserController
 
 # Verify namespace matches directory structure
 // app/Controllers/UserController.php
@@ -306,7 +306,7 @@ class UserController extends Controller
 }
 
 # List routes to verify
-php mason routes:list`
+./mason routes:list`
     },
     {
         id: 'validation-failed',
@@ -380,7 +380,7 @@ chmod -R 755 storage/cache
 chown -R www-data:www-data storage/cache
 
 # Clear any existing cache files
-php mason cache:clear
+./mason cache:clear
 
 # Verify cache configuration
 CACHE_DRIVER=file
@@ -736,7 +736,7 @@ export default function CommonErrors() {
                         { title: '1. Enable Debug Mode', desc: 'Set APP_DEBUG=true in .env for detailed error messages and stack traces' },
                         { title: '2. Check Application Logs', desc: 'Review logs in storage/logs/app.log for detailed error information' },
                         { title: '3. Verify File Permissions', desc: 'Ensure storage/ directory is writable by web server (755 or 775 permissions)' },
-                        { title: '4. Clear Cache', desc: 'Run \'php mason cache:clear\' to clear any cached configuration or data' },
+                        { title: '4. Clear Cache', desc: 'Run \'./mason cache:clear\' to clear any cached configuration or data' },
                         { title: '5. Check System Requirements', desc: 'Verify PHP version (8.4+), required extensions, and database connectivity' },
                         { title: '6. Review Configuration', desc: 'Double-check .env file settings, especially database and cache configuration' }
                     ].map((step, index) => (
