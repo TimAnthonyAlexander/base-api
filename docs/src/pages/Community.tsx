@@ -55,8 +55,7 @@ const communityResources = [
         color: 'warning',
         actions: [
             { label: 'Request Feature', href: 'https://github.com/timanthonyalexander/base-api/issues/new?template=feature_request.md' },
-            { label: 'View Roadmap', href: '/roadmap' }
-        ]
+        ],
     },
     {
         title: 'Stack Overflow',
@@ -397,15 +396,6 @@ export default function Community() {
                     <ListItemText
                         primary="Follow Discussions"
                         secondary="Subscribe to announcement discussions for major updates"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemIcon>
-                        <LearningIcon />
-                    </ListItemIcon>
-                    <ListItemText
-                        primary="Check the Roadmap"
-                        secondary="See what features are planned for future releases"
                     />
                 </ListItem>
             </List>

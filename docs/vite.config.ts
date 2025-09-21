@@ -5,4 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
     plugins: [react()],
     base: '/', // Set for GitHub Pages deployment
+    server: {
+        port: 7874,
+        open: true,
+    },
 })

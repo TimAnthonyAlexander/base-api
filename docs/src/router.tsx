@@ -39,81 +39,77 @@ const ReferenceCacheApi = lazy(() => import('./pages/Reference/CacheApi'));
 const TroubleshootingCommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));
 const TroubleshootingFaq = lazy(() => import('./pages/Troubleshooting/Faq'));
 const Community = lazy(() => import('./pages/Community'));
-const Roadmap = lazy(() => import('./pages/Roadmap'));
 
 const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <RootLayout />,
-    children: [
-      { index: true, element: <Home /> },
-      
-      // Getting Started
-      { path: 'getting-started/installation', element: <Installation /> },
-      { path: 'getting-started/first-api', element: <FirstApi /> },
-      { path: 'getting-started/project-structure', element: <ProjectStructure /> },
-      
-      // Architecture
-      { path: 'architecture/overview', element: <ArchitectureOverview /> },
-      { path: 'architecture/routing', element: <Routing /> },
-      { path: 'architecture/controllers', element: <Controllers /> },
-      { path: 'architecture/models-orm', element: <ModelsOrm /> },
-      { path: 'architecture/migrations', element: <Migrations /> },
-      { path: 'architecture/validation', element: <Validation /> },
-      { path: 'architecture/file-storage', element: <FileStorage /> },
-      
-      // Queue System
-      { path: 'queue/overview', element: <QueueOverview /> },
-      { path: 'queue/creating-jobs', element: <QueueCreatingJobs /> },
-      { path: 'queue/processing-jobs', element: <QueueProcessingJobs /> },
-      { path: 'queue/configuration', element: <QueueConfiguration /> },
-      
-      // Database
-      { path: 'database/drivers', element: <DatabaseDrivers /> },
-      
-      // Configuration
-      { path: 'configuration/env', element: <ConfigurationEnv /> },
-      { path: 'configuration/caching', element: <ConfigurationCaching /> },
-      
-      // Deployment
-      { path: 'deployment/production', element: <DeploymentProduction /> },
-      
-      // Dependency Injection
-      { path: 'di/container', element: <DIContainer /> },
-      
-      // CLI
-      { path: 'cli/overview', element: <CLIOverview /> },
-      
-      // Development
-      { path: 'development/debugging', element: <DevelopmentDebugging /> },
-      
-      // I18n
-      { path: 'i18n/overview', element: <I18nOverview /> },
-      
-      // Security
-      { path: 'security/overview', element: <SecurityOverview /> },
-      
-      // Guides
-      { path: 'guides/crud-api', element: <GuidesCrudApi /> },
-      
-      // Reference
-      { path: 'reference/openapi', element: <ReferenceOpenApi /> },
-      { path: 'reference/http-responses', element: <ReferenceHttpResponses /> },
-      { path: 'reference/cache-api', element: <ReferenceCacheApi /> },
-      
-      // Troubleshooting
-      { path: 'troubleshooting/common-errors', element: <TroubleshootingCommonErrors /> },
-      { path: 'troubleshooting/faq', element: <TroubleshootingFaq /> },
-      
-      // Community
-      { path: 'community', element: <Community /> },
-      
-      // Roadmap
-      { path: 'roadmap', element: <Roadmap /> },
-    ],
-  },
+    {
+        path: '/',
+        element: <RootLayout />,
+        children: [
+            { index: true, element: <Home /> },
+
+            // Getting Started
+            { path: 'getting-started/installation', element: <Installation /> },
+            { path: 'getting-started/first-api', element: <FirstApi /> },
+            { path: 'getting-started/project-structure', element: <ProjectStructure /> },
+
+            // Architecture
+            { path: 'architecture/overview', element: <ArchitectureOverview /> },
+            { path: 'architecture/routing', element: <Routing /> },
+            { path: 'architecture/controllers', element: <Controllers /> },
+            { path: 'architecture/models-orm', element: <ModelsOrm /> },
+            { path: 'architecture/migrations', element: <Migrations /> },
+            { path: 'architecture/validation', element: <Validation /> },
+            { path: 'architecture/file-storage', element: <FileStorage /> },
+
+            // Queue System
+            { path: 'queue/overview', element: <QueueOverview /> },
+            { path: 'queue/creating-jobs', element: <QueueCreatingJobs /> },
+            { path: 'queue/processing-jobs', element: <QueueProcessingJobs /> },
+            { path: 'queue/configuration', element: <QueueConfiguration /> },
+
+            // Database
+            { path: 'database/drivers', element: <DatabaseDrivers /> },
+
+            // Configuration
+            { path: 'configuration/env', element: <ConfigurationEnv /> },
+            { path: 'configuration/caching', element: <ConfigurationCaching /> },
+
+            // Deployment
+            { path: 'deployment/production', element: <DeploymentProduction /> },
+
+            // Dependency Injection
+            { path: 'di/container', element: <DIContainer /> },
+
+            // CLI
+            { path: 'cli/overview', element: <CLIOverview /> },
+
+            // Development
+            { path: 'development/debugging', element: <DevelopmentDebugging /> },
+
+            // I18n
+            { path: 'i18n/overview', element: <I18nOverview /> },
+
+            // Security
+            { path: 'security/overview', element: <SecurityOverview /> },
+
+            // Guides
+            { path: 'guides/crud-api', element: <GuidesCrudApi /> },
+
+            // Reference
+            { path: 'reference/openapi', element: <ReferenceOpenApi /> },
+            { path: 'reference/http-responses', element: <ReferenceHttpResponses /> },
+            { path: 'reference/cache-api', element: <ReferenceCacheApi /> },
+
+            // Troubleshooting
+            { path: 'troubleshooting/common-errors', element: <TroubleshootingCommonErrors /> },
+            { path: 'troubleshooting/faq', element: <TroubleshootingFaq /> },
+
+            // Community
+            { path: 'community', element: <Community /> },
+        ],
+    },
 ]);
 
 export default function AppRouter() {
-  return <RouterProvider router={router} />;
+    return <RouterProvider router={router} />;
 }

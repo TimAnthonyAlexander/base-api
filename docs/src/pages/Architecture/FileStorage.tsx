@@ -10,8 +10,8 @@ export default function FileStorage() {
             </Typography>
 
             <Typography variant="body1" paragraph>
-                BaseAPI includes a simple yet powerful file storage system that abstracts local filesystem
-                and cloud storage (S3, Google Cloud), providing a consistent API for file operations across
+                BaseAPI includes a simple yet powerful file storage system that abstracts the local filesystem,
+                providing a consistent API for file operations across
                 different storage backends.
             </Typography>
 
@@ -144,17 +144,6 @@ return [
                 'url' => ($_ENV['APP_URL'] ?? 'http://localhost:7879') . '/storage',
                 'visibility' => 'public',
             ],
-
-            // Cloud storage examples (coming soon)
-            /*
-            's3' => [
-                'driver' => 's3',
-                'key' => $_ENV['AWS_ACCESS_KEY_ID'] ?? null,
-                'secret' => $_ENV['AWS_SECRET_ACCESS_KEY'] ?? null,
-                'region' => $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1',
-                'bucket' => $_ENV['AWS_BUCKET'] ?? null,
-            ],
-            */
         ],
     ],
 
@@ -329,36 +318,6 @@ class FileService
     }
 }`}
             />
-
-            {/* What's Coming */}
-            <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 4 }}>
-                Cloud Storage (Coming Soon)
-            </Typography>
-
-            <Alert severity="info" sx={{ mb: 2 }}>
-                Cloud storage drivers for AWS S3 and Google Cloud Storage are planned for the next release.
-            </Alert>
-
-            <Typography variant="body1" paragraph>
-                The storage system is architected to support cloud storage with the same simple API:
-            </Typography>
-
-            <CodeBlock
-                language="php"
-                title="Future Cloud Storage Usage"
-                code={`// Same API, different storage backend
-Storage::disk('s3')->put('documents/file.pdf', $content);
-Storage::disk('gcs')->putFile('uploads', $file);
-
-// Seamless switching between local and cloud
-$disk = ($_ENV['APP_ENV'] ?? 'local') === 'production' ? 's3' : 'local';
-$path = Storage::disk($disk)->putFile('uploads', $file);`}
-            />
-
-            <Admonition type="note" title="Implementation Status">
-                The core file storage system with local filesystem support is complete and ready for production use.
-                Cloud storage drivers will be added in a future release while maintaining the same simple API.
-            </Admonition>
         </Box>
     );
 }
