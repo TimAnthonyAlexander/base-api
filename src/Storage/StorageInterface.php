@@ -47,7 +47,7 @@ interface StorageInterface
      * 
      * @param string $path File path
      * @return string File content
-     * @throws FileNotFoundException If file doesn't exist
+     * @throws \BaseApi\Storage\Exceptions\FileNotFoundException If file doesn't exist
      */
     public function get(string $path): string;
 

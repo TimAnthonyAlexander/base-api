@@ -595,6 +595,7 @@ abstract class BaseModel implements \JsonSerializable
 
     /**
      * Create a cached query for this model.
+     * @return ModelQuery<static>
      */
     public static function cached(int $ttl = 300): ModelQuery
     {

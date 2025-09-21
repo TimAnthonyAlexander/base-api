@@ -56,7 +56,7 @@ class StorageManager
      * Register a custom driver creator.
      * 
      * @param string $driver Driver name
-     * @param callable $callback Driver creator callback
+     * @param callable(array): StorageInterface $callback Driver creator callback
      */
     public function extend(string $driver, callable $callback): void
     {

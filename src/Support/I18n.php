@@ -345,7 +345,7 @@ class I18n
     /**
      * Format plural forms (basic implementation)
      */
-    private function formatPlural($count, string $options): string
+    private function formatPlural(int|float $count, string $options): string
     {
         $count = (int)$count;
 
@@ -377,7 +377,7 @@ class I18n
     /**
      * Format select forms (basic implementation)
      */
-    private function formatSelect($value, string $options): string
+    private function formatSelect(mixed $value, string $options): string
     {
         $value = (string)$value;
 

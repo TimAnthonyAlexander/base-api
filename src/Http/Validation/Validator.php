@@ -377,6 +377,7 @@ class Validator
 
     /**
      * Register a custom validation rule
+     * @param callable(mixed, string, array): bool|object $rule
      */
     public static function extend(string $name, callable|object $rule): void
     {

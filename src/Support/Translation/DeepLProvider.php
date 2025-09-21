@@ -281,8 +281,9 @@ class DeepLProvider implements TranslationProvider
 
     /**
      * Execute callback with concurrency control to prevent API bursts
+     * @param callable(): mixed $callback
      */
-    private function withConcurrencyControl(callable $callback)
+    private function withConcurrencyControl(callable $callback): mixed
     {
         $lockFile = sys_get_temp_dir() . '/deepl_api.lock';
         $handle = fopen($lockFile, 'c+');
