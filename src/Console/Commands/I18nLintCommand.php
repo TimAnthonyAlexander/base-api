@@ -285,7 +285,7 @@ class I18nLintCommand implements Command
         }
 
         if ($errorCount === 0 && $warningCount === 0) {
-            echo ColorHelper::success("✅ All translation files are valid!") . "\n";
+            echo ColorHelper::success("All translation files are valid!") . "\n";
         } else {
             echo ColorHelper::info("📊 Summary: ") . ColorHelper::colorize(sprintf('%d errors, %d warnings', $errorCount, $warningCount), $errorCount > 0 ? ColorHelper::RED : ColorHelper::YELLOW) . "\n";
         }

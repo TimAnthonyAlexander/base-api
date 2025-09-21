@@ -29,27 +29,27 @@ class CreateJobsTableCommand implements Command
     {
         $basePath = $app?->basePath() ?? getcwd();
         App::boot($basePath);
-        
+
         try {
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
             $migrationsPath = App::basePath($migrationsFile);
-            
+
             // Create jobs table migration
             $migration = $this->createJobsTableMigration();
-            
+
             // Add to migrations file
             MigrationsFile::appendMigrations($migrationsPath, [$migration]);
-            
-            echo ColorHelper::success("✅ Jobs table migration created successfully!") . "\n";
+
+            echo ColorHelper::success("Jobs table migration created successfully!") . "\n";
             echo ColorHelper::info("📊 Run 'console migrate:apply' to create the jobs table.") . "\n";
-            
+
             return 0;
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Error creating jobs table migration: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
-    
+
     private function createJobsTableMigration(): array
     {
         $sql = "CREATE TABLE jobs (
@@ -65,7 +65,7 @@ class CreateJobsTableCommand implements Command
     failed_at DATETIME,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 )";
-        
+
         // Return the table creation migration
         $migration = [
             'id' => MigrationsFile::generateMigrationId($sql, 'jobs', 'create_table'),
@@ -76,7 +76,7 @@ class CreateJobsTableCommand implements Command
             'operation' => 'create_table',
             'description' => 'Create jobs table for queue system'
         ];
-        
+
         return $migration;
     }
 }

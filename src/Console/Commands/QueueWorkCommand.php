@@ -29,42 +29,42 @@ class QueueWorkCommand implements Command
     {
         // Boot the app to load configuration
         App::boot($app?->basePath() ?? getcwd());
-        
+
         // Parse command line options
         $options = $this->parseOptions($args);
-        
+
         $queue = $options['queue'] ?? 'default';
         $sleep = (int) ($options['sleep'] ?? 3);
         $maxJobs = (int) ($options['max-jobs'] ?? 0);
         $maxTime = (int) ($options['max-time'] ?? 0);
         $memoryLimit = (int) ($options['memory'] ?? 128);
-        
+
         echo ColorHelper::header(sprintf('🔄 Starting queue worker for queue: %s', $queue)) . "\n";
         echo ColorHelper::info('Options: ') . ColorHelper::comment(sprintf('sleep=%ds, max-jobs=%s, max-time=%ss, memory=%dMB', $sleep, $maxJobs ?: 'unlimited', $maxTime ?: 'unlimited', $memoryLimit)) . "\n\n";
-        
+
         try {
             $worker = new QueueWorker(App::queue()->driver());
             $worker->work($queue, $sleep, $maxJobs, $maxTime, $memoryLimit);
-            
-            echo ColorHelper::success("✅ Queue worker stopped gracefully.") . "\n";
+
+            echo ColorHelper::success("Queue worker stopped gracefully.") . "\n";
             return 0;
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Queue worker error: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
-    
+
     private function parseOptions(array $args): array
     {
         $options = [];
         $counter = count($args);
-        
+
         for ($i = 0; $i < $counter; $i++) {
             $arg = $args[$i];
-            
+
             if (str_starts_with((string) $arg, '--')) {
                 $option = substr((string) $arg, 2);
-                
+
                 if (str_contains($option, '=')) {
                     [$key, $value] = explode('=', $option, 2);
                     $options[$key] = $value;
@@ -78,7 +78,7 @@ class QueueWorkCommand implements Command
                 }
             }
         }
-        
+
         return $options;
     }
 }

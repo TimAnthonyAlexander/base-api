@@ -31,51 +31,51 @@ class JobMakeCommand implements Command
             echo ColorHelper::info("📊 Usage: console make:job JobName") . "\n";
             return 1;
         }
-        
+
         $basePath = $app?->basePath() ?? getcwd();
         App::boot($basePath);
-        
+
         $name = $args[0];
-        
+
         // Validate job name
         if (!preg_match('/^[A-Z][a-zA-Z0-9]*Job$/', (string) $name)) {
             echo ColorHelper::error("❌ Error: Job name must start with uppercase letter and end with 'Job'") . "\n";
             echo ColorHelper::comment("Example: SendEmailJob, ProcessImageJob") . "\n";
             return 1;
         }
-        
+
         try {
             $this->generateJobClass($basePath, $name);
-            echo ColorHelper::success(sprintf('✅ Job %s created successfully at app/Jobs/%s.php', $name, $name)) . "\n";
+            echo ColorHelper::success(sprintf('Job %s created successfully at app/Jobs/%s.php', $name, $name)) . "\n";
             return 0;
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Error creating job: " . $exception->getMessage()) . "\n";
             return 1;
         }
     }
-    
+
     private function generateJobClass(string $basePath, string $name): void
     {
         $jobsDir = $basePath . '/app/Jobs';
-        
+
         // Create Jobs directory if it doesn't exist
         if (!is_dir($jobsDir) && !mkdir($jobsDir, 0755, true)) {
             throw new Exception("Could not create Jobs directory");
         }
-        
+
         $filePath = $jobsDir . '/' . $name . '.php';
-        
+
         if (file_exists($filePath)) {
             throw new Exception(sprintf('Job class %s already exists', $name));
         }
-        
+
         $template = $this->getJobTemplate($name);
-        
+
         if (file_put_contents($filePath, $template) === false) {
             throw new Exception("Could not write job file");
         }
     }
-    
+
     private function getJobTemplate(string $name): string
     {
         return <<<PHP

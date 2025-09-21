@@ -32,34 +32,34 @@ class MakeModelCommand implements Command
         }
 
         $name = $this->sanitizeName($args[0]);
-        
+
         if ($name === '' || $name === '0') {
             echo ColorHelper::error("❌ Error: Invalid model name. Use only letters, numbers, and underscores.") . "\n";
             return 1;
         }
-        
+
         $filePath = App::basePath(sprintf('app/Models/%s.php', $name));
         $modelsDir = dirname($filePath);
-        
+
         // Create Models directory if it doesn't exist
         if (!is_dir($modelsDir)) {
             mkdir($modelsDir, 0755, true);
         }
-        
+
         if (file_exists($filePath)) {
             echo ColorHelper::error(sprintf('❌ Error: Model %s already exists', $name)) . "\n";
             return 1;
         }
 
         $template = $this->getModelTemplate($name);
-        
+
         if (!file_put_contents($filePath, $template)) {
             echo ColorHelper::error("❌ Error: Could not create model file") . "\n";
             return 1;
         }
 
-        echo ColorHelper::success(sprintf('✅ Model created: app/Models/%s.php', $name)) . "\n";
-        
+        echo ColorHelper::success(sprintf('Model created: app/Models/%s.php', $name)) . "\n";
+
         return 0;
     }
 
@@ -67,12 +67,12 @@ class MakeModelCommand implements Command
     {
         // Remove any characters that aren't letters, numbers, or underscores
         $sanitized = preg_replace('/[^A-Za-z0-9_]/', '', $name);
-        
+
         // Ensure it starts with a letter
         if (!empty($sanitized) && !preg_match('/^[A-Za-z]/', $sanitized)) {
             return '';
         }
-        
+
         return $sanitized;
     }
 

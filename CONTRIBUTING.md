@@ -540,4 +540,4 @@ By contributing to BaseAPI, you agree that your contributions will be licensed u
 
 ---
 
-Thank you for contributing to BaseAPI! Your efforts help make this framework better for everyone. 🚀
+Thank you for contributing to BaseAPI! Your efforts help make this framework better for everyone.

@@ -70,7 +70,7 @@ class TypesGenerateCommand implements Command
                 $this->generateTypeScript($options);
             }
 
-            echo ColorHelper::success("✅ Type generation completed!") . "\n";
+            echo ColorHelper::success("Type generation completed!") . "\n";
             return 0;
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
@@ -200,7 +200,7 @@ HELP;
         require $routesFile;
         $this->routes = $routes;
 
-        echo ColorHelper::success("   ✅ Found " . count($this->routes) . " routes") . "\n";
+        echo ColorHelper::success("   Found " . count($this->routes) . " routes") . "\n";
     }
 
     private function parseRoutesFile(string $routesFile): void
@@ -238,7 +238,7 @@ HELP;
         }
 
         $this->routes = $routes;
-        echo ColorHelper::success("   ✅ Found " . count($this->routes) . " routes") . "\n";
+        echo ColorHelper::success("   Found " . count($this->routes) . " routes") . "\n";
     }
 
     private function resolveClassName(string $shortName, string $content): string
@@ -481,7 +481,7 @@ HELP;
             }
         }
 
-        echo ColorHelper::success("   ✅ Resolved " . count($this->dtoSchemas) . " DTOs") . "\n";
+        echo ColorHelper::success("   Resolved " . count($this->dtoSchemas) . " DTOs") . "\n";
     }
 
     private function resolveDto(string $className): array

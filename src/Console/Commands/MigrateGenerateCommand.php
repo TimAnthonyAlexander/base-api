@@ -33,51 +33,51 @@ class MigrateGenerateCommand implements Command
     {
         try {
             echo ColorHelper::info("🔍 Scanning models...") . "\n";
-            
+
             // Scan models
             $scanner = new ModelScanner();
             $modelSchema = $scanner->scan(App::basePath('app/Models'));
-            
+
             echo ColorHelper::info("📋 Introspecting database...") . "\n";
-            
+
             // Introspect database
             $introspector = new DatabaseIntrospector();
             $dbSchema = $introspector->snapshot();
-            
+
             echo ColorHelper::info("🔄 Generating migration plan...") . "\n";
-            
+
             // Generate diff
             $diffEngine = new DiffEngine();
-            
+
             // Add any user-defined system tables from configuration
             $systemTables = App::config()->get('migrations.system_tables', []);
             if (!empty($systemTables)) {
                 $diffEngine->addSystemTables($systemTables);
             }
-            
+
             $plan = $diffEngine->diff($modelSchema, $dbSchema);
-            
+
             if ($plan->isEmpty()) {
-                echo "\n" . ColorHelper::success("✅ No changes detected. Database is up to date.") . "\n";
+                echo "\n" . ColorHelper::success("No changes detected. Database is up to date.") . "\n";
                 return 0;
             }
-            
+
             // Generate SQL statements from the plan
             echo ColorHelper::info("⚙️  Converting to SQL statements...") . "\n";
             $generator = new SqlGenerator();
             $sqlStatements = $generator->generate($plan);
-            
+
             // Convert SQL statements to migration format
             $migrations = [];
             foreach ($sqlStatements as $statement) {
                 // Use table from statement if provided, otherwise extract from SQL
                 $table = $statement['table'] ?? $this->extractTableFromSql($statement['sql']);
                 $operation = $this->guessOperationFromSql($statement['sql']);
-                
+
                 $migrations[] = [
                     'id' => MigrationsFile::generateMigrationId(
-                        $statement['sql'], 
-                        $table, 
+                        $statement['sql'],
+                        $table,
                         $operation
                     ),
                     'sql' => $statement['sql'],
@@ -88,35 +88,34 @@ class MigrateGenerateCommand implements Command
                     'warning' => $statement['warning'] ?? null
                 ];
             }
-            
+
             // Get migrations file path
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
             $fullPath = App::basePath($migrationsFile);
-            
+
             // Get existing migrations before adding new ones
             $existingMigrations = MigrationsFile::readMigrations($fullPath);
             $existingIds = array_column($existingMigrations, 'id');
-            
+
             // Append new migrations to file
             MigrationsFile::appendMigrations($fullPath, $migrations);
-            
+
             // Count how many were actually new (not duplicates)
             $newMigrationIds = array_column($migrations, 'id');
             $actuallyNewIds = array_diff($newMigrationIds, $existingIds);
             $finalCount = count($actuallyNewIds);
-            
+
             // Print summary
             $this->printSummary($migrations);
-            
+
             if ($finalCount === 0) {
-                echo "\n" . ColorHelper::comment("ℹ️  No new migrations added (duplicates filtered out).") . "\n";
+                echo "\n" . ColorHelper::comment(" No new migrations added (duplicates filtered out).") . "\n";
             } else {
-                echo "\n" . ColorHelper::success(sprintf('✅ %d new migrations added to: %s', $finalCount, $migrationsFile)) . "\n";
+                echo "\n" . ColorHelper::success(sprintf('%d new migrations added to: %s', $finalCount, $migrationsFile)) . "\n";
                 echo ColorHelper::info("📊 Run 'migrate:apply' to execute pending migrations.") . "\n";
             }
-            
+
             return 0;
-            
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
             return 1;
@@ -128,27 +127,27 @@ class MigrateGenerateCommand implements Command
         if ($migrations === []) {
             return;
         }
-        
+
         $counts = [];
         $destructiveCount = 0;
-        
+
         foreach ($migrations as $migration) {
             $operation = $migration['operation'];
             $counts[$operation] = ($counts[$operation] ?? 0) + 1;
-            
+
             if ($migration['destructive'] ?? false) {
                 $destructiveCount++;
             }
         }
-        
+
         echo "\n" . ColorHelper::header("📊 Migration Summary") . "\n";
         echo ColorHelper::colorize("==================", ColorHelper::BRIGHT_CYAN) . "\n";
-        
+
         foreach ($counts as $operation => $count) {
             $displayName = ucwords(str_replace('_', ' ', $operation));
             echo ColorHelper::info($displayName . ': ') . ColorHelper::colorize((string)$count, ColorHelper::YELLOW) . "\n";
         }
-        
+
         if ($destructiveCount > 0) {
             echo "\n" . ColorHelper::warning(sprintf('⚠️  WARNING: %d destructive operations detected!', $destructiveCount)) . "\n";
             echo ColorHelper::info("💡 Use 'migrate:apply --safe' to skip destructive changes.") . "\n";

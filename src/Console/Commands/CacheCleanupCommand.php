@@ -37,7 +37,7 @@ class CacheCleanupCommand implements Command
             if ($driver) {
                 // Cleanup specific driver
                 $removed = $this->cleanupDriver($driver);
-                echo ColorHelper::success(sprintf('✅ Cleaned up %d expired entries from %s cache.', $removed, $driver)) . "\n";
+                echo ColorHelper::success(sprintf('Cleaned up %d expired entries from %s cache.', $removed, $driver)) . "\n";
             } else {
                 // Cleanup all drivers that support it
                 $stores = $config->get('cache.stores', []);
@@ -63,9 +63,9 @@ class CacheCleanupCommand implements Command
                 }
 
                 if ($totalRemoved > 0) {
-                    echo ColorHelper::success(sprintf('✅ Cleanup completed. Removed %d expired entries from %d drivers.', $totalRemoved, $driversProcessed)) . "\n";
+                    echo ColorHelper::success(sprintf('Cleanup completed. Removed %d expired entries from %d drivers.', $totalRemoved, $driversProcessed)) . "\n";
                 } else {
-                    echo ColorHelper::info(sprintf('ℹ️  Cleanup completed. No expired entries found in %d drivers.', $driversProcessed)) . "\n";
+                    echo ColorHelper::info(sprintf(' Cleanup completed. No expired entries found in %d drivers.', $driversProcessed)) . "\n";
                 }
             }
 
@@ -80,11 +80,11 @@ class CacheCleanupCommand implements Command
     {
         $cache = Cache::manager();
         $repository = $cache->driver($driver); // Get repository
-        
+
         if (method_exists($repository, 'cleanup')) {
             return $repository->cleanup();
         }
-        
+
         // If cleanup is not supported, return 0
         return 0;
     }

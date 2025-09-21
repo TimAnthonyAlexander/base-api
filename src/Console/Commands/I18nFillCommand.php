@@ -78,7 +78,7 @@ class I18nFillCommand implements Command
             $totalFilled += $filled;
         }
 
-        echo "\n" . ColorHelper::success(sprintf('✅ Filled %d missing translations across all locales.', $totalFilled)) . "\n";
+        echo "\n" . ColorHelper::success(sprintf('Filled %d missing translations across all locales.', $totalFilled)) . "\n";
 
         return 0;
     }
@@ -125,7 +125,7 @@ class I18nFillCommand implements Command
             }
 
             if ($toTranslate === []) {
-                echo sprintf('    ℹ️  No missing translations in %s%s', $namespace, PHP_EOL);
+                echo sprintf('     No missing translations in %s%s', $namespace, PHP_EOL);
                 continue;
             }
 
@@ -144,7 +144,7 @@ class I18nFillCommand implements Command
                     // Protect placeholders before translation
                     $protectedTexts = [];
                     $placeholderMaps = [];
-                    
+
                     foreach ($texts as $idx => $text) {
                         $protected = $this->protectPlaceholders($text);
                         $protectedTexts[$idx] = $protected['text'];
@@ -194,7 +194,7 @@ class I18nFillCommand implements Command
                 $i18n->saveTranslations($locale, $namespace, $updatedTranslations);
 
                 $filledCount += count($translated);
-                echo "    ✅ Filled " . count($translated) . " translations in {$namespace}.json\n";
+                echo "    Filled " . count($translated) . " translations in {$namespace}.json\n";
             }
         }
 
@@ -212,7 +212,7 @@ class I18nFillCommand implements Command
 
         // Find all placeholders (including nested ICU format)
         $pattern = '/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/';
-        
+
         $protectedText = preg_replace_callback($pattern, function (array $matches) use (&$placeholderMap, &$counter): string {
             $placeholder = $matches[0];
             $token = 'PLACEHOLDER_TOKEN_' . $counter;
@@ -233,11 +233,11 @@ class I18nFillCommand implements Command
     private function restorePlaceholders(string $text, array $placeholderMap): string
     {
         $restoredText = $text;
-        
+
         foreach ($placeholderMap as $token => $placeholder) {
             $restoredText = str_replace($token, $placeholder, $restoredText);
         }
-        
+
         return $restoredText;
     }
 }

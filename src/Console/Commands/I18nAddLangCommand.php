@@ -62,9 +62,9 @@ class I18nAddLangCommand implements Command
         $languageDir = App::basePath('translations/' . $language);
         if (!is_dir($languageDir)) {
             mkdir($languageDir, 0755, true);
-            echo ColorHelper::success(sprintf('  ✅ Created directory: %s', $languageDir)) . "\n";
+            echo ColorHelper::success(sprintf('  Created directory: %s', $languageDir)) . "\n";
         } else {
-            echo ColorHelper::comment(sprintf('  ℹ️  Directory already exists: %s', $languageDir)) . "\n";
+            echo ColorHelper::comment(sprintf('   Directory already exists: %s', $languageDir)) . "\n";
         }
 
         // Get all namespaces from default locale
@@ -139,12 +139,12 @@ class I18nAddLangCommand implements Command
 
             $newCount = count($defaultTranslations) - count($existingTranslations);
             if ($newCount > 0) {
-                echo ColorHelper::success(sprintf('    ✅ Added %d translations to %s.json', $newCount, $namespace)) . "\n";
+                echo ColorHelper::success(sprintf('    Added %d translations to %s.json', $newCount, $namespace)) . "\n";
             } else {
-                echo ColorHelper::comment(sprintf('    ℹ️  No new translations needed for %s.json', $namespace)) . "\n";
+                echo ColorHelper::comment(sprintf('     No new translations needed for %s.json', $namespace)) . "\n";
             }
         }
 
-        echo ColorHelper::success(sprintf('  ✅ Language %s setup complete', $language)) . "\n\n";
+        echo ColorHelper::success(sprintf('  Language %s setup complete', $language)) . "\n\n";
     }
 }

@@ -33,7 +33,7 @@ class CacheClearCommand implements Command
         // Parse arguments
         $driver = $args[0] ?? null;
         $tags = null;
-        
+
         // Parse options (simple implementation)
         foreach ($args as $arg) {
             if (str_starts_with((string) $arg, '--tags=')) {
@@ -47,12 +47,12 @@ class CacheClearCommand implements Command
                 // Clear by tags
                 $tagsList = array_map('trim', explode(',', $tags));
                 echo ColorHelper::info("🏷️  Clearing cache for tags: " . implode(', ', $tagsList)) . "\n";
-                
+
                 $cache = Cache::tags($tagsList);
                 $result = $cache->flush();
-                
+
                 if ($result) {
-                    echo ColorHelper::success("✅ Cache cleared for specified tags.") . "\n";
+                    echo ColorHelper::success("Cache cleared for specified tags.") . "\n";
                 } else {
                     echo ColorHelper::error("❌ Failed to clear cache for specified tags.") . "\n";
                     return 1;
@@ -60,12 +60,12 @@ class CacheClearCommand implements Command
             } elseif ($driver) {
                 // Clear specific driver
                 echo ColorHelper::info(sprintf('📋 Clearing cache for driver: %s', $driver)) . "\n";
-                
+
                 $cache = Cache::driver($driver);
                 $result = $cache->flush();
-                
+
                 if ($result) {
-                    echo ColorHelper::success(sprintf('✅ Cache cleared for driver: %s', $driver)) . "\n";
+                    echo ColorHelper::success(sprintf('Cache cleared for driver: %s', $driver)) . "\n";
                 } else {
                     echo ColorHelper::error(sprintf('❌ Failed to clear cache for driver: %s', $driver)) . "\n";
                     return 1;
@@ -73,12 +73,12 @@ class CacheClearCommand implements Command
             } else {
                 // Clear all drivers
                 echo ColorHelper::info("🧹 Clearing all cache...") . "\n";
-                
+
                 $config = App::config();
                 $stores = $config->get('cache.stores', []);
                 $cleared = 0;
                 $failed = 0;
-                
+
                 foreach (array_keys($stores) as $storeName) {
                     try {
                         $cache = Cache::driver($storeName);
@@ -94,9 +94,9 @@ class CacheClearCommand implements Command
                         $failed++;
                     }
                 }
-                
+
                 if ($failed === 0) {
-                    echo ColorHelper::success(sprintf('✅ All cache stores cleared successfully (%d stores).', $cleared)) . "\n";
+                    echo ColorHelper::success(sprintf('All cache stores cleared successfully (%d stores).', $cleared)) . "\n";
                 } else {
                     echo ColorHelper::warning(sprintf('⚠️  Cache clearing completed with %d failures and %d successes.', $failed, $cleared)) . "\n";
                     return 1;

@@ -35,7 +35,7 @@ class ServeCommand implements Command
         
         $address = sprintf('%s:%s', $host, $port);
         
-        echo ColorHelper::success(sprintf('🚀 Starting BaseApi development server on http://%s', $address)) . "\n";
+        echo ColorHelper::success(sprintf('Starting BaseApi development server on http://%s', $address)) . "\n";
         echo ColorHelper::comment("⌨️  Press Ctrl+C to stop the server") . "\n\n";
         
         // Check if public directory exists
