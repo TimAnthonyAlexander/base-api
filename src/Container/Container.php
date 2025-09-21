@@ -5,6 +5,7 @@ namespace BaseApi\Container;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionParameter;
+use ReflectionNamedType;
 use Closure;
 
 /**
@@ -220,6 +221,13 @@ class Container implements ContainerInterface
                 throw ContainerException::cannotInstantiate(
                     $parameter->getDeclaringClass()->getName(),
                     "Cannot resolve parameter '{$name}' - union types not supported"
+                );
+            }
+
+            if (!$type instanceof ReflectionNamedType) {
+                throw ContainerException::cannotInstantiate(
+                    $parameter->getDeclaringClass()->getName(),
+                    "Cannot resolve parameter '{$name}' - only named types are supported"
                 );
             }
 

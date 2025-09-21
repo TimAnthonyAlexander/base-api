@@ -64,8 +64,8 @@ class CacheStatsCommand implements Command
         echo sprintf('Cache Driver: %s%s', $driver, PHP_EOL);
         
         try {
-            $cache = Cache::driver($driver);
-            $repository = $cache->driver(); // Get repository
+            $cache = Cache::manager();
+            $repository = $cache->driver($driver); // Get repository
             
             if (method_exists($repository, 'getStats')) {
                 $stats = $repository->getStats();

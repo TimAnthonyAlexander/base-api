@@ -18,7 +18,7 @@ class CacheManager implements CacheInterface
     /** @var array<string, CacheInterface> */
     private array $stores = [];
 
-    /** @var array<string, callable> */
+    /** @var array<string, callable(): CacheInterface> */
     private array $customDrivers = [];
 
     private ?string $defaultDriver = null;
@@ -63,6 +63,7 @@ class CacheManager implements CacheInterface
 
     /**
      * Register a custom cache driver.
+     * @param callable(): CacheInterface $callback
      */
     public function extend(string $driver, callable $callback): void
     {

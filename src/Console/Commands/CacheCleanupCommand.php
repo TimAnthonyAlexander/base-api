@@ -77,8 +77,8 @@ class CacheCleanupCommand implements Command
 
     private function cleanupDriver(string $driver): int
     {
-        $cache = Cache::driver($driver);
-        $repository = $cache->driver(); // Get repository
+        $cache = Cache::manager();
+        $repository = $cache->driver($driver); // Get repository
         
         if (method_exists($repository, 'cleanup')) {
             return $repository->cleanup();

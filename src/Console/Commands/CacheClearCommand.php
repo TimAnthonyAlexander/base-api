@@ -98,7 +98,7 @@ class CacheClearCommand implements Command
                     echo "✅ All cache stores cleared successfully ({$cleared} stores).\n";
                 } else {
                     echo "⚠️ Cache clearing completed with {$failed} failures and {$cleared} successes.\n";
-                    return $failed > 0 ? 1 : 0;
+                    return 1;
                 }
             }
 

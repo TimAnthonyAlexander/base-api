@@ -17,11 +17,14 @@ use BaseApi\App;
  */
 class CacheResponse extends BaseMiddleware
 {
+    /**
+     * @param callable(Request): Response $next
+     */
     #[Override]
     public function handle(Request $request, callable $next): Response
     {
         // Only cache GET requests
-        if ($request->method() !== 'GET') {
+        if ($request->method !== 'GET') {
             return $next($request);
         }
 
@@ -48,7 +51,7 @@ class CacheResponse extends BaseMiddleware
         $response = $next($request);
 
         // Cache the response if it's successful
-        if ($response->statusCode >= 200 && $response->statusCode < 300) {
+        if ($response->status >= 200 && $response->status < 300) {
             $this->cacheResponse($cacheKey, $response, $ttl, $tags);
         }
 
@@ -69,7 +72,7 @@ class CacheResponse extends BaseMiddleware
 
         // Reconstruct response from cached data
         $response = new Response();
-        $response->statusCode = $cached['status_code'];
+        $response->status = $cached['status_code'];
         $response->body = $cached['body'];
         
         // Restore headers
@@ -90,7 +93,7 @@ class CacheResponse extends BaseMiddleware
     private function cacheResponse(string $cacheKey, Response $response, int $ttl, array $tags): void
     {
         $cacheData = [
-            'status_code' => $response->statusCode,
+            'status_code' => $response->status,
             'body' => $response->body,
             'headers' => $response->headers,
             'cached_at' => time(),
@@ -115,8 +118,8 @@ class CacheResponse extends BaseMiddleware
         
         // Base components
         $components = [
-            'uri' => $request->uri(),
-            'method' => $request->method(),
+            'uri' => $request->path,
+            'method' => $request->method,
         ];
 
         // Add query parameters (filtered)

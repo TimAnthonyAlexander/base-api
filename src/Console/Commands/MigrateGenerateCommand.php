@@ -146,7 +146,7 @@ class MigrateGenerateCommand implements Command
         }
     }
 
-    private function extractTableFromSql(string $sql): ?string
+    private function extractTableFromSql(string $sql): string
     {
         // Enhanced regex to extract table names from common SQL patterns
         // Handles backticks, double quotes, square brackets, or no quotes
