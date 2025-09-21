@@ -5,7 +5,6 @@ namespace BaseApi\Console\Commands;
 use Override;
 use BaseApi\Queue\Drivers\DatabaseQueueDriver;
 use Exception;
-use PDO;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\App;
@@ -74,13 +73,13 @@ class QueueStatusCommand implements Command
             $db = App::db();
             
             // Get job counts by status
-            $stats = $db->query("
+            $stats = $db->raw("
                 SELECT status, COUNT(*) as count 
                 FROM jobs 
                 GROUP BY status
-            ")->fetchAll(PDO::FETCH_ASSOC);
+            ");
             
-            if (!empty($stats)) {
+            if ($stats !== []) {
                 echo "\nJob Status Statistics:\n";
                 echo "---------------------\n";
                 
@@ -90,12 +89,12 @@ class QueueStatusCommand implements Command
             }
             
             // Get failed jobs count from last 24 hours
-            $failedRecent = $db->query("
+            $failedRecent = $db->scalar("
                 SELECT COUNT(*) as count 
                 FROM jobs 
                 WHERE status = 'failed' 
                 AND failed_at > datetime('now', '-1 day')
-            ")->fetchColumn();
+            ");
             
             if ($failedRecent > 0) {
                 echo "\nRecent failures (24h): {$failedRecent}\n";

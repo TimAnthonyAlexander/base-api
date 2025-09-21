@@ -5,7 +5,6 @@ namespace BaseApi\Console\Commands;
 use Override;
 use Exception;
 use BaseApi\Queue\Drivers\DatabaseQueueDriver;
-use PDO;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\App;
@@ -72,13 +71,16 @@ class QueueRetryCommand implements Command
         $db = App::db();
         
         // Get all failed jobs
-        $failedJobs = $db->query("
+        $failedJobsResult = $db->raw("
             SELECT id FROM jobs 
             WHERE status = 'failed'
             ORDER BY failed_at DESC
-        ")->fetchAll(PDO::FETCH_COLUMN);
+        ");
         
-        if (empty($failedJobs)) {
+        // Extract the id values from the result
+        $failedJobs = array_column($failedJobsResult, 'id');
+        
+        if ($failedJobs === []) {
             echo "No failed jobs found.\n";
             return 0;
         }

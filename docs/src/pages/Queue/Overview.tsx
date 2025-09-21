@@ -34,49 +34,6 @@ export default function QueueOverview() {
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
-                Key Features
-            </Typography>
-
-            <List>
-                <ListItem>
-                    <ListItemText
-                        primary="Multiple Queue Drivers"
-                        secondary="Database-backed persistent queues and sync driver for development"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemText
-                        primary="Automatic Retry Logic"
-                        secondary="Configurable retry attempts and delays for failed jobs"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemText
-                        primary="Failed Job Handling"
-                        secondary="Graceful failure handling with custom failure callbacks"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemText
-                        primary="Priority Queues"
-                        secondary="Organize jobs into different queues based on priority or type"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemText
-                        primary="Job Serialization"
-                        secondary="Automatic serialization and storage of job objects"
-                    />
-                </ListItem>
-                <ListItem>
-                    <ListItemText
-                        primary="Worker Management"
-                        secondary="Memory limits, time limits, and graceful shutdown handling"
-                    />
-                </ListItem>
-            </List>
-
-            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Quick Start
             </Typography>
 

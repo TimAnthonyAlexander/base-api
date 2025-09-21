@@ -32,21 +32,24 @@ namespace App\\Controllers;
 use BaseApi\\Controllers\\Controller;
 use BaseApi\\Http\\JsonResponse;
 use BaseApi\\Http\\UploadedFile;
-use BaseApi\\Http\\Validation\\Attributes\\*;
+use BaseApi\\Http\\Validation\\Attributes\\File;
+use BaseApi\\Http\\Validation\\Attributes\\Mimes;
+use BaseApi\\Http\\Validation\\Attributes\\Size;
 use BaseApi\\Storage\\Storage;
 
 class FileUploadController extends Controller
 {
-    #[Required]
     #[File]
     #[Mimes(['jpg', 'jpeg', 'png', 'pdf'])]
     #[Size(5)] // 5MB max
-    public UploadedFile $file;
+    public ?UploadedFile $file = null;
 
     public function post(): JsonResponse
     {
-        // Validate the uploaded file
-        $this->validate($this);
+        // Validate that file is present
+        if (!$this->file instanceof UploadedFile) {
+            return JsonResponse::badRequest('File is required');
+        }
         
         // Store file with auto-generated name
         $path = $this->file->store('uploads');
@@ -103,14 +106,15 @@ $deleted = Storage::delete('file.txt');            // Delete file`}
             </Typography>
 
             <Typography variant="body1" paragraph>
-                Storage disks are configured in your application's <code>config/app.php</code> following BaseAPI's unified configuration pattern.
+                Storage disks are configured using BaseAPI's unified configuration pattern. The framework provides
+                default storage configuration that can be overridden in your application's <code>config/app.php</code>.<br />
                 This keeps all application configuration in one place, making it easy to manage and understand.
             </Typography>
 
             <Alert severity="info" sx={{ mb: 2 }}>
                 <strong>BaseAPI Configuration Pattern:</strong> Unlike other frameworks that use separate config files,
-                BaseAPI uses a single <code>config/app.php</code> that extends framework defaults. This follows the KISS principle
-                and keeps configuration simple and centralized.
+                BaseAPI provides framework defaults that applications can override in <code>config/app.php</code>.<br />
+                This follows the KISS principle and keeps configuration simple and centralized.
             </Alert>
 
             <CodeBlock
@@ -181,22 +185,23 @@ Storage::disk('public')->put('backup.pdf', $content);`}
             <CodeBlock
                 language="php"
                 title="File Validation Attributes"
-                code={`use BaseApi\\Http\\Validation\\Attributes\\*;
+                code={`use BaseApi\\Http\\Validation\\Attributes\\File;
+use BaseApi\\Http\\Validation\\Attributes\\Image;
+use BaseApi\\Http\\Validation\\Attributes\\Mimes;
+use BaseApi\\Http\\Validation\\Attributes\\Size;
 
 class DocumentUploadController extends Controller
 {
-    #[Required]                              // File is required
     #[File]                                  // Must be a valid file upload
     #[Mimes(['pdf', 'doc', 'docx'])]        // Allowed MIME types
     #[Size(10)]                              // Max 10MB
-    public UploadedFile $document;
+    public ?UploadedFile $document = null;
 
     // For images with more specific validation
-    #[Required]
     #[Image]                                 // Must be an image
     #[Mimes(['jpg', 'png', 'gif'])]         // Image formats
     #[Size(2)]                              // Max 2MB
-    public UploadedFile $avatar;
+    public ?UploadedFile $avatar = null;
 }`}
             />
 
@@ -226,7 +231,14 @@ class DocumentUploadController extends Controller
                 The baseapi-template includes working file upload examples:
             </Typography>
 
-            <Paper sx={{ p: 2, mb: 2 }}>
+            <Box
+                sx={{
+                    p: 2,
+                    mb: 2,
+                    border: '0.1px solid #ccc',
+                    borderRadius: 2,
+                }}
+            >
                 <Typography variant="body2" component="div">
                     <strong>POST /files/upload</strong> - Upload with auto-generated filename<br />
                     <strong>POST /files/upload-public</strong> - Upload to public storage<br />
@@ -234,7 +246,7 @@ class DocumentUploadController extends Controller
                     <strong>GET /files/info?path=...</strong> - Get file information<br />
                     <strong>DELETE /files</strong> - Delete a stored file
                 </Typography>
-            </Paper>
+            </Box>
 
             <CodeBlock
                 language="bash"
