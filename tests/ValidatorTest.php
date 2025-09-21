@@ -612,6 +612,7 @@ class ValidatorTest extends TestCase
     {
         $controller = new class {
             public string $publicField = '';
+
             protected string $protectedField = '';
         };
 

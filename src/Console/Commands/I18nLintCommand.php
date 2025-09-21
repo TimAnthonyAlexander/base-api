@@ -273,6 +273,7 @@ class I18nLintCommand implements Command
 
             echo "\n";
         }
+
         if ($warningCount > 0) {
             echo "⚠️  WARNINGS ({$warningCount}):\n";
             foreach ($this->warnings as $warning) {
@@ -281,6 +282,7 @@ class I18nLintCommand implements Command
 
             echo "\n";
         }
+
         if ($errorCount === 0 && $warningCount === 0) {
             echo "✅ All translation files are valid!\n";
         } else {

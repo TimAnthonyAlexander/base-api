@@ -212,7 +212,7 @@ class I18nFillCommand implements Command
         // Find all placeholders (including nested ICU format)
         $pattern = '/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/';
         
-        $protectedText = preg_replace_callback($pattern, function ($matches) use (&$placeholderMap, &$counter): string {
+        $protectedText = preg_replace_callback($pattern, function (array $matches) use (&$placeholderMap, &$counter): string {
             $placeholder = $matches[0];
             $token = 'PLACEHOLDER_TOKEN_' . $counter;
             $placeholderMap[$token] = $placeholder;

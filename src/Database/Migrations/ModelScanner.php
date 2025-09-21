@@ -36,12 +36,13 @@ class ModelScanner
                 if (!class_exists($className)) {
                     continue;
                 }
-                
+
                 $reflection = new ReflectionClass($className);
                 // Skip abstract classes and non-BaseModel classes
                 if ($reflection->isAbstract()) {
                     continue;
                 }
+
                 if (!$reflection->isSubclassOf(BaseModel::class)) {
                     continue;
                 }

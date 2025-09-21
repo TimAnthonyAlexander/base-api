@@ -41,6 +41,7 @@ class ControllerListHelpers
                 if ($field === '') {
                     continue;
                 }
+
                 if ($field === '0') {
                     continue;
                 }
@@ -68,12 +69,14 @@ class ControllerListHelpers
             if ($value === null) {
                 continue;
             }
+
             if ($value === '') {
                 continue;
             }
+
             // Convert camelCase to snake_case
             $column = self::camelToSnake($field);
-            
+
             if ($q instanceof QueryBuilder) {
                 $q->where($column, '=', $value);
             } elseif ($q instanceof ModelQuery) {

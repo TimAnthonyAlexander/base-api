@@ -6,6 +6,9 @@ use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
 use Rector\CodeQuality\Rector\Class_\InlineConstructorDefaultToPropertyRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveEmptyClassMethodRector;
+use Rector\DeadCode\Rector\ClassMethod\RemoveUnusedPromotedPropertyRector;
+use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Php74\Rector\Property\TypedPropertyRector;
 use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 
@@ -31,6 +34,13 @@ return RectorConfig::configure()
             __DIR__ . '/src/Http/Request.php', // Request handling might need explicit properties
             __DIR__ . '/src/Http/Response.php', // Response handling might need explicit properties
             __DIR__ . '/src/Models', // Model classes might be extended by users
+        ],
+        StringClassNameToClassConstantRector::class,
+        RemoveEmptyClassMethodRector::class => [
+            __DIR__ . '/tests/ContainerTest.php',
+        ],
+        RemoveUnusedPromotedPropertyRector::class => [
+            __DIR__ . '/tests/ContainerTest.php',
         ],
     ])
     ->withSets([

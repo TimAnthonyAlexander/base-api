@@ -238,6 +238,7 @@ class DiffEngine
         if ($this->isTypeShrinking($modelColumn->type, $dbColumn->type)) {
             return true;
         }
+
         // Making a column non-nullable when it was nullable
         return !$modelColumn->nullable && $dbColumn->nullable;
     }

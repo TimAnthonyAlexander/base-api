@@ -316,7 +316,7 @@ class I18n
         // Handle basic plural forms
         $message = preg_replace_callback(
             '/\{(\w+),\s*plural,\s*([^}]+)\}/',
-            function ($matches) use ($params): string {
+            function (array $matches) use ($params): string {
                 $variable = $matches[1];
                 $options = $matches[2];
                 $count = $params[$variable] ?? 0;
@@ -329,7 +329,7 @@ class I18n
         // Handle basic select forms
         $message = preg_replace_callback(
             '/\{(\w+),\s*select,\s*([^}]+)\}/',
-            function ($matches) use ($params): string {
+            function (array $matches) use ($params): string {
                 $variable = $matches[1];
                 $options = $matches[2];
                 $value = $params[$variable] ?? '';
@@ -359,6 +359,7 @@ class I18n
                 $text = str_replace('#', (string)$count, $text);
                 $cases[$case] = $text;
             }
+
             // Simple plural rules for English
             if ($count === 1 && isset($cases['one'])) {
                 return $cases['one'];

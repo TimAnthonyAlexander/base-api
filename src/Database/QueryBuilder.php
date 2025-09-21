@@ -655,6 +655,7 @@ class QueryBuilder
             if ($field === '') {
                 continue;
             }
+
             if ($field === '0') {
                 continue;
             }
@@ -682,9 +683,11 @@ class QueryBuilder
             if ($value === null) {
                 continue;
             }
+
             if ($value === '') {
                 continue;
             }
+
             // Convert camelCase to snake_case
             $column = $this->camelToSnake($field);
             $this->where($column, '=', $value);

@@ -5,6 +5,7 @@ namespace BaseApi\Tests;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Container\Container;
 use BaseApi\Container\ContainerException;
+use Override;
 
 class ContainerTest extends TestCase
 {
@@ -26,10 +27,10 @@ class ContainerTest extends TestCase
     public function testSingletonBinding(): void
     {
         $this->container->singleton(TestService::class);
-        
+
         $instance1 = $this->container->make(TestService::class);
         $instance2 = $this->container->make(TestService::class);
-        
+
         $this->assertSame($instance1, $instance2);
     }
 
@@ -37,9 +38,9 @@ class ContainerTest extends TestCase
     {
         $this->container->bind(TestDependency::class);
         $this->container->bind(TestServiceWithDependency::class);
-        
+
         $service = $this->container->make(TestServiceWithDependency::class);
-        
+
         $this->assertInstanceOf(TestServiceWithDependency::class, $service);
         $this->assertInstanceOf(TestDependency::class, $service->getDependency());
     }
@@ -48,10 +49,10 @@ class ContainerTest extends TestCase
     {
         $this->expectException(ContainerException::class);
         $this->expectExceptionMessage('Circular dependency detected');
-        
+
         $this->container->bind(CircularA::class);
         $this->container->bind(CircularB::class);
-        
+
         $this->container->make(CircularA::class);
     }
 
@@ -59,18 +60,18 @@ class ContainerTest extends TestCase
     {
         $instance = new TestService();
         $this->container->instance(TestService::class, $instance);
-        
+
         $resolved = $this->container->make(TestService::class);
-        
+
         $this->assertSame($instance, $resolved);
     }
 
     public function testClosureBinding(): void
     {
         $this->container->bind('closure_test', fn($container): string => 'closure_result');
-        
+
         $result = $this->container->make('closure_test');
-        
+
         $this->assertEquals('closure_result', $result);
     }
 }
@@ -94,9 +95,7 @@ class TestDependency
 
 class TestServiceWithDependency
 {
-    public function __construct(private readonly TestDependency $dependency)
-    {
-    }
+    public function __construct(private readonly TestDependency $dependency) {}
 
     public function getDependency(): TestDependency
     {
@@ -104,17 +103,12 @@ class TestServiceWithDependency
     }
 }
 
-class CircularA
+class CircularA 
 {
-    public function __construct(CircularB $circularB)
-    {
-    }
+    public function __construct(private readonly CircularB $circularB) {}
 }
 
-class CircularB
+class CircularB 
 {
-    public function __construct(CircularA $circularA)
-    {
-    }
+    public function __construct(private readonly CircularA $circularA) {}
 }
-
