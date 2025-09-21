@@ -18,12 +18,11 @@ NC='\033[0m' # No Color
 CHECK_MARK="✅"
 CROSS_MARK="❌"
 WARNING="⚠️"
-ROCKET="🚀"
 MAGNIFYING_GLASS="🔍"
 GEAR="⚙️"
 
 echo ""
-echo -e "${PURPLE}${ROCKET} BaseApi Pre-Commit Quality Checks${NC}"
+echo -e "${PURPLE} BaseApi Pre-Commit Quality Checks${NC}"
 echo -e "${CYAN}═══════════════════════════════════════${NC}"
 echo ""
 
@@ -206,7 +205,7 @@ if [ $FAILED -eq 1 ]; then
     exit 1
 else
     echo -e "${GREEN}${CHECK_MARK} All pre-commit checks passed!${NC}"
-    echo -e "${GREEN}${ROCKET} Ready for commit${NC}"
+    echo -e "${GREEN} Ready for commit${NC}"
     echo ""
     exit 0
 fi
