@@ -2,6 +2,9 @@
 
 namespace BaseApi\Storage\Drivers;
 
+use Override;
+use RuntimeException;
+use InvalidArgumentException;
 use BaseApi\Http\UploadedFile;
 use BaseApi\Storage\Exceptions\FileNotFoundException;
 use BaseApi\Storage\Exceptions\UnableToWriteFileException;
@@ -13,8 +16,10 @@ use BaseApi\Storage\StorageInterface;
  */
 class LocalDriver implements StorageInterface
 {
-    private string $root;
-    private ?string $url;
+    private readonly string $root;
+
+    private readonly ?string $url;
+
     private array $permissions;
 
     public function __construct(string $root, ?string $url = null, array $permissions = [])
@@ -29,6 +34,7 @@ class LocalDriver implements StorageInterface
         $this->ensureDirectoryExists($this->root);
     }
 
+    #[Override]
     public function put(string $path, mixed $contents, array $options = []): string
     {
         $path = $this->normalizePath($path);
@@ -40,7 +46,7 @@ class LocalDriver implements StorageInterface
 
         // Write the file
         if (file_put_contents($fullPath, $contents) === false) {
-            throw new UnableToWriteFileException("Unable to write file at path: {$path}");
+            throw new UnableToWriteFileException('Unable to write file at path: ' . $path);
         }
 
         // Set file permissions
@@ -49,12 +55,14 @@ class LocalDriver implements StorageInterface
         return $path;
     }
 
+    #[Override]
     public function putFile(string $directory, UploadedFile $file, array $options = []): string
     {
         $filename = $this->generateUniqueFilename($file->name);
         return $this->putFileAs($directory, $file, $filename, $options);
     }
 
+    #[Override]
     public function putFileAs(string $directory, UploadedFile $file, string $name, array $options = []): string
     {
         if (!$file->isValid()) {
@@ -62,7 +70,7 @@ class LocalDriver implements StorageInterface
         }
 
         $directory = trim($directory, '/');
-        $path = $directory ? $directory . '/' . $name : $name;
+        $path = $directory !== '' && $directory !== '0' ? $directory . '/' . $name : $name;
         $fullPath = $this->getFullPath($path);
 
         // Ensure directory exists
@@ -71,7 +79,7 @@ class LocalDriver implements StorageInterface
 
         // Move uploaded file
         if (!move_uploaded_file($file->tmpName, $fullPath)) {
-            throw new UnableToWriteFileException("Unable to move uploaded file to: {$path}");
+            throw new UnableToWriteFileException('Unable to move uploaded file to: ' . $path);
         }
 
         // Set file permissions
@@ -80,27 +88,30 @@ class LocalDriver implements StorageInterface
         return $path;
     }
 
+    #[Override]
     public function get(string $path): string
     {
         $fullPath = $this->getFullPath($path);
 
         if (!$this->exists($path)) {
-            throw new FileNotFoundException("File not found at path: {$path}");
+            throw new FileNotFoundException('File not found at path: ' . $path);
         }
 
         $contents = file_get_contents($fullPath);
         if ($contents === false) {
-            throw new FileNotFoundException("Unable to read file at path: {$path}");
+            throw new FileNotFoundException('Unable to read file at path: ' . $path);
         }
 
         return $contents;
     }
 
+    #[Override]
     public function exists(string $path): bool
     {
         return file_exists($this->getFullPath($path));
     }
 
+    #[Override]
     public function delete(string $path): bool
     {
         $fullPath = $this->getFullPath($path);
@@ -110,32 +121,34 @@ class LocalDriver implements StorageInterface
         }
 
         if (!unlink($fullPath)) {
-            throw new UnableToDeleteFileException("Unable to delete file at path: {$path}");
+            throw new UnableToDeleteFileException('Unable to delete file at path: ' . $path);
         }
 
         return true;
     }
 
+    #[Override]
     public function url(string $path): string
     {
         if ($this->url === null) {
-            throw new \RuntimeException("No URL configured for local storage disk");
+            throw new RuntimeException("No URL configured for local storage disk");
         }
 
         return $this->url . '/' . ltrim($path, '/');
     }
 
+    #[Override]
     public function size(string $path): int
     {
         $fullPath = $this->getFullPath($path);
 
         if (!$this->exists($path)) {
-            throw new FileNotFoundException("File not found at path: {$path}");
+            throw new FileNotFoundException('File not found at path: ' . $path);
         }
 
         $size = filesize($fullPath);
         if ($size === false) {
-            throw new \RuntimeException("Unable to get file size for path: {$path}");
+            throw new RuntimeException('Unable to get file size for path: ' . $path);
         }
 
         return $size;
@@ -154,7 +167,7 @@ class LocalDriver implements StorageInterface
         $realRoot = realpath($this->root);
 
         if ($realPath === false || $realRoot === false || !str_starts_with($realPath, $realRoot)) {
-            throw new \InvalidArgumentException("Path traversal detected: {$path}");
+            throw new InvalidArgumentException('Path traversal detected: ' . $path);
         }
 
         return $fullPath;
@@ -167,13 +180,13 @@ class LocalDriver implements StorageInterface
     {
         // Remove leading/trailing slashes and backslashes
         $path = trim($path, '/\\');
-        
+
         // Convert backslashes to forward slashes
         $path = str_replace('\\', '/', $path);
-        
+
         // Remove any double slashes
         $path = preg_replace('#/+#', '/', $path);
-        
+
         return $path;
     }
 
@@ -184,19 +197,19 @@ class LocalDriver implements StorageInterface
     {
         $extension = pathinfo($originalName, PATHINFO_EXTENSION);
         $basename = pathinfo($originalName, PATHINFO_FILENAME);
-        
+
         // Sanitize the basename
         $basename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $basename);
-        $basename = trim($basename, '._-');
-        
-        if (empty($basename)) {
+        $basename = trim((string) $basename, '._-');
+
+        if ($basename === '' || $basename === '0') {
             $basename = 'file';
         }
 
         // Add timestamp and random component for uniqueness
         $unique = date('YmdHis') . '_' . bin2hex(random_bytes(4));
-        
-        return $basename . '_' . $unique . ($extension ? '.' . $extension : '');
+
+        return $basename . '_' . $unique . ($extension !== '' && $extension !== '0' ? '.' . $extension : '');
     }
 
     /**
@@ -204,10 +217,8 @@ class LocalDriver implements StorageInterface
      */
     private function ensureDirectoryExists(string $directory): void
     {
-        if (!is_dir($directory)) {
-            if (!mkdir($directory, $this->permissions['dir'], true)) {
-                throw new \RuntimeException("Unable to create directory: {$directory}");
-            }
+        if (!is_dir($directory) && !mkdir($directory, $this->permissions['dir'], true)) {
+            throw new RuntimeException('Unable to create directory: ' . $directory);
         }
     }
 }

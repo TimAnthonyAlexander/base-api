@@ -2,24 +2,28 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\Database\Migrations\MigrationsFile;
-use BaseApi\Database\Migrations\SqlGenerator;
 use BaseApi\App;
 
 class CreateJobsTableCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'queue:install';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Create the jobs table migration for queue system';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         $basePath = $app?->basePath() ?? getcwd();
@@ -39,8 +43,8 @@ class CreateJobsTableCommand implements Command
             echo "Run 'console migrate:apply' to create the jobs table.\n";
             
             return 0;
-        } catch (\Exception $e) {
-            echo "Error creating jobs table migration: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error creating jobs table migration: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -60,13 +64,6 @@ class CreateJobsTableCommand implements Command
     failed_at DATETIME,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 )";
-
-        // Create indexes for performance
-        $indexMigrations = [
-            "CREATE INDEX idx_jobs_queue_status_run_at ON jobs(queue, status, run_at)",
-            "CREATE INDEX idx_jobs_status_run_at ON jobs(status, run_at)",
-            "CREATE INDEX idx_jobs_status ON jobs(status)",
-        ];
         
         // Return the table creation migration
         $migration = [

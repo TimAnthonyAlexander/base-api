@@ -2,22 +2,29 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use Exception;
+use BaseApi\Queue\Drivers\DatabaseQueueDriver;
+use PDO;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\App;
 
 class QueueRetryCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'queue:retry';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Retry failed jobs';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         // Boot the app to load configuration
@@ -29,12 +36,11 @@ class QueueRetryCommand implements Command
             
             if ($jobId) {
                 return $this->retrySpecificJob($jobId);
-            } else {
-                return $this->retryAllFailedJobs();
             }
+            return $this->retryAllFailedJobs();
             
-        } catch (\Exception $e) {
-            echo "Error retrying jobs: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error retrying jobs: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -46,10 +52,9 @@ class QueueRetryCommand implements Command
         if ($driver->retry($jobId)) {
             echo "Job {$jobId} queued for retry.\n";
             return 0;
-        } else {
-            echo "Failed to retry job {$jobId}. Job may not exist or is not in failed state.\n";
-            return 1;
         }
+        echo "Failed to retry job {$jobId}. Job may not exist or is not in failed state.\n";
+        return 1;
     }
     
     private function retryAllFailedJobs(): int
@@ -57,7 +62,7 @@ class QueueRetryCommand implements Command
         // This only works with database driver
         $driver = App::queue()->driver();
         
-        if (get_class($driver) !== 'BaseApi\Queue\Drivers\DatabaseQueueDriver') {
+        if ($driver::class !== DatabaseQueueDriver::class) {
             echo "Error: Bulk retry is only supported with database queue driver.\n";
             return 1;
         }
@@ -69,7 +74,7 @@ class QueueRetryCommand implements Command
             SELECT id FROM jobs 
             WHERE status = 'failed'
             ORDER BY failed_at DESC
-        ")->fetchAll(\PDO::FETCH_COLUMN);
+        ")->fetchAll(PDO::FETCH_COLUMN);
         
         if (empty($failedJobs)) {
             echo "No failed jobs found.\n";
@@ -102,24 +107,24 @@ class QueueRetryCommand implements Command
     private function parseOptions(array $args): array
     {
         $options = [];
+        $counter = count($args);
         
-        for ($i = 0; $i < count($args); $i++) {
+        for ($i = 0; $i < $counter; $i++) {
             $arg = $args[$i];
             
-            if (strpos($arg, '--') === 0) {
-                $option = substr($arg, 2);
+            if (str_starts_with((string) $arg, '--')) {
+                $option = substr((string) $arg, 2);
                 
-                if (strpos($option, '=') !== false) {
+                if (str_contains($option, '=')) {
                     [$key, $value] = explode('=', $option, 2);
                     $options[$key] = $value;
-                } else {
+                } elseif (isset($args[$i + 1]) && !str_starts_with((string) $args[$i + 1], '--')) {
                     // Check if next argument is the value
-                    if (isset($args[$i + 1]) && strpos($args[$i + 1], '--') !== 0) {
-                        $options[$option] = $args[$i + 1];
-                        $i++; // Skip the next argument
-                    } else {
-                        $options[$option] = true;
-                    }
+                    $options[$option] = $args[$i + 1];
+                    $i++;
+                    // Skip the next argument
+                } else {
+                    $options[$option] = true;
                 }
             }
         }

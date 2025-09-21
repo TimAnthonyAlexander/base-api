@@ -2,10 +2,12 @@
 
 namespace BaseApi\Http;
 
+use Override;
 use BaseApi\App;
 
 class SessionStartMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $req, callable $next): Response
     {
         if (session_status() === PHP_SESSION_NONE) {

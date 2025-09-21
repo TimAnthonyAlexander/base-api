@@ -4,23 +4,15 @@ namespace BaseApi\Database;
 
 class PaginatedResult
 {
-    public array $data;
-    public int $page;
-    public int $perPage;
-    public ?int $total;
     public ?int $remaining;
 
     public function __construct(
-        array $data,
-        int $page,
-        int $perPage,
-        ?int $total = null
+        public array $data,
+        public int $page,
+        public int $perPage,
+        public ?int $total = null
     ) {
-        $this->data = $data;
-        $this->page = $page;
-        $this->perPage = $perPage;
-        $this->total = $total;
-        $this->remaining = $total !== null ? max(0, $total - ($page * $perPage)) : null;
+        $this->remaining = $this->total !== null ? max(0, $this->total - ($this->page * $this->perPage)) : null;
     }
 
     /**

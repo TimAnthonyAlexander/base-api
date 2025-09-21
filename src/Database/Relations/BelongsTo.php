@@ -2,6 +2,8 @@
 
 namespace BaseApi\Database\Relations;
 
+use Override;
+use ReflectionClass;
 use BaseApi\Models\BaseModel;
 
 /**
@@ -12,6 +14,7 @@ class BelongsTo extends Relation
     /**
      * Get the foreign key name for this relation
      */
+    #[Override]
     protected function getForeignKey(): string
     {
         if ($this->foreignKey !== null) {
@@ -20,13 +23,14 @@ class BelongsTo extends Relation
 
         // Default to relationName_id (e.g. 'user' becomes 'user_id')
         $relatedClass = $this->relatedClass;
-        $className = (new \ReflectionClass($relatedClass))->getShortName();
+        $className = (new ReflectionClass($relatedClass))->getShortName();
         return strtolower($className) . '_id';
     }
 
     /**
      * Execute the relation and return the related model or null
      */
+    #[Override]
     public function get(): ?BaseModel
     {
         return $this->first();
@@ -35,6 +39,7 @@ class BelongsTo extends Relation
     /**
      * Execute the relation and return the first (and only) related model
      */
+    #[Override]
     public function first(): ?BaseModel
     {
         $foreignKey = $this->getForeignKey();

@@ -2,6 +2,10 @@
 
 namespace BaseApi\Http;
 
+use BaseApi\Database\PaginatedResult;
+use Override;
+use BaseApi\Logger;
+
 class JsonResponse extends Response
 {
     public function __construct(mixed $data, int $status = 200, array $headers = [])
@@ -35,7 +39,7 @@ class JsonResponse extends Response
             'requestId' => self::getCurrentRequestId()
         ];
         
-        if (!empty($errors)) {
+        if ($errors !== []) {
             $data['errors'] = $errors;
         }
         
@@ -121,14 +125,14 @@ class JsonResponse extends Response
             ]
         ];
         
-        if (!empty($details)) {
+        if ($details !== []) {
             $data['details'] = $details;
         }
         
         return new self($data, 422);
     }
 
-    public static function paginated(\BaseApi\Database\PaginatedResult $result, array $meta = []): self
+    public static function paginated(PaginatedResult $result, array $meta = []): self
     {
         return new self([
             'success' => true,
@@ -148,30 +152,28 @@ class JsonResponse extends Response
 
     public function withMeta(array $meta): self
     {
-        $data = json_decode($this->body, true);
-        if (isset($data['meta'])) {
-            $data['meta'] = array_merge($data['meta'], $meta);
-        } else {
-            $data['meta'] = $meta;
-        }
+        $data = json_decode((string) $this->body, true);
+        $data['meta'] = isset($data['meta']) ? array_merge($data['meta'], $meta) : $meta;
         
         $new = clone $this;
         $new->body = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         return $new;
     }
 
+    #[Override]
     public function withHeaders(array $headers): self
     {
         $new = clone $this;
         foreach ($headers as $name => $value) {
             $new->headers[$name] = $value;
         }
+
         return $new;
     }
 
     private static function getCurrentRequestId(): ?string
     {
         // Get from Logger's static property set by RequestIdMiddleware
-        return \BaseApi\Logger::getRequestId();
+        return Logger::getRequestId();
     }
 }

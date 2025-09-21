@@ -2,6 +2,8 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\Cache\Cache;
@@ -12,16 +14,19 @@ use BaseApi\App;
  */
 class CacheCleanupCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'cache:cleanup';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Clean up expired cache entries';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         $driver = $args[0] ?? null;
@@ -49,9 +54,10 @@ class CacheCleanupCommand implements Command
                         } else {
                             echo "✓ {$storeName}: no expired entries found\n";
                         }
+
                         $driversProcessed++;
-                    } catch (\Exception $e) {
-                        echo "✗ {$storeName}: " . $e->getMessage() . "\n";
+                    } catch (Exception $e) {
+                        echo sprintf('✗ %s: ', $storeName) . $e->getMessage() . "\n";
                     }
                 }
 
@@ -63,8 +69,8 @@ class CacheCleanupCommand implements Command
             }
 
             return 0;
-        } catch (\Exception $e) {
-            echo "❌ Error during cache cleanup: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "❌ Error during cache cleanup: " . $exception->getMessage() . "\n";
             return 1;
         }
     }

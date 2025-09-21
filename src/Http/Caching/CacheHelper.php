@@ -48,6 +48,6 @@ class CacheHelper
     public static function cacheControl(Response $res, int $maxAge, bool $public = true): Response
     {
         $directive = $public ? 'public' : 'private';
-        return $res->withHeader('Cache-Control', "{$directive}, max-age={$maxAge}");
+        return $res->withHeader('Cache-Control', sprintf('%s, max-age=%d', $directive, $maxAge));
     }
 }

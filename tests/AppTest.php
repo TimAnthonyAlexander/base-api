@@ -2,14 +2,14 @@
 
 namespace BaseApi\Tests;
 
+use Override;
+use ReflectionClass;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 use BaseApi\App;
 use BaseApi\Config;
 use BaseApi\Logger;
 use BaseApi\Router;
 use BaseApi\Http\Kernel;
-use BaseApi\Database\Connection;
 use BaseApi\Database\DB;
 use BaseApi\Auth\UserProvider;
 use BaseApi\Profiler;
@@ -18,19 +18,21 @@ use BaseApi\Container\ServiceProvider;
 
 class TestServiceProvider extends ServiceProvider
 {
+    #[Override]
     public function register(ContainerInterface $container): void
     {
-        $container->bind('test.service', fn() => 'test-value');
+        $container->bind('test.service', fn(): string => 'test-value');
     }
 }
 
 class AppTest extends TestCase
 {
+    #[Override]
     protected function setUp(): void
     {
         // Reset App state before each test
         // Use reflection to reset static properties
-        $reflection = new \ReflectionClass(App::class);
+        $reflection = new ReflectionClass(App::class);
         
         $properties = [
             'config', 'logger', 'router', 'kernel', 'connection',
@@ -52,13 +54,14 @@ class AppTest extends TestCase
         }
     }
     
+    #[Override]
     protected function tearDown(): void
     {
         // Clean up after each test
         $this->setUp();
     }
     
-    public function testBootInitializesApp()
+    public function testBootInitializesApp(): void
     {
         // Create temporary config files for testing
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
@@ -102,7 +105,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testBootOnlyRunsOnce()
+    public function testBootOnlyRunsOnce(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -126,7 +129,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testConfigAccess()
+    public function testConfigAccess(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -169,7 +172,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testBootsWithoutConfigFile()
+    public function testBootsWithoutConfigFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -187,7 +190,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testBootsWithoutEnvFile()
+    public function testBootsWithoutEnvFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -206,7 +209,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testRegisterProvider()
+    public function testRegisterProvider(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -228,7 +231,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testRegisterProviderInstance()
+    public function testRegisterProviderInstance(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -251,7 +254,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testRegisterProviderBeforeBoot()
+    public function testRegisterProviderBeforeBoot(): void
     {
         // Register provider before booting
         App::registerProvider(TestServiceProvider::class);
@@ -273,7 +276,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testSetUserProvider()
+    public function testSetUserProvider(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -293,7 +296,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testBasePath()
+    public function testBasePath(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -313,7 +316,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testStoragePath()
+    public function testStoragePath(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -333,7 +336,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testServicesAutoBootOnFirstAccess()
+    public function testServicesAutoBootOnFirstAccess(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -355,7 +358,7 @@ class AppTest extends TestCase
         }
     }
     
-    public function testConfigWithProvidersFromConfigFile()
+    public function testConfigWithProvidersFromConfigFile(): void
     {
         $tempDir = sys_get_temp_dir() . '/baseapi_test_' . uniqid();
         mkdir($tempDir, 0755, true);
@@ -388,12 +391,13 @@ class AppTest extends TestCase
         if (!is_dir($dir)) {
             return;
         }
-        
+
         $files = array_diff(scandir($dir), ['.', '..']);
         foreach ($files as $file) {
             $path = $dir . '/' . $file;
             is_dir($path) ? $this->recursiveDelete($path) : unlink($path);
         }
+
         rmdir($dir);
     }
 }

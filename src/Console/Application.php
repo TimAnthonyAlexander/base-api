@@ -2,10 +2,13 @@
 
 namespace BaseApi\Console;
 
+use Exception;
+
 class Application
 {
     private array $commands = [];
-    private string $basePath;
+
+    private readonly string $basePath;
 
     public function __construct(?string $basePath = null)
     {
@@ -27,7 +30,7 @@ class Application
         // Remove script name
         array_shift($argv);
 
-        if (empty($argv)) {
+        if ($argv === []) {
             $this->showUsage();
             return 1;
         }
@@ -41,11 +44,11 @@ class Application
         }
 
         $command = $this->commands[$commandName];
-        
+
         try {
             return $command->execute($argv, $this);
-        } catch (\Exception $e) {
-            echo "Error: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -56,11 +59,11 @@ class Application
         echo "Usage:\n";
         echo "  console <command> [arguments]\n\n";
         echo "Available commands:\n";
-        
+
         foreach ($this->commands as $name => $command) {
-            echo "  {$name}    {$command->description()}\n";
+            echo sprintf('  %s    %s%s', $name, $command->description(), PHP_EOL);
         }
-        
+
         echo "\n";
     }
 }

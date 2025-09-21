@@ -2,14 +2,16 @@
 
 namespace BaseApi\Tests;
 
+use Override;
+use Throwable;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Http\UploadedFile;
-use BaseApi\Storage\Storage;
 
 class UploadedFileTest extends TestCase
 {
     private string $tempFile;
 
+    #[Override]
     protected function setUp(): void
     {
         // Create a temporary file for testing
@@ -17,6 +19,7 @@ class UploadedFileTest extends TestCase
         file_put_contents($this->tempFile, 'test file content');
     }
 
+    #[Override]
     protected function tearDown(): void
     {
         if (file_exists($this->tempFile)) {
@@ -111,7 +114,7 @@ class UploadedFileTest extends TestCase
             $uploadedFile = new UploadedFile($fileData);
             
             $this->assertEquals($expectedExtension, $uploadedFile->getExtension(), 
-                "Failed for filename: $filename");
+                'Failed for filename: ' . $filename);
         }
     }
 
@@ -216,7 +219,7 @@ class UploadedFileTest extends TestCase
 
         // Since Storage is not properly initialized in test environment,
         // we expect this to throw an exception
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         $uploadedFile->store('uploads');
     }
 
@@ -233,7 +236,7 @@ class UploadedFileTest extends TestCase
 
         // Since Storage is not properly initialized in test environment,
         // we expect this to throw an exception
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         $uploadedFile->storeAs('uploads', 'custom-name.jpg');
     }
 
@@ -250,7 +253,7 @@ class UploadedFileTest extends TestCase
 
         // Since Storage is not properly initialized in test environment,
         // we expect this to throw an exception
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         $uploadedFile->storePublicly('images');
     }
 
@@ -267,7 +270,7 @@ class UploadedFileTest extends TestCase
 
         // Since Storage is not properly initialized in test environment,
         // we expect this to throw an exception
-        $this->expectException(\Throwable::class);
+        $this->expectException(Throwable::class);
         $uploadedFile->storePubliclyAs('images', 'public-custom.jpg');
     }
 
@@ -294,7 +297,7 @@ class UploadedFileTest extends TestCase
 
             $uploadedFile = new UploadedFile($fileData);
             $this->assertEquals($expectedValid, $uploadedFile->isValid(), 
-                "Failed for error code: $errorCode");
+                'Failed for error code: ' . $errorCode);
         }
     }
 

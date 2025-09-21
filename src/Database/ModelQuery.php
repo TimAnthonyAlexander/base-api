@@ -2,6 +2,8 @@
 
 namespace BaseApi\Database;
 
+use InvalidArgumentException;
+use ReflectionClass;
 use BaseApi\Models\BaseModel;
 use BaseApi\Cache\Cache;
 
@@ -10,21 +12,21 @@ use BaseApi\Cache\Cache;
  */
 class ModelQuery
 {
-    private QueryBuilder $qb;
-    private string $modelClass;
     private array $eagerRelations = [];
+
     private ?string $cacheKey = null;
+
     private ?int $cacheTtl = null;
+
     private array $cacheTags = [];
+
     private bool $cacheEnabled = true;
 
     /**
      * @param class-string<T> $modelClass
      */
-    public function __construct(QueryBuilder $qb, string $modelClass)
+    public function __construct(private readonly QueryBuilder $qb, private readonly string $modelClass)
     {
-        $this->qb = $qb;
-        $this->modelClass = $modelClass;
     }
 
     /**
@@ -106,9 +108,9 @@ class ModelQuery
     {
         // Limit to 5 relations as per spec
         if (count($relations) > 5) {
-            throw new \InvalidArgumentException("Maximum 5 relations allowed in with()");
+            throw new InvalidArgumentException("Maximum 5 relations allowed in with()");
         }
-        
+
         $this->eagerRelations = array_merge($this->eagerRelations, $relations);
         return $this;
     }
@@ -123,12 +125,12 @@ class ModelQuery
         }
 
         $result = $this->qb->paginate($page, $perPage, $withTotal);
-        
+
         // Hydrate the data into model instances
         $models = $this->hydrateRows($result->data);
-        
+
         // Apply eager loading if specified
-        if (!empty($this->eagerRelations)) {
+        if ($this->eagerRelations !== []) {
             $models = $this->applyEagerLoading($models);
         }
 
@@ -145,20 +147,14 @@ class ModelQuery
         // Check cache first if enabled
         if ($this->cacheEnabled) {
             $cacheKey = $this->getCacheKey();
-            
-            if (!empty($this->cacheTags)) {
-                $cache = Cache::tags($this->cacheTags);
-            } else {
-                $cache = Cache::driver();
-            }
-            
+
+            $cache = $this->cacheTags === [] ? Cache::driver() : Cache::tags($this->cacheTags);
+
             $ttl = $this->cacheTtl ?? $this->getDefaultCacheTtl();
-            
-            return $cache->remember($cacheKey, $ttl, function() {
-                return $this->executeGet();
-            });
+
+            return $cache->remember($cacheKey, $ttl, fn(): array => $this->executeGet());
         }
-        
+
         return $this->executeGet();
     }
 
@@ -172,20 +168,14 @@ class ModelQuery
         // Check cache first if enabled
         if ($this->cacheEnabled) {
             $cacheKey = $this->getCacheKey() . ':first';
-            
-            if (!empty($this->cacheTags)) {
-                $cache = Cache::tags($this->cacheTags);
-            } else {
-                $cache = Cache::driver();
-            }
-            
+
+            $cache = $this->cacheTags === [] ? Cache::driver() : Cache::tags($this->cacheTags);
+
             $ttl = $this->cacheTtl ?? $this->getDefaultCacheTtl();
-            
-            return $cache->remember($cacheKey, $ttl, function() {
-                return $this->executeFirst();
-            });
+
+            return $cache->remember($cacheKey, $ttl, fn(): ?BaseModel => $this->executeFirst());
         }
-        
+
         return $this->executeFirst();
     }
 
@@ -260,12 +250,12 @@ class ModelQuery
     {
         $rows = $this->qb->get();
         $models = $this->hydrateRows($rows);
-        
+
         // Apply eager loading if specified
-        if (!empty($this->eagerRelations)) {
-            $models = $this->applyEagerLoading($models);
+        if ($this->eagerRelations !== []) {
+            return $this->applyEagerLoading($models);
         }
-        
+
         return $models;
     }
 
@@ -280,15 +270,15 @@ class ModelQuery
         if (!$row) {
             return null;
         }
-        
+
         $model = $this->hydrateRow($row);
-        
+
         // Apply eager loading if specified
-        if (!empty($this->eagerRelations)) {
+        if ($this->eagerRelations !== []) {
             $models = $this->applyEagerLoading([$model]);
             return $models[0] ?? null;
         }
-        
+
         return $model;
     }
 
@@ -303,33 +293,31 @@ class ModelQuery
 
     /**
      * Hydrate array of rows into model instances
-     * 
-     * @param array $rows
+     *
      * @return T[]
      */
     private function hydrateRows(array $rows): array
     {
-        return array_map(fn($row) => $this->hydrateRow($row), $rows);
+        return array_map(fn($row): BaseModel => $this->hydrateRow($row), $rows);
     }
 
     /**
      * Hydrate single row into model instance
-     * 
-     * @param array $row
+     *
      * @return T
      */
     private function hydrateRow(array $row): BaseModel
     {
         $model = $this->modelClass::fromRow($row);
-        
+
         // Store the original row data for relation loading
-        $reflection = new \ReflectionClass($model);
+        $reflection = new ReflectionClass($model);
         if ($reflection->hasProperty('__row')) {
             $rowProperty = $reflection->getProperty('__row');
             $rowProperty->setAccessible(true);
             $rowProperty->setValue($model, $row);
         }
-        
+
         return $model;
     }
 
@@ -341,7 +329,7 @@ class ModelQuery
      */
     private function applyEagerLoading(array $models): array
     {
-        if (empty($models) || empty($this->eagerRelations)) {
+        if ($models === [] || $this->eagerRelations === []) {
             return $models;
         }
 
@@ -354,13 +342,12 @@ class ModelQuery
 
     /**
      * Load a specific relation for a collection of models
-     * 
+     *
      * @param T[] $models
-     * @param string $relation
      */
     private function loadRelation(array $models, string $relation): void
     {
-        if (empty($models)) {
+        if ($models === []) {
             return;
         }
 
@@ -376,9 +363,8 @@ class ModelQuery
 
     /**
      * Load belongsTo relations with a single query
-     * 
+     *
      * @param T[] $models
-     * @param string $relation
      */
     private function loadBelongsTo(array $models, string $relation): void
     {
@@ -388,25 +374,25 @@ class ModelQuery
         // Collect all foreign key values
         $fkValues = [];
         foreach ($models as $model) {
-            $reflection = new \ReflectionClass($model);
+            $reflection = new ReflectionClass($model);
             if ($reflection->hasProperty('__row')) {
                 $rowProperty = $reflection->getProperty('__row');
                 $rowProperty->setAccessible(true);
                 $row = $rowProperty->getValue($model);
-                
+
                 if (isset($row[$fkColumn]) && $row[$fkColumn] !== null) {
                     $fkValues[] = $row[$fkColumn];
                 }
             }
         }
 
-        if (empty($fkValues)) {
+        if ($fkValues === []) {
             return;
         }
 
         // Load related models in one query
         $relatedModels = $relatedClass::whereIn('id', array_unique($fkValues))->get();
-        
+
         // Index by ID for quick lookup
         $relatedByID = [];
         foreach ($relatedModels as $related) {
@@ -415,20 +401,18 @@ class ModelQuery
 
         // Assign to each model
         foreach ($models as $model) {
-            $reflection = new \ReflectionClass($model);
+            $reflection = new ReflectionClass($model);
             if ($reflection->hasProperty('__row')) {
                 $rowProperty = $reflection->getProperty('__row');
                 $rowProperty->setAccessible(true);
                 $row = $rowProperty->getValue($model);
-                
+
                 $fkValue = $row[$fkColumn] ?? null;
-                if ($fkValue && isset($relatedByID[$fkValue])) {
-                    // Set the relation property on the model
-                    if ($reflection->hasProperty($relation)) {
-                        $relationProperty = $reflection->getProperty($relation);
-                        $relationProperty->setAccessible(true);
-                        $relationProperty->setValue($model, $relatedByID[$fkValue]);
-                    }
+                // Set the relation property on the model
+                if ($fkValue && isset($relatedByID[$fkValue]) && $reflection->hasProperty($relation)) {
+                    $relationProperty = $reflection->getProperty($relation);
+                    $relationProperty->setAccessible(true);
+                    $relationProperty->setValue($model, $relatedByID[$fkValue]);
                 }
             }
         }
@@ -436,9 +420,8 @@ class ModelQuery
 
     /**
      * Load hasMany relations with a single query
-     * 
+     *
      * @param T[] $models
-     * @param string $relation
      */
     private function loadHasMany(array $models, string $relation): void
     {
@@ -446,9 +429,9 @@ class ModelQuery
         [$fkColumn, $relatedClass] = $modelClass::inferHasMany($relation);
 
         // Collect all IDs from parent models
-        $parentIds = array_map(fn($model) => $model->id, $models);
+        $parentIds = array_map(fn($model): string => $model->id, $models);
 
-        if (empty($parentIds)) {
+        if ($parentIds === []) {
             return;
         }
 
@@ -462,15 +445,16 @@ class ModelQuery
             if (!isset($relatedByFK[$fkValue])) {
                 $relatedByFK[$fkValue] = [];
             }
+
             $relatedByFK[$fkValue][] = $related;
         }
 
         // Assign arrays to each model
         foreach ($models as $model) {
             $relatedArray = $relatedByFK[$model->id] ?? [];
-            
+
             // Set the relation property on the model
-            $reflection = new \ReflectionClass($model);
+            $reflection = new ReflectionClass($model);
             if ($reflection->hasProperty($relation)) {
                 $relationProperty = $reflection->getProperty($relation);
                 $relationProperty->setAccessible(true);

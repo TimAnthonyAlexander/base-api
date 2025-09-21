@@ -2,6 +2,8 @@
 
 namespace BaseApi\Tests;
 
+use InvalidArgumentException;
+use PDO;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Database\Drivers\DatabaseDriverFactory;
 use BaseApi\Database\Drivers\MySqlDriver;
@@ -10,41 +12,41 @@ use BaseApi\Database\Drivers\PostgreSqlDriver;
 
 class DatabaseDriverTest extends TestCase
 {
-    public function testMySqlDriverCreation()
+    public function testMySqlDriverCreation(): void
     {
         $driver = DatabaseDriverFactory::create('mysql');
         $this->assertInstanceOf(MySqlDriver::class, $driver);
         $this->assertEquals('mysql', $driver->getName());
     }
     
-    public function testSqliteDriverCreation()
+    public function testSqliteDriverCreation(): void
     {
         $driver = DatabaseDriverFactory::create('sqlite');
         $this->assertInstanceOf(SqliteDriver::class, $driver);
         $this->assertEquals('sqlite', $driver->getName());
     }
     
-    public function testPostgreSqlDriverCreation()
+    public function testPostgreSqlDriverCreation(): void
     {
         $driver = DatabaseDriverFactory::create('postgresql');
         $this->assertInstanceOf(PostgreSqlDriver::class, $driver);
         $this->assertEquals('postgresql', $driver->getName());
     }
     
-    public function testPostgreSqlDriverCreationWithAlias()
+    public function testPostgreSqlDriverCreationWithAlias(): void
     {
         $driver = DatabaseDriverFactory::create('pgsql');
         $this->assertInstanceOf(PostgreSqlDriver::class, $driver);
         $this->assertEquals('postgresql', $driver->getName());
     }
     
-    public function testUnsupportedDriver()
+    public function testUnsupportedDriver(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         DatabaseDriverFactory::create('oracle');
     }
     
-    public function testAvailableDrivers()
+    public function testAvailableDrivers(): void
     {
         $drivers = DatabaseDriverFactory::getAvailableDrivers();
         $this->assertContains('mysql', $drivers);
@@ -52,7 +54,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertContains('postgresql', $drivers);
     }
     
-    public function testIsSupported()
+    public function testIsSupported(): void
     {
         $this->assertTrue(DatabaseDriverFactory::isSupported('mysql'));
         $this->assertTrue(DatabaseDriverFactory::isSupported('sqlite'));
@@ -60,21 +62,21 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse(DatabaseDriverFactory::isSupported('oracle'));
     }
     
-    public function testSqliteConnection()
+    public function testSqliteConnection(): void
     {
         $driver = new SqliteDriver();
         $config = ['database' => ':memory:'];
         
         $pdo = $driver->createConnection($config);
-        $this->assertInstanceOf(\PDO::class, $pdo);
+        $this->assertInstanceOf(PDO::class, $pdo);
         
         // Test that foreign keys are enabled
         $stmt = $pdo->query("PRAGMA foreign_keys");
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $this->assertEquals('1', $result['foreign_keys']);
     }
     
-    public function testPhpTypeMapping()
+    public function testPhpTypeMapping(): void
     {
         $mysqlDriver = new MySqlDriver();
         $sqliteDriver = new SqliteDriver();
@@ -104,7 +106,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertEquals('JSONB', $postgresDriver->phpTypeToSqlType('array'));
     }
     
-    public function testColumnTypeNormalization()
+    public function testColumnTypeNormalization(): void
     {
         $mysqlDriver = new MySqlDriver();
         $sqliteDriver = new SqliteDriver();

@@ -8,7 +8,7 @@ use BaseApi\Database\Migrations\MigrationPlan;
 
 class SqliteMigrationTest extends TestCase
 {
-    public function testSqliteCreateTableWithSinglePrimaryKey()
+    public function testSqliteCreateTableWithSinglePrimaryKey(): void
     {
         $driver = new SqliteDriver();
         
@@ -53,10 +53,10 @@ class SqliteMigrationTest extends TestCase
         $this->assertStringNotContainsString('PRIMARY KEY ("id")', $sql);
         
         // Should not have duplicate PRIMARY KEY
-        $this->assertEquals(1, substr_count($sql, 'PRIMARY KEY'));
+        $this->assertEquals(1, substr_count((string) $sql, 'PRIMARY KEY'));
     }
     
-    public function testSqliteCreateTableWithCompositePrimaryKey()
+    public function testSqliteCreateTableWithCompositePrimaryKey(): void
     {
         $driver = new SqliteDriver();
         
@@ -95,10 +95,10 @@ class SqliteMigrationTest extends TestCase
         $this->assertStringContainsString('PRIMARY KEY ("user_id", "role_id")', $sql);
         
         // Should have exactly one PRIMARY KEY
-        $this->assertEquals(1, substr_count($sql, 'PRIMARY KEY'));
+        $this->assertEquals(1, substr_count((string) $sql, 'PRIMARY KEY'));
     }
     
-    public function testSqliteDefaultValueHandling()
+    public function testSqliteDefaultValueHandling(): void
     {
         $driver = new SqliteDriver();
         
@@ -144,7 +144,7 @@ class SqliteMigrationTest extends TestCase
         $this->assertStringNotContainsString('ON UPDATE', $sql);
     }
     
-    public function testSqliteCreateTableWithForeignKeys()
+    public function testSqliteCreateTableWithForeignKeys(): void
     {
         $driver = new SqliteDriver();
         
@@ -220,7 +220,7 @@ class SqliteMigrationTest extends TestCase
      * Test SQLite introspection methods to ensure PRAGMA statements work correctly
      * This tests the fix for the "near '?': syntax error" issue
      */
-    public function testSqliteIntrospectionMethods()
+    public function testSqliteIntrospectionMethods(): void
     {
         $driver = new SqliteDriver();
         $pdo = $driver->createConnection(['database' => ':memory:']);
@@ -307,7 +307,7 @@ class SqliteMigrationTest extends TestCase
     /**
      * Test that PRAGMA statements work with table names containing special characters
      */
-    public function testSqliteIntrospectionWithSpecialTableNames()
+    public function testSqliteIntrospectionWithSpecialTableNames(): void
     {
         $driver = new SqliteDriver();
         $pdo = $driver->createConnection(['database' => ':memory:']);

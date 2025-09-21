@@ -18,9 +18,9 @@ class TableDef
     {
         return [
             'name' => $this->name,
-            'columns' => array_map(fn(ColumnDef $col) => $col->toArray(), $this->columns),
-            'indexes' => array_map(fn(IndexDef $idx) => $idx->toArray(), $this->indexes),
-            'fks' => array_map(fn(ForeignKeyDef $fk) => $fk->toArray(), $this->fks),
+            'columns' => array_map(fn(ColumnDef $col): array => $col->toArray(), $this->columns),
+            'indexes' => array_map(fn(IndexDef $idx): array => $idx->toArray(), $this->indexes),
+            'fks' => array_map(fn(ForeignKeyDef $fk): array => $fk->toArray(), $this->fks),
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace BaseApi\Tests;
 
+use Override;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Http\Binding\ControllerBinder;
 use BaseApi\Http\Request;
@@ -11,6 +12,7 @@ class ControllerBinderTest extends TestCase
 {
     private ControllerBinder $binder;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->binder = new ControllerBinder();
@@ -30,7 +32,7 @@ class ControllerBinderTest extends TestCase
     {
         $request = $this->createRequest();
         $controller = new TestControllerWithoutRequest();
-        
+
         // Should not throw any errors
         $this->binder->bind($controller, $request, []);
         $this->assertTrue(true); // If we get here, no errors were thrown
@@ -41,9 +43,9 @@ class ControllerBinderTest extends TestCase
         $request = $this->createRequest();
         $controller = new TestControllerForBinding();
         $routeParams = ['id' => '123', 'category_name' => 'electronics'];
-        
+
         $this->binder->bind($controller, $request, $routeParams);
-        
+
         $this->assertEquals('123', $controller->id);
         $this->assertEquals('electronics', $controller->categoryName); // camelCase property matches snake_case param
     }
@@ -53,9 +55,9 @@ class ControllerBinderTest extends TestCase
         $query = ['name' => 'John', 'user_age' => '25'];
         $request = $this->createRequest(query: $query);
         $controller = new TestControllerForBinding();
-        
+
         $this->binder->bind($controller, $request, []);
-        
+
         $this->assertEquals('John', $controller->name);
         $this->assertEquals('25', $controller->userAge); // camelCase property matches snake_case query
     }
@@ -65,9 +67,9 @@ class ControllerBinderTest extends TestCase
         $body = ['email' => 'john@example.com', 'is_active' => 'true'];
         $request = $this->createRequest(body: $body);
         $controller = new TestControllerForBinding();
-        
+
         $this->binder->bind($controller, $request, []);
-        
+
         $this->assertEquals('john@example.com', $controller->email);
         $this->assertEquals('true', $controller->isActive); // camelCase property matches snake_case body
     }
@@ -166,9 +168,9 @@ class ControllerBinderTest extends TestCase
         $query = ['age' => '25', 'is_admin' => 'true', 'score' => '98.5'];
         $request = $this->createRequest(query: $query);
         $controller = new TestControllerWithTypes();
-        
+
         $this->binder->bind($controller, $request, []);
-        
+
         $this->assertSame(25, $controller->age); // Coerced to int
         $this->assertTrue($controller->isAdmin); // Coerced to bool
         $this->assertEquals(98.5, $controller->score); // Coerced to float
@@ -315,50 +317,68 @@ class TestControllerWithoutRequest
 class TestControllerForBinding
 {
     public ?string $id = null;
+
     public ?string $name = null;
+
     public ?string $email = null;
+
     public ?string $categoryName = null;
+
     public ?string $userAge = null;
+
     public ?string $isActive = null;
+
     public ?UploadedFile $avatar = null;
+
     public ?array $profileDocs = null;
+
     public ?string $nullableField = null;
+
     public mixed $invalidFile = null;
 }
 
 class TestControllerWithTypes
 {
     public int $age = 0;
+
     public bool $isAdmin = false;
+
     public float $score = 0.0;
 }
 
 class TestControllerWithDefaults
 {
     public string $name = 'default_name';
+
     public int $age = 0;
+
     public bool $isActive = false;
 }
 
 class TestControllerForCaseConversion
 {
     public ?string $userName = null;
+
     public ?string $isAdmin = null;
+
     public ?string $profileImage = null;
+
     public ?string $lastLoginDate = null;
 }
 
 class TestControllerWithPrivateProperties
 {
     public string $publicField = 'public';
+
     private string $privateField = 'default_private';
+
     protected string $protectedField = 'default_protected';
-    
+
     public function getPrivateField(): string
     {
         return $this->privateField;
     }
-    
+
     public function getProtectedField(): string
     {
         return $this->protectedField;

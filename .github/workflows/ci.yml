@@ -42,3 +42,37 @@ jobs:
 
       - name: Run PHPUnit
         run: composer run phpunit
+
+  rector:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Rector (dry-run)
+        run: composer run rector:ci
+
+      - name: Check for Rector changes
+        id: rector_changes
+        if: failure()
+        run: |
+          composer run rector:fix
+          git diff --exit-code || echo "rector_changes=true" >> $GITHUB_OUTPUT
+
+      - name: Upload Rector diff artifact
+        if: steps.rector_changes.outputs.rector_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rector-diff-${{ github.sha }}
+          path: |
+            **/*.php
+            !vendor/**

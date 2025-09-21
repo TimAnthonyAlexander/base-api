@@ -13,22 +13,17 @@ use BaseApi\App;
 class QueueManager
 {
     private array $drivers = [];
-    private string $defaultDriver;
 
-    public function __construct(string $defaultDriver = 'database')
+    public function __construct(private readonly string $defaultDriver = 'database')
     {
-        $this->defaultDriver = $defaultDriver;
     }
 
     /**
      * Get a queue driver instance.
-     *
-     * @param string|null $name
-     * @return QueueInterface
      */
     public function driver(?string $name = null): QueueInterface
     {
-        $name = $name ?? $this->defaultDriver;
+        $name ??= $this->defaultDriver;
 
         if (!isset($this->drivers[$name])) {
             $this->drivers[$name] = $this->createDriver($name);
@@ -39,11 +34,6 @@ class QueueManager
 
     /**
      * Push a job onto the default queue.
-     *
-     * @param JobInterface $job
-     * @param string $queue
-     * @param int $delay
-     * @return string
      */
     public function push(JobInterface $job, string $queue = 'default', int $delay = 0): string
     {
@@ -52,9 +42,6 @@ class QueueManager
 
     /**
      * Pop a job from the default queue.
-     *
-     * @param string $queue
-     * @return QueueJob|null
      */
     public function pop(string $queue = 'default'): ?QueueJob
     {
@@ -63,9 +50,6 @@ class QueueManager
 
     /**
      * Get the size of a queue.
-     *
-     * @param string $queue
-     * @return int
      */
     public function size(string $queue = 'default'): int
     {
@@ -75,29 +59,22 @@ class QueueManager
     /**
      * Create a queue driver instance.
      *
-     * @param string $name
-     * @return QueueInterface
      * @throws QueueException
      */
     private function createDriver(string $name): QueueInterface
     {
-        $config = App::config("queue.drivers.{$name}");
+        $config = App::config('queue.drivers.' . $name);
 
         if (!$config) {
-            throw new QueueException("Queue driver [{$name}] not configured");
+            throw new QueueException(sprintf('Queue driver [%s] not configured', $name));
         }
 
         $driver = $config['driver'] ?? $name;
 
-        switch ($driver) {
-            case 'database':
-                return new DatabaseQueueDriver(App::db()->getConnection());
-
-            case 'sync':
-                return new SyncQueueDriver();
-
-            default:
-                throw new QueueException("Unsupported queue driver: {$driver}");
-        }
+        return match ($driver) {
+            'database' => new DatabaseQueueDriver(App::db()->getConnection()),
+            'sync' => new SyncQueueDriver(),
+            default => throw new QueueException('Unsupported queue driver: ' . $driver),
+        };
     }
 }

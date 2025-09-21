@@ -2,6 +2,8 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\Cache\Cache;
@@ -12,16 +14,19 @@ use BaseApi\App;
  */
 class CacheStatsCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'cache:stats';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Show cache statistics';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         $driver = $args[0] ?? null;
@@ -37,7 +42,7 @@ class CacheStatsCommand implements Command
                 $defaultDriver = $config->get('cache.default', 'array');
                 
                 echo "Cache Configuration:\n";
-                echo "Default driver: {$defaultDriver}\n";
+                echo sprintf('Default driver: %s%s', $defaultDriver, PHP_EOL);
                 echo "Configured stores: " . implode(', ', array_keys($stores)) . "\n";
                 echo "\n";
 
@@ -48,15 +53,15 @@ class CacheStatsCommand implements Command
             }
 
             return 0;
-        } catch (\Exception $e) {
-            echo "❌ Error getting cache stats: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "❌ Error getting cache stats: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
 
     private function showDriverStats(string $driver): void
     {
-        echo "Cache Driver: {$driver}\n";
+        echo sprintf('Cache Driver: %s%s', $driver, PHP_EOL);
         
         try {
             $cache = Cache::driver($driver);
@@ -75,8 +80,8 @@ class CacheStatsCommand implements Command
             } else {
                 echo "  Statistics not supported for this driver\n";
             }
-        } catch (\Exception $e) {
-            echo "  Error: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "  Error: " . $exception->getMessage() . "\n";
         }
     }
 
@@ -125,8 +130,8 @@ class CacheStatsCommand implements Command
             $total = $hits + $misses;
             $hitRate = $total > 0 ? round(($hits / $total) * 100, 2) : 0;
             
-            echo "  Cache Hits: {$hits}\n";
-            echo "  Cache Misses: {$misses}\n";
+            echo sprintf('  Cache Hits: %s%s', $hits, PHP_EOL);
+            echo sprintf('  Cache Misses: %s%s', $misses, PHP_EOL);
             echo "  Hit Rate: {$hitRate}%\n";
         }
         
@@ -141,7 +146,7 @@ class CacheStatsCommand implements Command
         foreach ($stats as $key => $value) {
             $formattedKey = ucwords(str_replace(['_', '-'], ' ', $key));
             $formattedValue = is_numeric($value) ? number_format($value) : $value;
-            echo "  {$formattedKey}: {$formattedValue}\n";
+            echo sprintf('  %s: %s%s', $formattedKey, $formattedValue, PHP_EOL);
         }
     }
 

@@ -2,10 +2,12 @@
 
 namespace BaseApi\Http;
 
+use Override;
 use BaseApi\App;
 
 class ProfilerMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $request, callable $next): Response
     {
         // Check if profiling should be enabled
@@ -50,7 +52,7 @@ class ProfilerMiddleware implements Middleware
 
     private function addProfilingToJsonResponse(JsonResponse $response): JsonResponse
     {
-        $data = json_decode($response->body, true);
+        $data = json_decode((string) $response->body, true);
 
         if (!is_array($data)) {
             return $response;

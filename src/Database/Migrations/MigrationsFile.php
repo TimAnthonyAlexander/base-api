@@ -80,11 +80,9 @@ class MigrationsFile
         $existingIds = array_column($existing, 'id');
         
         // Filter out duplicates
-        $toAdd = array_filter($newMigrations, function($migration) use ($existingIds) {
-            return !in_array($migration['id'], $existingIds);
-        });
+        $toAdd = array_filter($newMigrations, fn($migration): bool => !in_array($migration['id'], $existingIds));
         
-        if (!empty($toAdd)) {
+        if ($toAdd !== []) {
             $combined = array_merge($existing, $toAdd);
             self::writeMigrations($path, $combined);
         }

@@ -8,14 +8,12 @@ namespace BaseApi\Queue;
 class QueueJob
 {
     public function __construct(
-        private string $id,
-        private JobInterface $job
+        private readonly string $id,
+        private readonly JobInterface $job
     ) {}
     
     /**
      * Get the job ID.
-     *
-     * @return string
      */
     public function getId(): string
     {
@@ -24,8 +22,6 @@ class QueueJob
     
     /**
      * Get the job instance.
-     *
-     * @return JobInterface
      */
     public function getJob(): JobInterface
     {

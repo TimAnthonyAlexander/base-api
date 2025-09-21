@@ -4,7 +4,7 @@ namespace BaseApi\Support;
 
 class RateLimiter
 {
-    private string $dir;
+    private readonly string $dir;
 
     public function __construct(string $dir)
     {
@@ -13,7 +13,7 @@ class RateLimiter
         // Validate directory path - reject if it contains symlinks or suspicious paths
         if (!$this->isSecurePath($this->dir)) {
             // For now, just log the issue instead of failing
-            error_log("Warning: Rate limit directory path may be insecure: {$this->dir}");
+            error_log('Warning: Rate limit directory path may be insecure: ' . $this->dir);
         }
 
         if (!is_dir($this->dir)) {
@@ -28,8 +28,8 @@ class RateLimiter
         $routeHash = $this->hashRoute($routeId, '');
         $keyHash = md5($key);
 
-        $counterDir = "{$this->dir}/{$routeHash}/{$keyHash}";
-        $counterFile = "{$counterDir}/{$windowStart}.cnt";
+        $counterDir = sprintf('%s/%s/%s', $this->dir, $routeHash, $keyHash);
+        $counterFile = sprintf('%s/%d.cnt', $counterDir, $windowStart);
 
         if (!is_dir($counterDir)) {
             $oldUmask = umask(0022); // Ensure consistent permissions
@@ -55,7 +55,7 @@ class RateLimiter
 
     public function hashRoute(string $method, string $path): string
     {
-        return md5("{$method}:{$path}");
+        return md5(sprintf('%s:%s', $method, $path));
     }
 
     private function incrementCounter(string $file): int
@@ -89,7 +89,7 @@ class RateLimiter
             return;
         }
 
-        $files = glob("{$dir}/*.cnt");
+        $files = glob($dir . '/*.cnt');
         if (!$files) {
             return;
         }
@@ -113,12 +113,7 @@ class RateLimiter
         if (str_contains($path, '..')) {
             return false;
         }
-
         // Ensure path is absolute to prevent relative path issues
-        if (!str_starts_with($path, '/')) {
-            return false;
-        }
-
-        return true;
+        return str_starts_with($path, '/');
     }
 }

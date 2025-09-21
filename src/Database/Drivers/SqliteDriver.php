@@ -2,6 +2,9 @@
 
 namespace BaseApi\Database\Drivers;
 
+use Override;
+use PDOException;
+use SQLite3;
 use PDO;
 use BaseApi\Database\DbException;
 use BaseApi\Database\Migrations\MigrationPlan;
@@ -11,17 +14,19 @@ use BaseApi\Database\Migrations\ForeignKeyDef;
 
 class SqliteDriver implements DatabaseDriverInterface
 {
+    #[Override]
     public function getName(): string
     {
         return 'sqlite';
     }
     
+    #[Override]
     public function createConnection(array $config): PDO
     {
         $database = $config['database'] ?? ':memory:';
         
         // If database is not :memory: and doesn't start with /, make it relative to storage
-        if ($database !== ':memory:' && !str_starts_with($database, '/')) {
+        if ($database !== ':memory:' && !str_starts_with((string) $database, '/')) {
             $database = getcwd() . '/storage/' . $database;
             
             // Create directory if it doesn't exist
@@ -31,7 +36,7 @@ class SqliteDriver implements DatabaseDriverInterface
             }
         }
 
-        $dsn = "sqlite:{$database}";
+        $dsn = 'sqlite:' . $database;
 
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -49,11 +54,12 @@ class SqliteDriver implements DatabaseDriverInterface
             $pdo->exec('PRAGMA journal_mode = WAL');
             
             return $pdo;
-        } catch (\PDOException $e) {
-            throw new DbException("SQLite connection failed: " . $e->getMessage(), $e);
+        } catch (PDOException $pdoException) {
+            throw new DbException("SQLite connection failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
     
+    #[Override]
     public function getDatabaseName(PDO $pdo): string
     {
         // SQLite doesn't have a concept of database name like MySQL
@@ -63,6 +69,7 @@ class SqliteDriver implements DatabaseDriverInterface
         return $result['file'] ?? 'main';
     }
     
+    #[Override]
     public function getTables(PDO $pdo, string $dbName): array
     {
         $stmt = $pdo->query("
@@ -74,9 +81,10 @@ class SqliteDriver implements DatabaseDriverInterface
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
     
+    #[Override]
     public function getColumns(PDO $pdo, string $dbName, string $tableName): array
     {
-        $stmt = $pdo->prepare("PRAGMA table_info(\"{$tableName}\")");
+        $stmt = $pdo->prepare(sprintf('PRAGMA table_info("%s")', $tableName));
         $stmt->execute();
         
         $columns = [];
@@ -93,20 +101,21 @@ class SqliteDriver implements DatabaseDriverInterface
         return $columns;
     }
     
+    #[Override]
     public function getIndexes(PDO $pdo, string $dbName, string $tableName): array
     {
-        $stmt = $pdo->prepare("PRAGMA index_list(\"{$tableName}\")");
+        $stmt = $pdo->prepare(sprintf('PRAGMA index_list("%s")', $tableName));
         $stmt->execute();
         
         $indexes = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Skip auto-created primary key indexes
-            if (str_starts_with($row['name'], 'sqlite_autoindex_')) {
+            if (str_starts_with((string) $row['name'], 'sqlite_autoindex_')) {
                 continue;
             }
             
             // Get index info to find the column
-            $infoStmt = $pdo->prepare("PRAGMA index_info(\"{$row['name']}\")");
+            $infoStmt = $pdo->prepare(sprintf('PRAGMA index_info("%s")', $row['name']));
             $infoStmt->execute();
             $info = $infoStmt->fetch(PDO::FETCH_ASSOC);
             
@@ -122,15 +131,16 @@ class SqliteDriver implements DatabaseDriverInterface
         return $indexes;
     }
     
+    #[Override]
     public function getForeignKeys(PDO $pdo, string $dbName, string $tableName): array
     {
-        $stmt = $pdo->prepare("PRAGMA foreign_key_list(\"{$tableName}\")");
+        $stmt = $pdo->prepare(sprintf('PRAGMA foreign_key_list("%s")', $tableName));
         $stmt->execute();
         
         $fks = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Generate a name since SQLite doesn't store FK names
-            $name = "fk_{$tableName}_{$row['from']}_{$row['table']}_{$row['to']}";
+            $name = sprintf('fk_%s_%s_%s_%s', $tableName, $row['from'], $row['table'], $row['to']);
             
             $fks[$name] = new ForeignKeyDef(
                 name: $name,
@@ -145,6 +155,7 @@ class SqliteDriver implements DatabaseDriverInterface
         return $fks;
     }
     
+    #[Override]
     public function generateSql(MigrationPlan $plan): array
     {
         $statements = [];
@@ -183,6 +194,7 @@ class SqliteDriver implements DatabaseDriverInterface
             if (!isset($tableFks[$tableName])) {
                 $tableFks[$tableName] = [];
             }
+
             $tableFks[$tableName][] = $op['fk'];
         }
         
@@ -198,7 +210,7 @@ class SqliteDriver implements DatabaseDriverInterface
         
         foreach ($modifyColumns as $op) {
             // SQLite doesn't support ALTER COLUMN, so we need to recreate the table
-            $statements = array_merge($statements, $this->generateModifyColumn($op));
+            $statements = array_merge($statements, $this->generateModifyColumn());
         }
         
         foreach ($addIndexes as $op) {
@@ -275,21 +287,22 @@ class SqliteDriver implements DatabaseDriverInterface
         $sql .= "  " . implode(",\n  ", $columnDefs);
         
         // Only add table-level PRIMARY KEY if there are multiple primary key columns
-        if (!empty($primaryKeys) && !$useColumnLevelPK) {
-            $sql .= ",\n  PRIMARY KEY (\"" . implode('", "', $primaryKeys) . "\")";
+        if ($primaryKeys !== [] && !$useColumnLevelPK) {
+            $sql .= ",\n  PRIMARY KEY (\"" . implode('", "', $primaryKeys) . '")';
         }
         
         // Add foreign key constraints
         foreach ($fks as $fkData) {
             $fk = ForeignKeyDef::fromArray($fkData);
             $sql .= ",\n  FOREIGN KEY (\"{$fk->column}\") REFERENCES \"{$fk->ref_table}\" (\"{$fk->ref_column}\")";
-            
+
             // Add ON DELETE and ON UPDATE clauses if specified
             if ($fk->on_delete && $fk->on_delete !== 'NO ACTION') {
-                $sql .= " ON DELETE {$fk->on_delete}";
+                $sql .= ' ON DELETE ' . $fk->on_delete;
             }
+
             if ($fk->on_update && $fk->on_update !== 'NO ACTION') {
-                $sql .= " ON UPDATE {$fk->on_update}";
+                $sql .= ' ON UPDATE ' . $fk->on_update;
             }
         }
         
@@ -297,7 +310,7 @@ class SqliteDriver implements DatabaseDriverInterface
         
         return [
             'sql' => $sql,
-            'description' => "Create table {$tableName}",
+            'description' => 'Create table ' . $tableName,
             'destructive' => false
         ];
     }
@@ -307,16 +320,16 @@ class SqliteDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
         
-        $sql = "ALTER TABLE \"{$tableName}\" ADD COLUMN " . $this->generateColumnDefinition($column, true);
+        $sql = sprintf('ALTER TABLE "%s" ADD COLUMN ', $tableName) . $this->generateColumnDefinition($column, true);
         
         return [
             'sql' => $sql,
-            'description' => "Add column {$column->name} to {$tableName}",
+            'description' => sprintf('Add column %s to %s', $column->name, $tableName),
             'destructive' => false
         ];
     }
     
-    private function generateModifyColumn(array $op): array
+    private function generateModifyColumn(): array
     {
         // SQLite doesn't support ALTER COLUMN directly
         // This would require table recreation which is complex
@@ -330,11 +343,11 @@ class SqliteDriver implements DatabaseDriverInterface
         $index = IndexDef::fromArray($op['index']);
         
         $unique = $index->type === 'unique' ? 'UNIQUE ' : '';
-        $sql = "CREATE {$unique}INDEX \"{$index->name}\" ON \"{$tableName}\" (\"{$index->column}\")";
+        $sql = sprintf('CREATE %sINDEX "%s" ON "%s" ("%s")', $unique, $index->name, $tableName, $index->column);
         
         return [
             'sql' => $sql,
-            'description' => "Add {$index->type} index {$index->name} to {$tableName}",
+            'description' => sprintf('Add %s index %s to %s', $index->type, $index->name, $tableName),
             'destructive' => false
         ];
     }
@@ -344,11 +357,11 @@ class SqliteDriver implements DatabaseDriverInterface
         $indexName = $op['index'];
         $tableName = $op['table'] ?? 'unknown';
         
-        $sql = "DROP INDEX IF EXISTS \"{$indexName}\"";
+        $sql = sprintf('DROP INDEX IF EXISTS "%s"', $indexName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop index {$indexName}",
+            'description' => 'Drop index ' . $indexName,
             'destructive' => true,
             'table' => $tableName
         ];
@@ -363,7 +376,7 @@ class SqliteDriver implements DatabaseDriverInterface
         // SQLite 3.35.0+ supports DROP COLUMN natively
         $version = $this->getSqliteVersion();
         if (version_compare($version, '3.35.0', '>=')) {
-            $sql = "ALTER TABLE \"{$tableName}\" DROP COLUMN \"{$columnName}\"";
+            $sql = sprintf('ALTER TABLE "%s" DROP COLUMN "%s"', $tableName, $columnName);
             return [
                 [
                     'sql' => $sql,
@@ -377,7 +390,7 @@ class SqliteDriver implements DatabaseDriverInterface
         // This is complex and potentially dangerous, so we'll warn but skip for now
         return [
             [
-                'sql' => "-- DROP COLUMN \"{$columnName}\" FROM \"{$tableName}\" (Not supported in SQLite < 3.35.0)",
+                'sql' => sprintf('-- DROP COLUMN "%s" FROM "%s" (Not supported in SQLite < 3.35.0)', $columnName, $tableName),
                 'destructive' => true,
                 'warning' => 'Column drop not implemented for SQLite < 3.35.0. Manual table recreation required.'
             ]
@@ -386,18 +399,18 @@ class SqliteDriver implements DatabaseDriverInterface
     
     private function getSqliteVersion(): string
     {
-        return \SQLite3::version()['versionString'] ?? '3.0.0';
+        return SQLite3::version()['versionString'] ?? '3.0.0';
     }
     
     private function generateDropTable(array $op): array
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE IF EXISTS \"{$tableName}\"";
+        $sql = sprintf('DROP TABLE IF EXISTS "%s"', $tableName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop table {$tableName}",
+            'description' => 'Drop table ' . $tableName,
             'destructive' => true,
             'table' => $tableName
         ];
@@ -405,7 +418,7 @@ class SqliteDriver implements DatabaseDriverInterface
     
     private function generateColumnDefinition(ColumnDef $column, bool $useColumnLevelPK = true): string
     {
-        $sql = "\"{$column->name}\" {$column->type}";
+        $sql = sprintf('"%s" %s', $column->name, $column->type);
         
         // Only add column-level PRIMARY KEY if we're using column-level PKs and this is a PK
         if ($column->is_pk && $useColumnLevelPK) {
@@ -423,32 +436,36 @@ class SqliteDriver implements DatabaseDriverInterface
                 // SQLite doesn't support ON UPDATE, just use CURRENT_TIMESTAMP
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } else {
-                $sql .= " DEFAULT '{$column->default}'";
+                $sql .= sprintf(" DEFAULT '%s'", $column->default);
             }
         }
         
         return $sql;
     }
     
+    #[Override]
     public function normalizeColumnType(string $columnType): string
     {
         // Convert SQLite types to our normalized format
         $type = strtolower(trim($columnType));
-        
+
         // SQLite is flexible with types, so we need to be more liberal
         if (str_contains($type, 'int')) {
             return 'integer';
         }
+
         if (str_contains($type, 'char') || str_contains($type, 'text')) {
             return 'text';
         }
+
         if (str_contains($type, 'blob')) {
             return 'blob';
         }
+
         if (str_contains($type, 'real') || str_contains($type, 'floa') || str_contains($type, 'doub')) {
             return 'real';
         }
-        
+
         return match ($type) {
             'boolean' => 'boolean',
             'date' => 'date',
@@ -459,6 +476,7 @@ class SqliteDriver implements DatabaseDriverInterface
         };
     }
     
+    #[Override]
     public function normalizeDefault(?string $default, string $extra): ?string
     {
         if ($default === null || $default === 'NULL') {
@@ -475,6 +493,7 @@ class SqliteDriver implements DatabaseDriverInterface
         return $default;
     }
     
+    #[Override]
     public function phpTypeToSqlType(string $phpType, string $propertyName = ''): string
     {
         return match ($phpType) {

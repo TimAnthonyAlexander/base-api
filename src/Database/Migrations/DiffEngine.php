@@ -38,7 +38,7 @@ class DiffEngine
     {
         $plan->addOperation('create_table', [
             'table' => $table->name,
-            'columns' => array_map(fn(ColumnDef $col) => $col->toArray(), $table->columns),
+            'columns' => array_map(fn(ColumnDef $col): array => $col->toArray(), $table->columns),
             'destructive' => false
         ]);
         
@@ -238,13 +238,8 @@ class DiffEngine
         if ($this->isTypeShrinking($modelColumn->type, $dbColumn->type)) {
             return true;
         }
-        
         // Making a column non-nullable when it was nullable
-        if (!$modelColumn->nullable && $dbColumn->nullable) {
-            return true;
-        }
-        
-        return false;
+        return !$modelColumn->nullable && $dbColumn->nullable;
     }
 
     private function isTypeShrinking(string $newType, string $oldType): bool
@@ -273,13 +268,8 @@ class DiffEngine
                 'VARCHAR' => ['TEXT'],
                 'DECIMAL' => ['FLOAT', 'DOUBLE'],
             ];
-            
-            if (isset($safeConversions[$baseOldType]) && 
-                in_array($baseNewType, $safeConversions[$baseOldType])) {
-                return false;
-            }
-            
-            return true; // Assume other type changes are risky
+            return !(isset($safeConversions[$baseOldType]) && 
+                in_array($baseNewType, $safeConversions[$baseOldType])); // Assume other type changes are risky
         }
         
         return false;

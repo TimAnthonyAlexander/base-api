@@ -2,25 +2,30 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\App;
 
 class JobMakeCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'make:job';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Create a new job class';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
-        if (empty($args)) {
+        if ($args === []) {
             echo "Error: Job name is required\n";
             echo "Usage: console make:job JobName\n";
             return 1;
@@ -32,7 +37,7 @@ class JobMakeCommand implements Command
         $name = $args[0];
         
         // Validate job name
-        if (!preg_match('/^[A-Z][a-zA-Z0-9]*Job$/', $name)) {
+        if (!preg_match('/^[A-Z][a-zA-Z0-9]*Job$/', (string) $name)) {
             echo "Error: Job name must start with uppercase letter and end with 'Job'\n";
             echo "Example: SendEmailJob, ProcessImageJob\n";
             return 1;
@@ -42,8 +47,8 @@ class JobMakeCommand implements Command
             $this->generateJobClass($basePath, $name);
             echo "Job {$name} created successfully at app/Jobs/{$name}.php\n";
             return 0;
-        } catch (\Exception $e) {
-            echo "Error creating job: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error creating job: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -53,22 +58,20 @@ class JobMakeCommand implements Command
         $jobsDir = $basePath . '/app/Jobs';
         
         // Create Jobs directory if it doesn't exist
-        if (!is_dir($jobsDir)) {
-            if (!mkdir($jobsDir, 0755, true)) {
-                throw new \Exception("Could not create Jobs directory");
-            }
+        if (!is_dir($jobsDir) && !mkdir($jobsDir, 0755, true)) {
+            throw new Exception("Could not create Jobs directory");
         }
         
         $filePath = $jobsDir . '/' . $name . '.php';
         
         if (file_exists($filePath)) {
-            throw new \Exception("Job class {$name} already exists");
+            throw new Exception(sprintf('Job class %s already exists', $name));
         }
         
         $template = $this->getJobTemplate($name);
         
         if (file_put_contents($filePath, $template) === false) {
-            throw new \Exception("Could not write job file");
+            throw new Exception("Could not write job file");
         }
     }
     

@@ -80,8 +80,6 @@ class ExecutedMigrationsFile
     {
         $executed = self::read($executedPath)['executed'];
         
-        return array_filter($allMigrations, function($migration) use ($executed) {
-            return !in_array($migration['id'], $executed);
-        });
+        return array_filter($allMigrations, fn($migration): bool => !in_array($migration['id'], $executed));
     }
 }

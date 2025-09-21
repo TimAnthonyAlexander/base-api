@@ -2,11 +2,14 @@
 
 namespace BaseApi\Http;
 
+use Override;
+use Throwable;
 use BaseApi\App;
 use BaseApi\Debug\DebugPanel;
 
 class DebugMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $request, callable $next): Response
     {
         // Only enable debugging in development environments
@@ -41,17 +44,17 @@ class DebugMiddleware implements Middleware
             $profiler->trackMemory('request_end');
 
             // Inject debug information if appropriate
-            $response = $this->injectDebugInfo($request, $response);
+            $response = $this->injectDebugInfo($response);
 
             return $response;
-        } catch (\Throwable $exception) {
+        } catch (Throwable $throwable) {
             // Log any exceptions that occur during request processing
-            $profiler->logException($exception, [
+            $profiler->logException($throwable, [
                 'request_method' => $request->method,
                 'request_path' => $request->path,
             ]);
 
-            throw $exception;
+            throw $throwable;
         } finally {
             // Always stop the request span
             $profiler->stop($requestSpanId);
@@ -83,7 +86,7 @@ class DebugMiddleware implements Middleware
     /**
      * Inject debug information into the response
      */
-    private function injectDebugInfo(Request $request, Response $response): Response
+    private function injectDebugInfo(Response $response): Response
     {
         $debugPanel = new DebugPanel(true);
 
@@ -105,7 +108,7 @@ class DebugMiddleware implements Middleware
      */
     private function addDebugToJsonResponse(JsonResponse $response, DebugPanel $debugPanel): JsonResponse
     {
-        $data = json_decode($response->body, true);
+        $data = json_decode((string) $response->body, true);
 
         if (!is_array($data)) {
             return $response;
@@ -124,7 +127,7 @@ class DebugMiddleware implements Middleware
     {
         $debugHtml = $debugPanel->renderPanel();
 
-        if (empty($debugHtml)) {
+        if ($debugHtml === '' || $debugHtml === '0') {
             return $response;
         }
 
@@ -132,7 +135,7 @@ class DebugMiddleware implements Middleware
         $body = $response->body;
         $debugHtml = "\n" . $debugHtml . "\n";
 
-        if (stripos($body, '</body>') !== false) {
+        if (stripos((string) $body, '</body>') !== false) {
             $body = str_ireplace('</body>', $debugHtml . '</body>', $body);
         } else {
             // If no body tag, just append
@@ -152,12 +155,12 @@ class DebugMiddleware implements Middleware
         // Check Content-Type header
         foreach ($response->headers as $name => $value) {
             if (strtolower($name) === 'content-type') {
-                $contentType = strtolower($value);
+                $contentType = strtolower((string) $value);
                 break;
             }
         }
 
         return str_contains($contentType, 'text/html') ||
-            (empty($contentType) && str_contains($response->body, '<html'));
+            (($contentType === '' || $contentType === '0') && str_contains((string) $response->body, '<html'));
     }
 }

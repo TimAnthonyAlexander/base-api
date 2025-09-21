@@ -2,6 +2,7 @@
 
 namespace BaseApi\Controllers;
 
+use BaseApi\App;
 use BaseApi\Http\Validation\Validator;
 use BaseApi\Http\Request;
 use BaseApi\Container\ContainerInterface;
@@ -18,12 +19,10 @@ abstract class Controller
 
     /**
      * Get the application container instance.
-     * 
-     * @return ContainerInterface
      */
     protected function container(): ContainerInterface
     {
-        return \BaseApi\App::container();
+        return App::container();
     }
 
     /**

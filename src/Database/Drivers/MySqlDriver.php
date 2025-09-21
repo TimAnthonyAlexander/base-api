@@ -2,6 +2,8 @@
 
 namespace BaseApi\Database\Drivers;
 
+use Override;
+use PDOException;
 use PDO;
 use BaseApi\Database\DbException;
 use BaseApi\Database\Migrations\MigrationPlan;
@@ -11,11 +13,13 @@ use BaseApi\Database\Migrations\ForeignKeyDef;
 
 class MySqlDriver implements DatabaseDriverInterface
 {
+    #[Override]
     public function getName(): string
     {
         return 'mysql';
     }
     
+    #[Override]
     public function createConnection(array $config): PDO
     {
         $host = $config['host'] ?? '127.0.0.1';
@@ -26,7 +30,7 @@ class MySqlDriver implements DatabaseDriverInterface
         $charset = $config['charset'] ?? 'utf8mb4';
         $persistent = ($config['persistent'] ?? false) === true;
 
-        $dsn = "mysql:host={$host};port={$port};dbname={$database};charset={$charset}";
+        $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s', $host, $port, $database, $charset);
 
         $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -42,20 +46,22 @@ class MySqlDriver implements DatabaseDriverInterface
             $pdo->exec("SET time_zone = '+00:00'");
 
             // Set names (charset)
-            $pdo->exec("SET NAMES {$charset}");
+            $pdo->exec('SET NAMES ' . $charset);
             
             return $pdo;
-        } catch (\PDOException $e) {
-            throw new DbException("Database connection failed: " . $e->getMessage(), $e);
+        } catch (PDOException $pdoException) {
+            throw new DbException("Database connection failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
     
+    #[Override]
     public function getDatabaseName(PDO $pdo): string
     {
         $stmt = $pdo->query('SELECT DATABASE()');
         return $stmt->fetchColumn();
     }
     
+    #[Override]
     public function getTables(PDO $pdo, string $dbName): array
     {
         $stmt = $pdo->prepare("
@@ -68,6 +74,7 @@ class MySqlDriver implements DatabaseDriverInterface
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
     
+    #[Override]
     public function getColumns(PDO $pdo, string $dbName, string $tableName): array
     {
         $stmt = $pdo->prepare("
@@ -98,6 +105,7 @@ class MySqlDriver implements DatabaseDriverInterface
         return $columns;
     }
     
+    #[Override]
     public function getIndexes(PDO $pdo, string $dbName, string $tableName): array
     {
         $stmt = $pdo->prepare("
@@ -124,6 +132,7 @@ class MySqlDriver implements DatabaseDriverInterface
         return $indexes;
     }
     
+    #[Override]
     public function getForeignKeys(PDO $pdo, string $dbName, string $tableName): array
     {
         $stmt = $pdo->prepare("
@@ -158,6 +167,7 @@ class MySqlDriver implements DatabaseDriverInterface
         return $fks;
     }
     
+    #[Override]
     public function generateSql(MigrationPlan $plan): array
     {
         $statements = [];
@@ -257,7 +267,7 @@ class MySqlDriver implements DatabaseDriverInterface
         
         return [
             'sql' => $sql,
-            'description' => "Create table {$tableName}",
+            'description' => 'Create table ' . $tableName,
             'destructive' => false
         ];
     }
@@ -267,11 +277,11 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
         
-        $sql = "ALTER TABLE `{$tableName}` ADD COLUMN " . $this->generateColumnDefinition($column);
+        $sql = sprintf('ALTER TABLE `%s` ADD COLUMN ', $tableName) . $this->generateColumnDefinition($column);
         
         return [
             'sql' => $sql,
-            'description' => "Add column {$column->name} to {$tableName}",
+            'description' => sprintf('Add column %s to %s', $column->name, $tableName),
             'destructive' => false
         ];
     }
@@ -281,11 +291,11 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
         
-        $sql = "ALTER TABLE `{$tableName}` MODIFY COLUMN " . $this->generateColumnDefinition($column);
+        $sql = sprintf('ALTER TABLE `%s` MODIFY COLUMN ', $tableName) . $this->generateColumnDefinition($column);
         
         return [
             'sql' => $sql,
-            'description' => "Modify column {$column->name} in {$tableName}",
+            'description' => sprintf('Modify column %s in %s', $column->name, $tableName),
             'destructive' => $op['destructive'] ?? false
         ];
     }
@@ -296,14 +306,14 @@ class MySqlDriver implements DatabaseDriverInterface
         $index = IndexDef::fromArray($op['index']);
         
         if ($index->type === 'unique') {
-            $sql = "ALTER TABLE `{$tableName}` ADD UNIQUE KEY `{$index->name}` (`{$index->column}`)";
+            $sql = sprintf('ALTER TABLE `%s` ADD UNIQUE KEY `%s` (`%s`)', $tableName, $index->name, $index->column);
         } else {
-            $sql = "ALTER TABLE `{$tableName}` ADD INDEX `{$index->name}` (`{$index->column}`)";
+            $sql = sprintf('ALTER TABLE `%s` ADD INDEX `%s` (`%s`)', $tableName, $index->name, $index->column);
         }
         
         return [
             'sql' => $sql,
-            'description' => "Add {$index->type} index {$index->name} to {$tableName}",
+            'description' => sprintf('Add %s index %s to %s', $index->type, $index->name, $tableName),
             'destructive' => false
         ];
     }
@@ -313,13 +323,13 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $fk = ForeignKeyDef::fromArray($op['fk']);
         
-        $sql = "ALTER TABLE `{$tableName}` ADD CONSTRAINT `{$fk->name}` " .
-               "FOREIGN KEY (`{$fk->column}`) REFERENCES `{$fk->ref_table}` (`{$fk->ref_column}`) " .
-               "ON DELETE {$fk->on_delete} ON UPDATE {$fk->on_update}";
+        $sql = sprintf('ALTER TABLE `%s` ADD CONSTRAINT `%s` ', $tableName, $fk->name) .
+               sprintf('FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) ', $fk->column, $fk->ref_table, $fk->ref_column) .
+               sprintf('ON DELETE %s ON UPDATE %s', $fk->on_delete, $fk->on_update);
         
         return [
             'sql' => $sql,
-            'description' => "Add foreign key {$fk->name} to {$tableName}",
+            'description' => sprintf('Add foreign key %s to %s', $fk->name, $tableName),
             'destructive' => false
         ];
     }
@@ -329,11 +339,11 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $fkName = $op['fk_name'];
         
-        $sql = "ALTER TABLE `{$tableName}` DROP FOREIGN KEY `{$fkName}`";
+        $sql = sprintf('ALTER TABLE `%s` DROP FOREIGN KEY `%s`', $tableName, $fkName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop foreign key {$fkName} from {$tableName}",
+            'description' => sprintf('Drop foreign key %s from %s', $fkName, $tableName),
             'destructive' => true
         ];
     }
@@ -343,11 +353,11 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $indexName = $op['index'];
         
-        $sql = "ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`";
+        $sql = sprintf('ALTER TABLE `%s` DROP INDEX `%s`', $tableName, $indexName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop index {$indexName} from {$tableName}",
+            'description' => sprintf('Drop index %s from %s', $indexName, $tableName),
             'destructive' => true,
             'table' => $tableName
         ];
@@ -358,11 +368,11 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $columnName = $op['column_name'];
         
-        $sql = "ALTER TABLE `{$tableName}` DROP COLUMN `{$columnName}`";
+        $sql = sprintf('ALTER TABLE `%s` DROP COLUMN `%s`', $tableName, $columnName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop column {$columnName} from {$tableName}",
+            'description' => sprintf('Drop column %s from %s', $columnName, $tableName),
             'destructive' => true
         ];
     }
@@ -371,11 +381,11 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE IF EXISTS `{$tableName}`";
+        $sql = sprintf('DROP TABLE IF EXISTS `%s`', $tableName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop table {$tableName}",
+            'description' => 'Drop table ' . $tableName,
             'destructive' => true,
             'table' => $tableName
         ];
@@ -383,7 +393,7 @@ class MySqlDriver implements DatabaseDriverInterface
     
     private function generateColumnDefinition(ColumnDef $column): string
     {
-        $sql = "`{$column->name}` {$column->type}";
+        $sql = sprintf('`%s` %s', $column->name, $column->type);
         
         if (!$column->nullable) {
             $sql .= ' NOT NULL';
@@ -393,13 +403,14 @@ class MySqlDriver implements DatabaseDriverInterface
             if ($column->default === 'CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } else {
-                $sql .= " DEFAULT '{$column->default}'";
+                $sql .= sprintf(" DEFAULT '%s'", $column->default);
             }
         }
         
         return $sql;
     }
     
+    #[Override]
     public function normalizeColumnType(string $columnType): string
     {
         // Convert MySQL types to our normalized format
@@ -427,6 +438,7 @@ class MySqlDriver implements DatabaseDriverInterface
         };
     }
     
+    #[Override]
     public function normalizeDefault(?string $default, string $extra): ?string
     {
         if ($default === null) {
@@ -442,6 +454,7 @@ class MySqlDriver implements DatabaseDriverInterface
         return trim($default, "'\"");
     }
     
+    #[Override]
     public function phpTypeToSqlType(string $phpType, string $propertyName = ''): string
     {
         return match ($phpType) {

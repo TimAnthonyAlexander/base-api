@@ -2,22 +2,27 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\App;
 
 class ServeCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'serve';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Start the development server';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         $basePath = $app?->basePath() ?? getcwd();
         
@@ -27,15 +32,15 @@ class ServeCommand implements Command
         $host = App::config('app.host') ?? $_ENV['APP_HOST'] ?? 'localhost';
         $port = App::config('app.port') ?? $_ENV['APP_PORT'] ?? '7879';
         
-        $address = "{$host}:{$port}";
+        $address = sprintf('%s:%s', $host, $port);
         
-        echo "Starting BaseApi development server on http://{$address}\n";
+        echo sprintf('Starting BaseApi development server on http://%s%s', $address, PHP_EOL);
         echo "Press Ctrl+C to stop the server\n\n";
         
         // Check if public directory exists
         $publicDir = $basePath . '/public';
         if (!is_dir($publicDir)) {
-            echo "Error: public directory not found at {$publicDir}\n";
+            echo sprintf('Error: public directory not found at %s%s', $publicDir, PHP_EOL);
             return 1;
         }
         

@@ -4,13 +4,8 @@ namespace BaseApi;
 
 class Config
 {
-    private array $config;
-    private array $env;
-
-    public function __construct(array $config, array $env = [])
+    public function __construct(private readonly array $config, private array $env = [])
     {
-        $this->config = $config;
-        $this->env = $env;
     }
 
     public function get(string $key, mixed $default = null): mixed

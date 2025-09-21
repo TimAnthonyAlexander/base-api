@@ -2,6 +2,7 @@
 
 namespace BaseApi\Cache\Middleware;
 
+use Override;
 use BaseApi\Http\BaseMiddleware;
 use BaseApi\Http\Request;
 use BaseApi\Http\Response;
@@ -16,6 +17,7 @@ use BaseApi\App;
  */
 class CacheResponse extends BaseMiddleware
 {
+    #[Override]
     public function handle(Request $request, callable $next): Response
     {
         // Only cache GET requests
@@ -38,7 +40,7 @@ class CacheResponse extends BaseMiddleware
         
         // Try to get cached response
         $cachedResponse = $this->getCachedResponse($cacheKey, $tags);
-        if ($cachedResponse !== null) {
+        if ($cachedResponse instanceof Response) {
             return $cachedResponse;
         }
 
@@ -58,7 +60,7 @@ class CacheResponse extends BaseMiddleware
      */
     private function getCachedResponse(string $cacheKey, array $tags): ?Response
     {
-        $cache = !empty($tags) ? Cache::tags($tags) : Cache::driver();
+        $cache = $tags === [] ? Cache::driver() : Cache::tags($tags);
         $cached = $cache->get($cacheKey);
         
         if (!$cached) {
@@ -94,13 +96,13 @@ class CacheResponse extends BaseMiddleware
             'cached_at' => time(),
         ];
 
-        $cache = !empty($tags) ? Cache::tags($tags) : Cache::driver();
+        $cache = $tags === [] ? Cache::driver() : Cache::tags($tags);
         $cache->put($cacheKey, $cacheData, $ttl);
         
         // Add cache headers to original response
         $response->headers['X-Cache'] = 'MISS';
         $response->headers['X-Cache-Key'] = $cacheKey;
-        $response->headers['Cache-Control'] = "public, max-age={$ttl}";
+        $response->headers['Cache-Control'] = 'public, max-age=' . $ttl;
     }
 
     /**
@@ -120,7 +122,7 @@ class CacheResponse extends BaseMiddleware
         // Add query parameters (filtered)
         $ignoreParams = $config->get('cache.response_cache.ignore_query_params', []);
         $queryParams = array_diff_key($request->query, array_flip($ignoreParams));
-        if (!empty($queryParams)) {
+        if ($queryParams !== []) {
             ksort($queryParams);
             $components['query'] = $queryParams;
         }
@@ -153,7 +155,7 @@ class CacheResponse extends BaseMiddleware
         $params = $this->getParams();
         
         if (isset($params[1])) {
-            return is_array($params[1]) ? $params[1] : explode(',', $params[1]);
+            return is_array($params[1]) ? $params[1] : explode(',', (string) $params[1]);
         }
         
         return [];

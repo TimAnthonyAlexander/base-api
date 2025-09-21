@@ -2,6 +2,8 @@
 
 namespace BaseApi\Database\Drivers;
 
+use Override;
+use PDOException;
 use PDO;
 use BaseApi\Database\DbException;
 use BaseApi\Database\Migrations\MigrationPlan;
@@ -11,11 +13,13 @@ use BaseApi\Database\Migrations\ForeignKeyDef;
 
 class PostgreSqlDriver implements DatabaseDriverInterface
 {
+    #[Override]
     public function getName(): string
     {
         return 'postgresql';
     }
     
+    #[Override]
     public function createConnection(array $config): PDO
     {
         $host = $config['host'] ?? '127.0.0.1';
@@ -28,11 +32,11 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $sslmode = $config['sslmode'] ?? 'prefer';
         $schema = $config['schema'] ?? 'public';
 
-        $dsn = "pgsql:host={$host};port={$port};dbname={$database}";
+        $dsn = sprintf('pgsql:host=%s;port=%s;dbname=%s', $host, $port, $database);
         
         // Add SSL mode if specified
         if ($sslmode !== 'disable') {
-            $dsn .= ";sslmode={$sslmode}";
+            $dsn .= ';sslmode=' . $sslmode;
         }
 
         $options = [
@@ -49,23 +53,25 @@ class PostgreSqlDriver implements DatabaseDriverInterface
             $pdo->exec("SET TIME ZONE 'UTC'");
             
             // Set client encoding
-            $pdo->exec("SET CLIENT_ENCODING TO '{$charset}'");
+            $pdo->exec(sprintf("SET CLIENT_ENCODING TO '%s'", $charset));
             
             // Set search path to include the specified schema
-            $pdo->exec("SET search_path TO {$schema}, public");
+            $pdo->exec(sprintf('SET search_path TO %s, public', $schema));
             
             return $pdo;
-        } catch (\PDOException $e) {
-            throw new DbException("PostgreSQL connection failed: " . $e->getMessage(), $e);
+        } catch (PDOException $pdoException) {
+            throw new DbException("PostgreSQL connection failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
     
+    #[Override]
     public function getDatabaseName(PDO $pdo): string
     {
         $stmt = $pdo->query('SELECT current_database()');
         return $stmt->fetchColumn();
     }
     
+    #[Override]
     public function getTables(PDO $pdo, string $dbName): array
     {
         $stmt = $pdo->prepare("
@@ -80,6 +86,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
     
+    #[Override]
     public function getColumns(PDO $pdo, string $dbName, string $tableName): array
     {
         $stmt = $pdo->prepare("
@@ -126,6 +133,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         return $columns;
     }
     
+    #[Override]
     public function getIndexes(PDO $pdo, string $dbName, string $tableName): array
     {
         $stmt = $pdo->prepare("
@@ -162,6 +170,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         return $indexes;
     }
     
+    #[Override]
     public function getForeignKeys(PDO $pdo, string $dbName, string $tableName): array
     {
         $stmt = $pdo->prepare("
@@ -194,14 +203,15 @@ class PostgreSqlDriver implements DatabaseDriverInterface
                 column: $row['column_name'],
                 ref_table: $row['foreign_table_name'],
                 ref_column: $row['foreign_column_name'],
-                on_delete: strtoupper($row['delete_rule']),
-                on_update: strtoupper($row['update_rule'])
+                on_delete: strtoupper((string) $row['delete_rule']),
+                on_update: strtoupper((string) $row['update_rule'])
             );
         }
         
         return $fks;
     }
     
+    #[Override]
     public function generateSql(MigrationPlan $plan): array
     {
         $statements = [];
@@ -293,15 +303,15 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $sql = "CREATE TABLE \"{$tableName}\" (\n";
         $sql .= "  " . implode(",\n  ", $columnDefs);
         
-        if (!empty($primaryKeys)) {
-            $sql .= ",\n  PRIMARY KEY (\"" . implode('", "', $primaryKeys) . "\")";
+        if ($primaryKeys !== []) {
+            $sql .= ",\n  PRIMARY KEY (\"" . implode('", "', $primaryKeys) . '")';
         }
         
         $sql .= "\n)";
         
         return [
             'sql' => $sql,
-            'description' => "Create table {$tableName}",
+            'description' => 'Create table ' . $tableName,
             'destructive' => false
         ];
     }
@@ -311,11 +321,11 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
         
-        $sql = "ALTER TABLE \"{$tableName}\" ADD COLUMN " . $this->generateColumnDefinition($column);
+        $sql = sprintf('ALTER TABLE "%s" ADD COLUMN ', $tableName) . $this->generateColumnDefinition($column);
         
         return [
             'sql' => $sql,
-            'description' => "Add column {$column->name} to {$tableName}",
+            'description' => sprintf('Add column %s to %s', $column->name, $tableName),
             'destructive' => false
         ];
     }
@@ -329,29 +339,29 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $statements = [];
         
         // Change data type
-        $statements[] = "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column->name}\" TYPE {$column->type}";
+        $statements[] = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" TYPE %s', $tableName, $column->name, $column->type);
         
         // Change nullability
         if ($column->nullable) {
-            $statements[] = "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column->name}\" DROP NOT NULL";
+            $statements[] = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" DROP NOT NULL', $tableName, $column->name);
         } else {
-            $statements[] = "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column->name}\" SET NOT NULL";
+            $statements[] = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" SET NOT NULL', $tableName, $column->name);
         }
         
         // Change default value
         if ($column->default !== null) {
             if ($column->default === 'CURRENT_TIMESTAMP') {
-                $statements[] = "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column->name}\" SET DEFAULT CURRENT_TIMESTAMP";
+                $statements[] = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" SET DEFAULT CURRENT_TIMESTAMP', $tableName, $column->name);
             } else {
-                $statements[] = "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column->name}\" SET DEFAULT '{$column->default}'";
+                $statements[] = sprintf("ALTER TABLE \"%s\" ALTER COLUMN \"%s\" SET DEFAULT '%s'", $tableName, $column->name, $column->default);
             }
         } else {
-            $statements[] = "ALTER TABLE \"{$tableName}\" ALTER COLUMN \"{$column->name}\" DROP DEFAULT";
+            $statements[] = sprintf('ALTER TABLE "%s" ALTER COLUMN "%s" DROP DEFAULT', $tableName, $column->name);
         }
         
         return [
             'sql' => implode(";\n", $statements),
-            'description' => "Modify column {$column->name} in {$tableName}",
+            'description' => sprintf('Modify column %s in %s', $column->name, $tableName),
             'destructive' => $op['destructive'] ?? false
         ];
     }
@@ -362,14 +372,14 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $index = IndexDef::fromArray($op['index']);
         
         if ($index->type === 'unique') {
-            $sql = "CREATE UNIQUE INDEX \"{$index->name}\" ON \"{$tableName}\" (\"{$index->column}\")";
+            $sql = sprintf('CREATE UNIQUE INDEX "%s" ON "%s" ("%s")', $index->name, $tableName, $index->column);
         } else {
-            $sql = "CREATE INDEX \"{$index->name}\" ON \"{$tableName}\" (\"{$index->column}\")";
+            $sql = sprintf('CREATE INDEX "%s" ON "%s" ("%s")', $index->name, $tableName, $index->column);
         }
         
         return [
             'sql' => $sql,
-            'description' => "Add {$index->type} index {$index->name} to {$tableName}",
+            'description' => sprintf('Add %s index %s to %s', $index->type, $index->name, $tableName),
             'destructive' => false
         ];
     }
@@ -379,13 +389,13 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $fk = ForeignKeyDef::fromArray($op['fk']);
         
-        $sql = "ALTER TABLE \"{$tableName}\" ADD CONSTRAINT \"{$fk->name}\" " .
-               "FOREIGN KEY (\"{$fk->column}\") REFERENCES \"{$fk->ref_table}\" (\"{$fk->ref_column}\") " .
-               "ON DELETE {$fk->on_delete} ON UPDATE {$fk->on_update}";
+        $sql = sprintf('ALTER TABLE "%s" ADD CONSTRAINT "%s" ', $tableName, $fk->name) .
+               sprintf('FOREIGN KEY ("%s") REFERENCES "%s" ("%s") ', $fk->column, $fk->ref_table, $fk->ref_column) .
+               sprintf('ON DELETE %s ON UPDATE %s', $fk->on_delete, $fk->on_update);
         
         return [
             'sql' => $sql,
-            'description' => "Add foreign key {$fk->name} to {$tableName}",
+            'description' => sprintf('Add foreign key %s to %s', $fk->name, $tableName),
             'destructive' => false
         ];
     }
@@ -395,11 +405,11 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $fkName = $op['fk_name'];
         
-        $sql = "ALTER TABLE \"{$tableName}\" DROP CONSTRAINT \"{$fkName}\"";
+        $sql = sprintf('ALTER TABLE "%s" DROP CONSTRAINT "%s"', $tableName, $fkName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop foreign key {$fkName} from {$tableName}",
+            'description' => sprintf('Drop foreign key %s from %s', $fkName, $tableName),
             'destructive' => true
         ];
     }
@@ -409,11 +419,11 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $indexName = $op['index'];
         $tableName = $op['table'] ?? 'unknown';
         
-        $sql = "DROP INDEX IF EXISTS \"{$indexName}\"";
+        $sql = sprintf('DROP INDEX IF EXISTS "%s"', $indexName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop index {$indexName}",
+            'description' => 'Drop index ' . $indexName,
             'destructive' => true,
             'table' => $tableName
         ];
@@ -424,11 +434,11 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $columnName = $op['column_name'];
         
-        $sql = "ALTER TABLE \"{$tableName}\" DROP COLUMN \"{$columnName}\"";
+        $sql = sprintf('ALTER TABLE "%s" DROP COLUMN "%s"', $tableName, $columnName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop column {$columnName} from {$tableName}",
+            'description' => sprintf('Drop column %s from %s', $columnName, $tableName),
             'destructive' => true
         ];
     }
@@ -437,11 +447,11 @@ class PostgreSqlDriver implements DatabaseDriverInterface
     {
         $tableName = $op['table'];
         
-        $sql = "DROP TABLE IF EXISTS \"{$tableName}\"";
+        $sql = sprintf('DROP TABLE IF EXISTS "%s"', $tableName);
         
         return [
             'sql' => $sql,
-            'description' => "Drop table {$tableName}",
+            'description' => 'Drop table ' . $tableName,
             'destructive' => true,
             'table' => $tableName
         ];
@@ -449,7 +459,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
     
     private function generateColumnDefinition(ColumnDef $column): string
     {
-        $sql = "\"{$column->name}\" {$column->type}";
+        $sql = sprintf('"%s" %s', $column->name, $column->type);
         
         if (!$column->nullable) {
             $sql .= ' NOT NULL';
@@ -460,26 +470,28 @@ class PostgreSqlDriver implements DatabaseDriverInterface
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } elseif (str_starts_with($column->default, 'nextval(')) {
                 // Handle SERIAL/BIGSERIAL defaults
-                $sql .= " DEFAULT {$column->default}";
+                $sql .= ' DEFAULT ' . $column->default;
             } else {
-                $sql .= " DEFAULT '{$column->default}'";
+                $sql .= sprintf(" DEFAULT '%s'", $column->default);
             }
         }
         
         return $sql;
     }
     
+    #[Override]
     public function normalizeColumnType(string $columnType, string $udtName = ''): string
     {
         // Convert PostgreSQL types to our normalized format
         $type = strtolower(trim($columnType));
         
         // Handle user-defined types (like SERIAL, BIGSERIAL)
-        if ($udtName) {
+        if ($udtName !== '' && $udtName !== '0') {
             $udtName = strtolower($udtName);
             if (in_array($udtName, ['int4', 'serial4'])) {
                 return 'integer';
             }
+
             if (in_array($udtName, ['int8', 'bigserial', 'serial8'])) {
                 return 'bigint';
             }
@@ -513,6 +525,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         };
     }
     
+    #[Override]
     public function normalizeDefault(?string $default, string $extra = ''): ?string
     {
         if ($default === null || $default === 'NULL') {
@@ -546,6 +559,7 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         return $default;
     }
     
+    #[Override]
     public function phpTypeToSqlType(string $phpType, string $propertyName = ''): string
     {
         return match ($phpType) {

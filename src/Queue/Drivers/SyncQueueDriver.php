@@ -2,6 +2,8 @@
 
 namespace BaseApi\Queue\Drivers;
 
+use Override;
+use Throwable;
 use BaseApi\Queue\QueueInterface;
 use BaseApi\Queue\QueueJob;
 use BaseApi\Queue\JobInterface;
@@ -15,12 +17,8 @@ class SyncQueueDriver implements QueueInterface
 {
     /**
      * Push a job onto the queue (executes immediately).
-     *
-     * @param JobInterface $job
-     * @param string $queue
-     * @param int $delay
-     * @return string
      */
+    #[Override]
     public function push(JobInterface $job, string $queue = 'default', int $delay = 0): string
     {
         $id = Uuid::v7();
@@ -28,9 +26,9 @@ class SyncQueueDriver implements QueueInterface
         // Execute the job immediately
         try {
             $job->handle();
-        } catch (\Throwable $e) {
-            $job->failed($e);
-            throw $e;
+        } catch (Throwable $throwable) {
+            $job->failed($throwable);
+            throw $throwable;
         }
         
         return $id;
@@ -38,10 +36,8 @@ class SyncQueueDriver implements QueueInterface
     
     /**
      * Pop the next job from the queue (always returns null for sync driver).
-     *
-     * @param string $queue
-     * @return QueueJob|null
      */
+    #[Override]
     public function pop(string $queue = 'default'): ?QueueJob
     {
         return null;
@@ -49,10 +45,8 @@ class SyncQueueDriver implements QueueInterface
     
     /**
      * Retry a failed job.
-     *
-     * @param string $jobId
-     * @return bool
      */
+    #[Override]
     public function retry(string $jobId): bool
     {
         return false;
@@ -60,22 +54,17 @@ class SyncQueueDriver implements QueueInterface
     
     /**
      * Mark a job as failed.
-     *
-     * @param string $jobId
-     * @param \Throwable $exception
-     * @return bool
      */
-    public function fail(string $jobId, \Throwable $exception): bool
+    #[Override]
+    public function fail(string $jobId, Throwable $exception): bool
     {
         return false;
     }
     
     /**
      * Mark a job as completed.
-     *
-     * @param string $jobId
-     * @return bool
      */
+    #[Override]
     public function complete(string $jobId): bool
     {
         return true;
@@ -83,10 +72,8 @@ class SyncQueueDriver implements QueueInterface
     
     /**
      * Get the size of the queue (always returns 0 for sync driver).
-     *
-     * @param string $queue
-     * @return int
      */
+    #[Override]
     public function size(string $queue = 'default'): int
     {
         return 0;

@@ -2,6 +2,7 @@
 
 namespace BaseApi\Queue;
 
+use Throwable;
 use BaseApi\Queue\Exceptions\JobFailedException;
 use BaseApi\App;
 
@@ -10,29 +11,19 @@ use BaseApi\App;
  */
 class QueueWorker
 {
-    private QueueInterface $queue;
     private bool $shouldStop = false;
     
-    public function __construct(QueueInterface $queue)
+    public function __construct(private readonly QueueInterface $queue)
     {
-        $this->queue = $queue;
-        
         // Handle graceful shutdown signals if running in CLI
         if (function_exists('pcntl_signal')) {
-            pcntl_signal(SIGTERM, [$this, 'stop']);
-            pcntl_signal(SIGINT, [$this, 'stop']);
+            pcntl_signal(SIGTERM, $this->stop(...));
+            pcntl_signal(SIGINT, $this->stop(...));
         }
     }
     
     /**
      * Start processing jobs from the queue.
-     *
-     * @param string $queueName
-     * @param int $sleep
-     * @param int $maxJobs
-     * @param int $maxTime
-     * @param int $memoryLimit
-     * @return void
      */
     public function work(
         string $queueName = 'default',
@@ -45,8 +36,8 @@ class QueueWorker
         $startTime = time();
         $memoryLimitBytes = $memoryLimit * 1024 * 1024;
         
-        echo "Queue worker started for queue: {$queueName}\n";
-        echo "Sleep: {$sleep}s, Max jobs: " . ($maxJobs ?: 'unlimited') . ", Max time: " . ($maxTime ?: 'unlimited') . "s, Memory limit: {$memoryLimit}MB\n\n";
+        echo sprintf('Queue worker started for queue: %s%s', $queueName, PHP_EOL);
+        echo sprintf('Sleep: %ds, Max jobs: ', $sleep) . ($maxJobs ?: 'unlimited') . ", Max time: " . ($maxTime ?: 'unlimited') . "s, Memory limit: {$memoryLimit}MB\n\n";
         
         while (!$this->shouldStop) {
             // Dispatch signals if available
@@ -74,19 +65,19 @@ class QueueWorker
             
             $job = $this->queue->pop($queueName);
             
-            if ($job === null) {
+            if (!$job instanceof QueueJob) {
                 sleep($sleep);
                 continue;
             }
             
-            echo "[" . date('Y-m-d H:i:s') . "] Processing job: " . get_class($job->getJob()) . " (ID: " . $job->getId() . ")\n";
+            echo "[" . date('Y-m-d H:i:s') . "] Processing job: " . $job->getJob()::class . " (ID: " . $job->getId() . ")\n";
             
             try {
                 $this->processJob($job);
                 $this->queue->complete($job->getId());
                 $processedJobs++;
                 echo "[" . date('Y-m-d H:i:s') . "] Job completed successfully\n";
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 echo "[" . date('Y-m-d H:i:s') . "] Job failed: " . $e->getMessage() . "\n";
                 $this->queue->fail($job->getId(), $e);
             }
@@ -103,9 +94,7 @@ class QueueWorker
     /**
      * Process a single job.
      *
-     * @param QueueJob $queueJob
-     * @return void
-     * @throws \Throwable
+     * @throws Throwable
      */
     private function processJob(QueueJob $queueJob): void
     {
@@ -113,23 +102,21 @@ class QueueWorker
         
         try {
             $job->handle();
-        } catch (\Throwable $e) {
+        } catch (Throwable $throwable) {
             // Log the exception before re-throwing
             App::logger()->error("Job processing failed", [
                 'job_id' => $queueJob->getId(),
-                'job_class' => get_class($job),
-                'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'job_class' => $job::class,
+                'exception' => $throwable->getMessage(),
+                'trace' => $throwable->getTraceAsString(),
             ]);
             
-            throw new JobFailedException($e->getMessage(), $e->getCode(), $e);
+            throw new JobFailedException($throwable->getMessage(), $throwable->getCode(), $throwable);
         }
     }
     
     /**
      * Stop the worker gracefully.
-     *
-     * @return void
      */
     public function stop(): void
     {

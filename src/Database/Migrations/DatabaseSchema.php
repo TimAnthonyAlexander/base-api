@@ -12,7 +12,7 @@ class DatabaseSchema
     public function toArray(): array
     {
         return [
-            'tables' => array_map(fn(TableDef $table) => $table->toArray(), $this->tables),
+            'tables' => array_map(fn(TableDef $table): array => $table->toArray(), $this->tables),
         ];
     }
 

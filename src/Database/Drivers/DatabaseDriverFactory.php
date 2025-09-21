@@ -21,7 +21,7 @@ class DatabaseDriverFactory
             'mysql' => new MySqlDriver(),
             'sqlite' => new SqliteDriver(),
             'postgresql', 'pgsql' => new PostgreSqlDriver(),
-            default => throw new InvalidArgumentException("Unsupported database driver: {$driver}")
+            default => throw new InvalidArgumentException('Unsupported database driver: ' . $driver)
         };
         
         self::$drivers[$driver] = $instance;

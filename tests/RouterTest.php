@@ -2,6 +2,7 @@
 
 namespace BaseApi\Tests;
 
+use Override;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Router;
 use BaseApi\Route;
@@ -10,12 +11,13 @@ class RouterTest extends TestCase
 {
     private Router $router;
     
+    #[Override]
     protected function setUp(): void
     {
         $this->router = new Router();
     }
     
-    public function testGetRouteRegistration()
+    public function testGetRouteRegistration(): void
     {
         $pipeline = ['SomeMiddleware', 'SomeController'];
         
@@ -34,7 +36,7 @@ class RouterTest extends TestCase
         $this->assertEquals([], $params);
     }
     
-    public function testPostRouteRegistration()
+    public function testPostRouteRegistration(): void
     {
         $pipeline = ['ValidationMiddleware', 'UserController'];
         
@@ -49,7 +51,7 @@ class RouterTest extends TestCase
         $this->assertEquals('UserController', $route->controllerClass());
     }
     
-    public function testPutRouteRegistration()
+    public function testPutRouteRegistration(): void
     {
         $pipeline = ['AuthMiddleware', 'UserController'];
         
@@ -64,7 +66,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['id' => '123'], $params);
     }
     
-    public function testPatchRouteRegistration()
+    public function testPatchRouteRegistration(): void
     {
         $pipeline = ['AuthMiddleware', 'UserController'];
         
@@ -78,7 +80,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['id' => '456'], $params);
     }
     
-    public function testDeleteRouteRegistration()
+    public function testDeleteRouteRegistration(): void
     {
         $pipeline = ['AuthMiddleware', 'UserController'];
         
@@ -92,7 +94,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['id' => '789'], $params);
     }
     
-    public function testOptionsRouteRegistration()
+    public function testOptionsRouteRegistration(): void
     {
         $pipeline = ['CorsMiddleware', 'OptionsController'];
         
@@ -106,7 +108,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['resource' => 'users'], $params);
     }
     
-    public function testHeadRouteRegistration()
+    public function testHeadRouteRegistration(): void
     {
         $pipeline = ['CacheMiddleware', 'HeadController'];
         
@@ -120,7 +122,7 @@ class RouterTest extends TestCase
         $this->assertEquals('/status', $route->path());
     }
     
-    public function testRouteWithMultipleParameters()
+    public function testRouteWithMultipleParameters(): void
     {
         $pipeline = ['AuthMiddleware', 'PostController'];
         
@@ -135,7 +137,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['userId' => '123', 'postId' => '456'], $params);
     }
     
-    public function testRouteWithComplexParameterNames()
+    public function testRouteWithComplexParameterNames(): void
     {
         $pipeline = ['Controller'];
         
@@ -148,7 +150,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['resource_type' => 'user_profiles', 'item_id' => 'abc-123'], $params);
     }
     
-    public function testRouteMatchingIsCaseSensitive()
+    public function testRouteMatchingIsCaseSensitive(): void
     {
         $pipeline = ['Controller'];
         
@@ -166,7 +168,7 @@ class RouterTest extends TestCase
         $this->assertNull($result);
     }
     
-    public function testMethodMatchingIsCaseSensitive()
+    public function testMethodMatchingIsCaseSensitive(): void
     {
         $pipeline = ['Controller'];
         
@@ -185,7 +187,7 @@ class RouterTest extends TestCase
         $this->assertNull($result);
     }
     
-    public function testNoMatchReturnsNull()
+    public function testNoMatchReturnsNull(): void
     {
         $pipeline = ['Controller'];
         
@@ -198,7 +200,7 @@ class RouterTest extends TestCase
         $this->assertNull($result);
     }
     
-    public function testRouteWithMiddlewareChain()
+    public function testRouteWithMiddlewareChain(): void
     {
         $pipeline = ['AuthMiddleware', 'ValidationMiddleware', 'LogMiddleware', 'UserController'];
         
@@ -214,7 +216,7 @@ class RouterTest extends TestCase
         $this->assertEquals('UserController', $route->controllerClass());
     }
     
-    public function testRouteWithOnlyController()
+    public function testRouteWithOnlyController(): void
     {
         $pipeline = ['UserController'];
         
@@ -228,7 +230,7 @@ class RouterTest extends TestCase
         $this->assertEquals('UserController', $route->controllerClass());
     }
     
-    public function testMultipleSimilarRoutes()
+    public function testMultipleSimilarRoutes(): void
     {
         $this->router->get('/users', ['UserListController']);
         $this->router->get('/users/{id}', ['UserShowController']);
@@ -255,7 +257,7 @@ class RouterTest extends TestCase
         $this->assertEquals('UserCreateController', $route->controllerClass());
     }
     
-    public function testAllowedMethodsForPath()
+    public function testAllowedMethodsForPath(): void
     {
         $this->router->get('/users', ['GetController']);
         $this->router->post('/users', ['PostController']);
@@ -271,7 +273,7 @@ class RouterTest extends TestCase
         $this->assertContains('DELETE', $allowedMethods);
     }
     
-    public function testAllowedMethodsForParameterizedPath()
+    public function testAllowedMethodsForParameterizedPath(): void
     {
         $this->router->get('/users/{id}', ['GetController']);
         $this->router->patch('/users/{id}', ['PatchController']);
@@ -285,7 +287,7 @@ class RouterTest extends TestCase
         $this->assertContains('DELETE', $allowedMethods);
     }
     
-    public function testAllowedMethodsForNonExistentPath()
+    public function testAllowedMethodsForNonExistentPath(): void
     {
         $this->router->get('/users', ['Controller']);
         
@@ -294,7 +296,7 @@ class RouterTest extends TestCase
         $this->assertEquals([], $allowedMethods);
     }
     
-    public function testAllowedMethodsReturnsUniqueValues()
+    public function testAllowedMethodsReturnsUniqueValues(): void
     {
         // Register same method multiple times (shouldn't happen in practice, but let's be defensive)
         $this->router->get('/test', ['Controller1']);
@@ -306,7 +308,7 @@ class RouterTest extends TestCase
         $this->assertEquals(['GET'], $allowedMethods);
     }
     
-    public function testEmptyRouterMatchesNothing()
+    public function testEmptyRouterMatchesNothing(): void
     {
         $result = $this->router->match('GET', '/anything');
         $this->assertNull($result);
@@ -315,7 +317,7 @@ class RouterTest extends TestCase
         $this->assertEquals([], $allowedMethods);
     }
     
-    public function testRouteParametersWithSpecialCharacters()
+    public function testRouteParametersWithSpecialCharacters(): void
     {
         $this->router->get('/files/{filename}', ['FileController']);
         
@@ -328,15 +330,15 @@ class RouterTest extends TestCase
         ];
         
         foreach ($testCases as $input => $expected) {
-            $result = $this->router->match('GET', "/files/{$input}");
-            $this->assertNotNull($result, "Should match filename: {$input}");
+            $result = $this->router->match('GET', '/files/' . $input);
+            $this->assertNotNull($result, 'Should match filename: ' . $input);
             
             [$route, $params] = $result;
             $this->assertEquals($expected, $params['filename']);
         }
     }
     
-    public function testRouteOrderMatters()
+    public function testRouteOrderMatters(): void
     {
         // Register more specific route first
         $this->router->get('/users/profile', ['ProfileController']);

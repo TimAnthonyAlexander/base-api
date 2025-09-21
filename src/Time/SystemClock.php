@@ -2,6 +2,8 @@
 
 namespace BaseApi\Time;
 
+use Override;
+
 /**
  * System clock using real time.
  * 
@@ -9,6 +11,7 @@ namespace BaseApi\Time;
  */
 class SystemClock implements ClockInterface
 {
+    #[Override]
     public function now(): int
     {
         return time();

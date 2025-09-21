@@ -2,8 +2,11 @@
 
 namespace BaseApi\Http;
 
+use Override;
+
 class ResponseTimeMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $request, callable $next): Response
     {
         $start = hrtime(true); // nanoseconds
@@ -17,7 +20,7 @@ class ResponseTimeMiddleware implements Middleware
 
         // Add responseTimeMs only to JSON responses
         if ($response instanceof JsonResponse) {
-            $response = $this->addResponseTimeToJsonResponse($response, $elapsedMs);
+            return $this->addResponseTimeToJsonResponse($response, $elapsedMs);
         }
 
         return $response;
@@ -25,7 +28,7 @@ class ResponseTimeMiddleware implements Middleware
 
     private function addResponseTimeToJsonResponse(JsonResponse $response, int $elapsedMs): JsonResponse
     {
-        $data = json_decode($response->body, true);
+        $data = json_decode((string) $response->body, true);
 
         if (!is_array($data)) {
             return $response;

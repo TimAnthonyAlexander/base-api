@@ -2,7 +2,9 @@
 
 namespace BaseApi\Http\Validation\Attributes;
 
-#[\Attribute]
+use Attribute;
+
+#[Attribute]
 class In
 {
     public function __construct(public array $values)

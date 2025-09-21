@@ -2,16 +2,14 @@
 
 namespace BaseApi\Debug;
 
+use Throwable;
+
 class QueryLogger
 {
-    private array $queries = [];
-    private bool $enabled = false;
-    private float $slowQueryThreshold = 100.0; // milliseconds
+    private array $queries = []; // milliseconds
 
-    public function __construct(bool $enabled = false, float $slowQueryThreshold = 100.0)
+    public function __construct(private bool $enabled = false, private readonly float $slowQueryThreshold = 100.0)
     {
-        $this->enabled = $enabled;
-        $this->slowQueryThreshold = $slowQueryThreshold;
     }
 
     public function isEnabled(): bool
@@ -32,7 +30,7 @@ class QueryLogger
     /**
      * Log a database query with timing and context
      */
-    public function logQuery(string $sql, array $bindings = [], float $timeMs = 0.0, ?\Throwable $exception = null): void
+    public function logQuery(string $sql, array $bindings = [], float $timeMs = 0.0, ?Throwable $exception = null): void
     {
         if (!$this->enabled) {
             return;
@@ -43,7 +41,7 @@ class QueryLogger
             'bindings' => $bindings,
             'time_ms' => round($timeMs, 3),
             'slow' => $timeMs > $this->slowQueryThreshold,
-            'exception' => $exception ? $exception->getMessage() : null,
+            'exception' => $exception instanceof Throwable ? $exception->getMessage() : null,
             'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
             'timestamp' => microtime(true),
         ];
@@ -77,7 +75,7 @@ class QueryLogger
             'total_queries' => count($this->queries),
             'total_time_ms' => round($totalTime, 3),
             'slow_queries' => count($slowQueries),
-            'average_time_ms' => count($this->queries) > 0 ? round($totalTime / count($this->queries), 3) : 0,
+            'average_time_ms' => $this->queries !== [] ? round($totalTime / count($this->queries), 3) : 0,
         ];
     }
 

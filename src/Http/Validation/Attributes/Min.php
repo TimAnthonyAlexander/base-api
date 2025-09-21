@@ -2,7 +2,9 @@
 
 namespace BaseApi\Http\Validation\Attributes;
 
-#[\Attribute]
+use Attribute;
+
+#[Attribute]
 class Min
 {
     public function __construct(public int $value)

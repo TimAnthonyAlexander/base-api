@@ -2,7 +2,9 @@
 
 namespace BaseApi\Http\Validation\Attributes;
 
-#[\Attribute]
+use Attribute;
+
+#[Attribute]
 class Size
 {
     public function __construct(public float $maxSizeInMB)

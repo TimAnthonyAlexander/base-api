@@ -2,6 +2,11 @@
 
 namespace BaseApi\Cache\Stores;
 
+use Redis;
+use Override;
+use RedisException;
+use RuntimeException;
+
 /**
  * Redis-based cache store.
  * 
@@ -10,11 +15,11 @@ namespace BaseApi\Cache\Stores;
  */
 class RedisStore implements StoreInterface
 {
-    private ?\Redis $redis = null;
-    private array $config;
-    private string $prefix;
+    private ?Redis $redis = null;
 
-    public function __construct(array $config = [], string $prefix = '')
+    private array $config;
+
+    public function __construct(array $config = [], private readonly string $prefix = '')
     {
         $this->config = array_merge([
             'host' => '127.0.0.1',
@@ -25,29 +30,29 @@ class RedisStore implements StoreInterface
             'retry_interval' => 100,
             'read_timeout' => 60.0,
         ], $config);
-        
-        $this->prefix = $prefix;
     }
 
+    #[Override]
     public function get(string $key): mixed
     {
         $redis = $this->getRedis();
         $prefixedKey = $this->prefixedKey($key);
-        
+
         try {
             $value = $redis->get($prefixedKey);
-            
+
             if ($value === false) {
                 return null;
             }
 
             return $this->unserialize($value);
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
             return null;
         }
     }
 
+    #[Override]
     public function put(string $key, mixed $value, ?int $seconds): void
     {
         $redis = $this->getRedis();
@@ -60,12 +65,13 @@ class RedisStore implements StoreInterface
             } else {
                 $redis->setex($prefixedKey, $seconds, $serialized);
             }
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
-            throw new \RuntimeException("Failed to store cache value: " . $e->getMessage(), 0, $e);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
+            throw new RuntimeException("Failed to store cache value: " . $redisException->getMessage(), 0, $redisException);
         }
     }
 
+    #[Override]
     public function forget(string $key): bool
     {
         $redis = $this->getRedis();
@@ -73,42 +79,44 @@ class RedisStore implements StoreInterface
 
         try {
             return $redis->del($prefixedKey) > 0;
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
             return false;
         }
     }
 
+    #[Override]
     public function flush(): bool
     {
         $redis = $this->getRedis();
 
         try {
-            if ($this->prefix) {
+            if ($this->prefix !== '' && $this->prefix !== '0') {
                 // Only flush keys with our prefix
                 $pattern = $this->prefixedKey('*');
                 $keys = $redis->keys($pattern);
-                
+
                 if (!empty($keys)) {
                     return $redis->del($keys) > 0;
                 }
-                
+
                 return true;
-            } else {
-                // Flush entire database
-                return $redis->flushDB();
             }
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
+            // Flush entire database
+            return $redis->flushDB();
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
             return false;
         }
     }
 
+    #[Override]
     public function getPrefix(): string
     {
         return $this->prefix;
     }
 
+    #[Override]
     public function increment(string $key, int $value): int
     {
         $redis = $this->getRedis();
@@ -117,21 +125,21 @@ class RedisStore implements StoreInterface
         try {
             if ($value === 1) {
                 return $redis->incr($prefixedKey);
-            } else {
-                return $redis->incrBy($prefixedKey, $value);
             }
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
-            
+            return $redis->incrBy($prefixedKey, $value);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
+
             // Fallback: get current value and set new one
             $current = $this->get($key);
             $new = is_numeric($current) ? (int)$current + $value : $value;
             $this->put($key, $new, null);
-            
+
             return $new;
         }
     }
 
+    #[Override]
     public function decrement(string $key, int $value): int
     {
         $redis = $this->getRedis();
@@ -140,21 +148,21 @@ class RedisStore implements StoreInterface
         try {
             if ($value === 1) {
                 return $redis->decr($prefixedKey);
-            } else {
-                return $redis->decrBy($prefixedKey, $value);
             }
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
-            
+            return $redis->decrBy($prefixedKey, $value);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
+
             // Fallback: get current value and set new one
             $current = $this->get($key);
             $new = is_numeric($current) ? (int)$current - $value : -$value;
             $this->put($key, $new, null);
-            
+
             return $new;
         }
     }
 
+    #[Override]
     public function has(string $key): bool
     {
         $redis = $this->getRedis();
@@ -162,8 +170,8 @@ class RedisStore implements StoreInterface
 
         try {
             return $redis->exists($prefixedKey) > 0;
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
             return false;
         }
     }
@@ -177,7 +185,7 @@ class RedisStore implements StoreInterface
 
         try {
             $info = $redis->info();
-            
+
             return [
                 'connected_clients' => $info['connected_clients'] ?? 0,
                 'used_memory' => $info['used_memory'] ?? 0,
@@ -186,8 +194,8 @@ class RedisStore implements StoreInterface
                 'keyspace_misses' => $info['keyspace_misses'] ?? 0,
                 'total_commands_processed' => $info['total_commands_processed'] ?? 0,
             ];
-        } catch (\RedisException $e) {
-            $this->handleConnectionError($e);
+        } catch (RedisException $redisException) {
+            $this->handleConnectionError($redisException);
             return [];
         }
     }
@@ -200,14 +208,14 @@ class RedisStore implements StoreInterface
         try {
             $redis = $this->getRedis();
             return $redis->ping() !== false;
-        } catch (\RedisException $e) {
+        } catch (RedisException) {
             return false;
         }
     }
 
-    private function getRedis(): \Redis
+    private function getRedis(): Redis
     {
-        if ($this->redis === null || !$this->redis->isConnected()) {
+        if (!$this->redis instanceof Redis || !$this->redis->isConnected()) {
             $this->connect();
         }
 
@@ -217,10 +225,10 @@ class RedisStore implements StoreInterface
     private function connect(): void
     {
         if (!extension_loaded('redis')) {
-            throw new \RuntimeException('Redis PHP extension is not installed');
+            throw new RuntimeException('Redis PHP extension is not installed');
         }
 
-        $this->redis = new \Redis();
+        $this->redis = new Redis();
 
         $connected = $this->redis->connect(
             $this->config['host'],
@@ -232,14 +240,12 @@ class RedisStore implements StoreInterface
         );
 
         if (!$connected) {
-            throw new \RuntimeException("Failed to connect to Redis server at {$this->config['host']}:{$this->config['port']}");
+            throw new RuntimeException(sprintf('Failed to connect to Redis server at %s:%s', $this->config['host'], $this->config['port']));
         }
 
         // Authenticate if password is provided
-        if ($this->config['password'] !== null) {
-            if (!$this->redis->auth($this->config['password'])) {
-                throw new \RuntimeException('Redis authentication failed');
-            }
+        if ($this->config['password'] !== null && !$this->redis->auth($this->config['password'])) {
+            throw new RuntimeException('Redis authentication failed');
         }
 
         // Select database
@@ -248,12 +254,12 @@ class RedisStore implements StoreInterface
         }
 
         // Set serialization options
-        $this->redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_PHP);
+        $this->redis->setOption(Redis::OPT_SERIALIZER, Redis::SERIALIZER_PHP);
     }
 
     private function prefixedKey(string $key): string
     {
-        return $this->prefix ? $this->prefix . ':' . $key : $key;
+        return $this->prefix !== '' && $this->prefix !== '0' ? $this->prefix . ':' . $key : $key;
     }
 
     private function serialize(mixed $value): string
@@ -269,11 +275,11 @@ class RedisStore implements StoreInterface
         return $unserialized !== false ? $unserialized : $value;
     }
 
-    private function handleConnectionError(\RedisException $e): void
+    private function handleConnectionError(RedisException $e): void
     {
         // Reset connection on error
         $this->redis = null;
-        
+
         // Log the error
         error_log("Redis connection error: " . $e->getMessage());
     }

@@ -2,6 +2,9 @@
 
 namespace BaseApi\Tests;
 
+use ReflectionClass;
+use ReflectionUnionType;
+use ReflectionNamedType;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Http\Binding\TypeCoercion;
 use BaseApi\Http\UploadedFile;
@@ -18,7 +21,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceWithUnionType(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassWithUnionType::class);
+        $reflectionClass = new ReflectionClass(TestClassWithUnionType::class);
         $property = $reflectionClass->getProperty('stringOrNull');
         $unionType = $property->getType();
 
@@ -41,7 +44,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceToString(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassForTypeCoercion::class);
+        $reflectionClass = new ReflectionClass(TestClassForTypeCoercion::class);
         $property = $reflectionClass->getProperty('stringProp');
         $type = $property->getType();
 
@@ -55,7 +58,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceToInt(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassForTypeCoercion::class);
+        $reflectionClass = new ReflectionClass(TestClassForTypeCoercion::class);
         $property = $reflectionClass->getProperty('intProp');
         $type = $property->getType();
 
@@ -69,7 +72,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceToFloat(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassForTypeCoercion::class);
+        $reflectionClass = new ReflectionClass(TestClassForTypeCoercion::class);
         $property = $reflectionClass->getProperty('floatProp');
         $type = $property->getType();
 
@@ -83,7 +86,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceToBool(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassForTypeCoercion::class);
+        $reflectionClass = new ReflectionClass(TestClassForTypeCoercion::class);
         $property = $reflectionClass->getProperty('boolProp');
         $type = $property->getType();
 
@@ -110,7 +113,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceToArray(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassForTypeCoercion::class);
+        $reflectionClass = new ReflectionClass(TestClassForTypeCoercion::class);
         $property = $reflectionClass->getProperty('arrayProp');
         $type = $property->getType();
 
@@ -127,7 +130,7 @@ class TypeCoercionTest extends TestCase
 
     public function testCoerceToUploadedFile(): void
     {
-        $reflectionClass = new \ReflectionClass(TestClassForTypeCoercion::class);
+        $reflectionClass = new ReflectionClass(TestClassForTypeCoercion::class);
         $property = $reflectionClass->getProperty('uploadedFileProp');
         $type = $property->getType();
 
@@ -168,21 +171,21 @@ class TypeCoercionTest extends TestCase
         $trueValues = ['true', 'TRUE', 'True', '1', 'yes', 'YES', 'on', 'ON'];
         foreach ($trueValues as $value) {
             $result = TypeCoercion::boolStringToBool($value);
-            $this->assertTrue($result, "Failed for true value: $value");
+            $this->assertTrue($result, 'Failed for true value: ' . $value);
         }
         
         // Test string false values
         $falseValues = ['false', 'FALSE', 'False', '0', 'no', 'NO', 'off', 'OFF', ''];
         foreach ($falseValues as $value) {
             $result = TypeCoercion::boolStringToBool($value);
-            $this->assertFalse($result, "Failed for false value: $value");
+            $this->assertFalse($result, 'Failed for false value: ' . $value);
         }
         
         // Test invalid string values (should remain unchanged)
         $invalidValues = ['invalid', 'maybe'];
         foreach ($invalidValues as $value) {
             $result = TypeCoercion::boolStringToBool($value);
-            $this->assertEquals($value, $result, "Failed for invalid value: $value");
+            $this->assertEquals($value, $result, 'Failed for invalid value: ' . $value);
         }
         
         // Test non-string values (should remain unchanged)
@@ -217,14 +220,14 @@ class TypeCoercionTest extends TestCase
         
         foreach ($numericStringCases as $input => $expected) {
             $result = TypeCoercion::numericToInt($input);
-            $this->assertEquals($expected, $result, "Failed for numeric string: $input");
+            $this->assertEquals($expected, $result, 'Failed for numeric string: ' . $input);
         }
         
         // Test non-numeric strings (should remain unchanged)
         $nonNumericStrings = ['abc', '123abc', ''];
         foreach ($nonNumericStrings as $input) {
             $result = TypeCoercion::numericToInt($input);
-            $this->assertEquals($input, $result, "Failed for non-numeric string: $input");
+            $this->assertEquals($input, $result, 'Failed for non-numeric string: ' . $input);
         }
         
         // Test other types (should remain unchanged)
@@ -254,14 +257,14 @@ class TypeCoercionTest extends TestCase
         
         foreach ($numericCases as $input => $expected) {
             $result = TypeCoercion::numericToFloat($input);
-            $this->assertEquals($expected, $result, "Failed for numeric input: $input");
+            $this->assertEquals($expected, $result, 'Failed for numeric input: ' . $input);
         }
         
         // Test non-numeric strings (should remain unchanged)
         $nonNumericStrings = ['abc', '123abc', ''];
         foreach ($nonNumericStrings as $input) {
             $result = TypeCoercion::numericToFloat($input);
-            $this->assertEquals($input, $result, "Failed for non-numeric string: $input");
+            $this->assertEquals($input, $result, 'Failed for non-numeric string: ' . $input);
         }
         
         // Test other non-numeric types (should remain unchanged)
@@ -362,12 +365,12 @@ class TypeCoercionTest extends TestCase
         }
     }
 
-    private function createMockUnionTypeWithOnlyNull(): \ReflectionUnionType
+    private function createMockUnionTypeWithOnlyNull(): ReflectionUnionType
     {
         // Create a mock union type that only has null types
-        $mockType = $this->createMock(\ReflectionUnionType::class);
+        $mockType = $this->createMock(ReflectionUnionType::class);
         
-        $nullType = $this->createMock(\ReflectionNamedType::class);
+        $nullType = $this->createMock(ReflectionNamedType::class);
         $nullType->method('getName')->willReturn('null');
         
         $mockType->method('getTypes')->willReturn([$nullType]);
@@ -380,14 +383,19 @@ class TypeCoercionTest extends TestCase
 class TestClassForTypeCoercion
 {
     public string $stringProp;
+
     public int $intProp;
+
     public float $floatProp;
+
     public bool $boolProp;
+
     public array $arrayProp;
+
     public UploadedFile $uploadedFileProp;
 }
 
 class TestClassWithUnionType
 {
-    public string|null $stringOrNull;
+    public string|null $stringOrNull = null;
 }

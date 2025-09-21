@@ -8,6 +8,7 @@ class ContainerTest extends TestCase
 {
     private Container $container;
 
+    #[Override]
     protected function setUp(): void
     {
         $this->container = new Container();
@@ -64,9 +65,7 @@ class ContainerTest extends TestCase
 
     public function testClosureBinding(): void
     {
-        $this->container->bind('closure_test', function ($container) {
-            return 'closure_result';
-        });
+        $this->container->bind('closure_test', fn($container): string => 'closure_result');
         
         $result = $this->container->make('closure_test');
         
@@ -93,11 +92,8 @@ class TestDependency
 
 class TestServiceWithDependency
 {
-    private TestDependency $dependency;
-
-    public function __construct(TestDependency $dependency)
+    public function __construct(private readonly TestDependency $dependency)
     {
-        $this->dependency = $dependency;
     }
 
     public function getDependency(): TestDependency
@@ -108,11 +104,15 @@ class TestServiceWithDependency
 
 class CircularA
 {
-    public function __construct(CircularB $b) {}
+    public function __construct(CircularB $circularB)
+    {
+    }
 }
 
 class CircularB
 {
-    public function __construct(CircularA $a) {}
+    public function __construct(CircularA $circularA)
+    {
+    }
 }
 

@@ -2,22 +2,29 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Queue\Drivers\DatabaseQueueDriver;
+use Exception;
+use PDO;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\App;
 
 class QueueStatusCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'queue:status';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Display queue status and statistics';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         // Boot the app to load configuration
@@ -50,13 +57,13 @@ class QueueStatusCommand implements Command
             }
             
             // If using database driver, show additional stats
-            if (get_class($driver) === 'BaseApi\Queue\Drivers\DatabaseQueueDriver') {
+            if ($driver::class === DatabaseQueueDriver::class) {
                 $this->showDatabaseStats();
             }
             
             return 0;
-        } catch (\Exception $e) {
-            echo "Error getting queue status: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "Error getting queue status: " . $exception->getMessage() . "\n";
             return 1;
         }
     }
@@ -71,14 +78,14 @@ class QueueStatusCommand implements Command
                 SELECT status, COUNT(*) as count 
                 FROM jobs 
                 GROUP BY status
-            ")->fetchAll(\PDO::FETCH_ASSOC);
+            ")->fetchAll(PDO::FETCH_ASSOC);
             
             if (!empty($stats)) {
                 echo "\nJob Status Statistics:\n";
                 echo "---------------------\n";
                 
                 foreach ($stats as $stat) {
-                    echo sprintf("%-12s: %d\n", ucfirst($stat['status']), $stat['count']);
+                    echo sprintf("%-12s: %d\n", ucfirst((string) $stat['status']), $stat['count']);
                 }
             }
             
@@ -94,7 +101,7 @@ class QueueStatusCommand implements Command
                 echo "\nRecent failures (24h): {$failedRecent}\n";
             }
             
-        } catch (\Exception $e) {
+        } catch (Exception) {
             // Silently ignore database stats errors
         }
     }

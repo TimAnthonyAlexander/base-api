@@ -2,15 +2,15 @@
 
 namespace BaseApi\Database;
 
+use PDO;
+use PDOException;
+use Throwable;
 use BaseApi\App;
 
 class DB
 {
-    private Connection $connection;
-
-    public function __construct(Connection $connection)
+    public function __construct(private readonly Connection $connection)
     {
-        $this->connection = $connection;
     }
 
     public function qb(): QueryBuilder
@@ -18,7 +18,7 @@ class DB
         return new QueryBuilder($this->connection);
     }
 
-    public function pdo(): \PDO
+    public function pdo(): PDO
     {
         return $this->connection->pdo();
     }
@@ -44,10 +44,10 @@ class DB
             $this->logQueryToProfiler($sql, $bindings, $start, $exception);
             
             return $result;
-        } catch (\PDOException $e) {
-            $exception = $e;
+        } catch (PDOException $pdoException) {
+            $exception = $pdoException;
             $this->logQueryToProfiler($sql, $bindings, $start, $exception);
-            throw new DbException("Query failed: " . $e->getMessage(), $e);
+            throw new DbException("Query failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
 
@@ -67,10 +67,10 @@ class DB
             $this->logQueryToProfiler($sql, $bindings, $start, $exception);
             
             return $result;
-        } catch (\PDOException $e) {
-            $exception = $e;
+        } catch (PDOException $pdoException) {
+            $exception = $pdoException;
             $this->logQueryToProfiler($sql, $bindings, $start, $exception);
-            throw new DbException("Scalar query failed: " . $e->getMessage(), $e);
+            throw new DbException("Scalar query failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
 
@@ -90,20 +90,20 @@ class DB
             $this->logQueryToProfiler($sql, $bindings, $start, $exception);
             
             return $result;
-        } catch (\PDOException $e) {
-            $exception = $e;
+        } catch (PDOException $pdoException) {
+            $exception = $pdoException;
             $this->logQueryToProfiler($sql, $bindings, $start, $exception);
-            throw new DbException("Execute failed: " . $e->getMessage(), $e);
+            throw new DbException("Execute failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
 
     /**
      * Log query to profiler if available and enabled
      */
-    private function logQueryToProfiler(string $sql, array $bindings, int $startTime, ?\Throwable $exception = null): void
+    private function logQueryToProfiler(string $sql, array $bindings, int $startTime, ?Throwable $exception = null): void
     {
         // Only log if App class exists and profiler is available
-        if (!class_exists('BaseApi\App')) {
+        if (!class_exists(App::class)) {
             return;
         }
 
@@ -113,7 +113,7 @@ class DB
                 $duration = (hrtime(true) - $startTime) / 1_000_000; // Convert to milliseconds
                 $profiler->logQuery($sql, $bindings, $duration, $exception);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable) {
             // Silently ignore profiler errors to avoid disrupting queries
         }
     }

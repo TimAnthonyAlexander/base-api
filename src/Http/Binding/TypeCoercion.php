@@ -2,32 +2,36 @@
 
 namespace BaseApi\Http\Binding;
 
+use ReflectionType;
+use ReflectionUnionType;
+use ReflectionNamedType;
 use BaseApi\Http\UploadedFile;
 
 class TypeCoercion
 {
-    public static function coerce(mixed $value, \ReflectionType|null $target): mixed
+    public static function coerce(mixed $value, ReflectionType|null $target): mixed
     {
-        if ($target === null) {
+        if (!$target instanceof ReflectionType) {
             return $value;
         }
 
         // Handle union types (get the first non-null type)
-        if ($target instanceof \ReflectionUnionType) {
+        if ($target instanceof ReflectionUnionType) {
             foreach ($target->getTypes() as $type) {
                 if ($type->getName() !== 'null') {
                     return self::coerceToSingleType($value, $type);
                 }
             }
+
             return $value;
         }
 
         return self::coerceToSingleType($value, $target);
     }
 
-    private static function coerceToSingleType(mixed $value, \ReflectionType $target): mixed
+    private static function coerceToSingleType(mixed $value, ReflectionType $target): mixed
     {
-        if (!$target instanceof \ReflectionNamedType) {
+        if (!$target instanceof ReflectionNamedType) {
             return $value; // Return as-is for complex types
         }
         
@@ -52,7 +56,7 @@ class TypeCoercion
 
         if (is_string($value)) {
             $result = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            return $result !== null ? $result : $value;
+            return $result ?? $value;
         }
 
         return $value;
@@ -102,10 +106,6 @@ class TypeCoercion
 
     public static function toArray(mixed $value): mixed
     {
-        if (is_array($value)) {
-            return $value;
-        }
-
         // Singletons not auto-wrapped (keep KISS)
         return $value;
     }

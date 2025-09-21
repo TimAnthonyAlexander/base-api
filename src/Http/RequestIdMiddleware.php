@@ -2,10 +2,12 @@
 
 namespace BaseApi\Http;
 
+use Override;
 use BaseApi\Logger;
 
 class RequestIdMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $req, callable $next): Response
     {
         // Generate UUIDv7-like request ID (simplified version)

@@ -5,7 +5,9 @@ namespace BaseApi\Http;
 class Response
 {
     public int $status;
+
     public array $headers;
+
     public mixed $body;
 
     public function __construct(int $status = 200, array $headers = [], mixed $body = '')
@@ -35,6 +37,7 @@ class Response
         foreach ($headers as $name => $value) {
             $new->headers[$name] = $value;
         }
+
         return $new;
     }
 }

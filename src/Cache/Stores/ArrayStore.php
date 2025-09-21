@@ -2,6 +2,7 @@
 
 namespace BaseApi\Cache\Stores;
 
+use Override;
 use BaseApi\Time\ClockInterface;
 use BaseApi\Time\SystemClock;
 
@@ -14,15 +15,12 @@ use BaseApi\Time\SystemClock;
 class ArrayStore implements StoreInterface
 {
     private array $storage = [];
-    private string $prefix;
-    private ClockInterface $clock;
 
-    public function __construct(string $prefix = '', ?ClockInterface $clock = null)
+    public function __construct(private readonly string $prefix = '', private readonly ClockInterface $clock = new SystemClock())
     {
-        $this->prefix = $prefix;
-        $this->clock = $clock ?? new SystemClock();
     }
 
+    #[Override]
     public function get(string $key): mixed
     {
         $prefixedKey = $this->prefixedKey($key);
@@ -42,6 +40,7 @@ class ArrayStore implements StoreInterface
         return $item['value'];
     }
 
+    #[Override]
     public function put(string $key, mixed $value, ?int $seconds): void
     {
         $prefixedKey = $this->prefixedKey($key);
@@ -53,6 +52,7 @@ class ArrayStore implements StoreInterface
         ];
     }
 
+    #[Override]
     public function forget(string $key): bool
     {
         $prefixedKey = $this->prefixedKey($key);
@@ -65,17 +65,20 @@ class ArrayStore implements StoreInterface
         return false;
     }
 
+    #[Override]
     public function flush(): bool
     {
         $this->storage = [];
         return true;
     }
 
+    #[Override]
     public function getPrefix(): string
     {
         return $this->prefix;
     }
 
+    #[Override]
     public function increment(string $key, int $value): int
     {
         $current = $this->get($key);
@@ -93,11 +96,13 @@ class ArrayStore implements StoreInterface
         return $new;
     }
 
+    #[Override]
     public function decrement(string $key, int $value): int
     {
         return $this->increment($key, -$value);
     }
 
+    #[Override]
     public function has(string $key): bool
     {
         return $this->get($key) !== null;
@@ -116,6 +121,7 @@ class ArrayStore implements StoreInterface
             if ($item['expires_at'] !== null && $item['expires_at'] < $this->clock->now()) {
                 $expiredItems++;
             }
+
             // Rough memory estimation
             $memoryUsage += strlen(serialize($item));
         }
@@ -148,6 +154,6 @@ class ArrayStore implements StoreInterface
 
     private function prefixedKey(string $key): string
     {
-        return $this->prefix ? $this->prefix . ':' . $key : $key;
+        return $this->prefix !== '' && $this->prefix !== '0' ? $this->prefix . ':' . $key : $key;
     }
 }

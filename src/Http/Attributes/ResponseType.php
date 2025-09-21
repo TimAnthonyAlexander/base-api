@@ -2,6 +2,8 @@
 
 namespace BaseApi\Http\Attributes;
 
+use ReflectionMethod;
+use ReflectionNamedType;
 use Attribute;
 
 /**
@@ -87,7 +89,7 @@ class ResponseType
     /**
      * Auto-infer the response type from a method's implementation
      */
-    public function inferFromMethod(\ReflectionMethod $method): self
+    public function inferFromMethod(ReflectionMethod $method): self
     {
         if ($this->shape !== null) {
             return $this; // Already has a shape, don't infer
@@ -106,7 +108,7 @@ class ResponseType
     /**
      * Analyze method's return statements to infer response type
      */
-    private function analyzeMethodReturns(\ReflectionMethod $method): ?string
+    private function analyzeMethodReturns(ReflectionMethod $method): ?string
     {
         $filename = $method->getDeclaringClass()->getFileName();
         if (!$filename) {
@@ -146,7 +148,7 @@ class ResponseType
             if ($class->hasProperty($variableName)) {
                 $property = $class->getProperty($variableName);
                 $type = $property->getType();
-                if ($type instanceof \ReflectionNamedType) {
+                if ($type instanceof ReflectionNamedType) {
                     return $type->getName();
                 }
             }
@@ -174,7 +176,7 @@ class ResponseType
     /**
      * Create a ResponseType with auto-inference for a specific method
      */
-    public static function infer(\ReflectionMethod $method, ?int $status = 200, ?string $when = null): self
+    public static function infer(ReflectionMethod $method, ?int $status = 200, ?string $when = null): self
     {
         $instance = new self(null, $status, $when);
         return $instance->inferFromMethod($method);

@@ -2,6 +2,7 @@
 
 namespace BaseApi\Tests;
 
+use Override;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Database\Drivers\PostgreSqlDriver;
 use BaseApi\Database\Migrations\MigrationPlan;
@@ -11,17 +12,18 @@ class PostgreSqlDriverTest extends TestCase
 {
     private PostgreSqlDriver $driver;
     
+    #[Override]
     protected function setUp(): void
     {
         $this->driver = new PostgreSqlDriver();
     }
     
-    public function testDriverName()
+    public function testDriverName(): void
     {
         $this->assertEquals('postgresql', $this->driver->getName());
     }
     
-    public function testConnectionCreation()
+    public function testConnectionCreation(): void
     {
         // Test with minimal config
         $config = [
@@ -37,7 +39,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->driver->createConnection($config);
     }
     
-    public function testConnectionWithFullConfig()
+    public function testConnectionWithFullConfig(): void
     {
         $config = [
             'host' => 'localhost',
@@ -56,7 +58,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->driver->createConnection($config);
     }
     
-    public function testPhpTypeToSqlTypeMapping()
+    public function testPhpTypeToSqlTypeMapping(): void
     {
         // Test basic type mapping
         $this->assertEquals('BOOLEAN', $this->driver->phpTypeToSqlType('bool'));
@@ -82,7 +84,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertEquals('TEXT', $this->driver->phpTypeToSqlType('unknown'));
     }
     
-    public function testColumnTypeNormalization()
+    public function testColumnTypeNormalization(): void
     {
         // Test PostgreSQL type normalization
         $this->assertEquals('boolean', $this->driver->normalizeColumnType('boolean'));
@@ -149,7 +151,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertEquals('bigint', $this->driver->normalizeColumnType('bigint', 'serial8'));
     }
     
-    public function testDefaultValueNormalization()
+    public function testDefaultValueNormalization(): void
     {
         // Test null defaults
         $this->assertNull($this->driver->normalizeDefault(null));
@@ -180,7 +182,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertEquals('42', $this->driver->normalizeDefault('42'));
     }
     
-    public function testCreateTableGeneration()
+    public function testCreateTableGeneration(): void
     {
         $plan = new MigrationPlan();
         $plan->addOperation('create_table', [
@@ -236,7 +238,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertFalse($statements[0]['destructive']);
     }
     
-    public function testCreateTableWithCompositePrimaryKey()
+    public function testCreateTableWithCompositePrimaryKey(): void
     {
         $plan = new MigrationPlan();
         $plan->addOperation('create_table', [
@@ -269,7 +271,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertStringContainsString('PRIMARY KEY ("user_id", "role_id")', $sql);
     }
     
-    public function testAddColumnGeneration()
+    public function testAddColumnGeneration(): void
     {
         $plan = new MigrationPlan();
         $plan->addOperation('add_column', [
@@ -291,7 +293,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertEquals('ALTER TABLE "users" ADD COLUMN "phone" VARCHAR(20)', $sql);
     }
     
-    public function testModifyColumnGeneration()
+    public function testModifyColumnGeneration(): void
     {
         $plan = new MigrationPlan();
         $plan->addOperation('modify_column', [
@@ -317,7 +319,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertStringContainsString('ALTER TABLE "users" ALTER COLUMN "name" SET DEFAULT \'Unknown\'', $sql);
     }
     
-    public function testAddIndexGeneration()
+    public function testAddIndexGeneration(): void
     {
         $plan = new MigrationPlan();
         $plan->addOperation('add_index', [
@@ -337,7 +339,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertEquals('CREATE UNIQUE INDEX "idx_users_email" ON "users" ("email")', $sql);
     }
     
-    public function testAddForeignKeyGeneration()
+    public function testAddForeignKeyGeneration(): void
     {
         $plan = new MigrationPlan();
         $plan->addOperation('add_fk', [
@@ -363,7 +365,7 @@ class PostgreSqlDriverTest extends TestCase
         $this->assertEquals($expected, $sql);
     }
     
-    public function testDropOperations()
+    public function testDropOperations(): void
     {
         $plan = new MigrationPlan();
         
@@ -401,7 +403,7 @@ class PostgreSqlDriverTest extends TestCase
         }
     }
     
-    public function testComplexMigrationPlan()
+    public function testComplexMigrationPlan(): void
     {
         $plan = new MigrationPlan();
         

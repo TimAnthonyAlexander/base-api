@@ -2,6 +2,7 @@
 
 namespace BaseApi\Http\Middleware;
 
+use Override;
 use BaseApi\Http\Middleware;
 use BaseApi\Http\Request;
 use BaseApi\Http\Response;
@@ -14,6 +15,7 @@ use BaseApi\App;
  */
 class AuthMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $request, callable $next): Response
     {
 

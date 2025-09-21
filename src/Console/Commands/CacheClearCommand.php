@@ -2,6 +2,8 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\Application;
 use BaseApi\Cache\Cache;
@@ -12,16 +14,19 @@ use BaseApi\App;
  */
 class CacheClearCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'cache:clear';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Clear cache entries';
     }
 
+    #[Override]
     public function execute(array $args, ?Application $app = null): int
     {
         // Parse arguments
@@ -30,8 +35,8 @@ class CacheClearCommand implements Command
         
         // Parse options (simple implementation)
         foreach ($args as $arg) {
-            if (str_starts_with($arg, '--tags=')) {
-                $tags = substr($arg, 7);
+            if (str_starts_with((string) $arg, '--tags=')) {
+                $tags = substr((string) $arg, 7);
                 break;
             }
         }
@@ -53,15 +58,15 @@ class CacheClearCommand implements Command
                 }
             } elseif ($driver) {
                 // Clear specific driver
-                echo "Clearing cache for driver: {$driver}\n";
+                echo sprintf('Clearing cache for driver: %s%s', $driver, PHP_EOL);
                 
                 $cache = Cache::driver($driver);
                 $result = $cache->flush();
                 
                 if ($result) {
-                    echo "✅ Cache cleared for driver: {$driver}\n";
+                    echo sprintf('✅ Cache cleared for driver: %s%s', $driver, PHP_EOL);
                 } else {
-                    echo "❌ Failed to clear cache for driver: {$driver}\n";
+                    echo sprintf('❌ Failed to clear cache for driver: %s%s', $driver, PHP_EOL);
                     return 1;
                 }
             } else {
@@ -77,14 +82,14 @@ class CacheClearCommand implements Command
                     try {
                         $cache = Cache::driver($storeName);
                         if ($cache->flush()) {
-                            echo "✓ Cleared {$storeName}\n";
+                            echo sprintf('✓ Cleared %s%s', $storeName, PHP_EOL);
                             $cleared++;
                         } else {
-                            echo "✗ Failed to clear {$storeName}\n";
+                            echo sprintf('✗ Failed to clear %s%s', $storeName, PHP_EOL);
                             $failed++;
                         }
-                    } catch (\Exception $e) {
-                        echo "✗ Error clearing {$storeName}: " . $e->getMessage() . "\n";
+                    } catch (Exception $e) {
+                        echo sprintf('✗ Error clearing %s: ', $storeName) . $e->getMessage() . "\n";
                         $failed++;
                     }
                 }
@@ -98,8 +103,8 @@ class CacheClearCommand implements Command
             }
 
             return 0;
-        } catch (\Exception $e) {
-            echo "❌ Error clearing cache: " . $e->getMessage() . "\n";
+        } catch (Exception $exception) {
+            echo "❌ Error clearing cache: " . $exception->getMessage() . "\n";
             return 1;
         }
     }

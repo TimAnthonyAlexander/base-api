@@ -2,6 +2,8 @@
 
 namespace BaseApi\Console\Commands;
 
+use Override;
+use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\App;
 use BaseApi\Support\I18n;
@@ -11,17 +13,20 @@ use BaseApi\Support\Translation\TranslationProvider;
 
 class I18nFillCommand implements Command
 {
+    #[Override]
     public function name(): string
     {
         return 'i18n:fill';
     }
 
+    #[Override]
     public function description(): string
     {
         return 'Fill missing translations using machine translation';
     }
 
-    public function execute(array $args, ?\BaseApi\Console\Application $app = null): int
+    #[Override]
+    public function execute(array $args, ?Application $app = null): int
     {
         // Load the complete i18n config
         $configPath = App::basePath('config/i18n.php');
@@ -33,18 +38,18 @@ class I18nFillCommand implements Command
         $force = in_array('--force', $args);
 
         foreach ($args as $arg) {
-            if (str_starts_with($arg, '--to=')) {
-                $locales = explode(',', substr($arg, 5));
+            if (str_starts_with((string) $arg, '--to=')) {
+                $locales = explode(',', substr((string) $arg, 5));
                 $targetLocales = array_merge($targetLocales, array_map('trim', $locales));
             }
         }
 
         // If no target locales specified, use all available except default
-        if (empty($targetLocales)) {
-            $targetLocales = array_filter($config['locales'], fn($locale) => $locale !== $defaultLocale);
+        if ($targetLocales === []) {
+            $targetLocales = array_filter($config['locales'], fn($locale): bool => $locale !== $defaultLocale);
         }
 
-        if (empty($targetLocales)) {
+        if ($targetLocales === []) {
             echo "No target locales specified or available.\n";
             return 1;
         }
@@ -52,17 +57,17 @@ class I18nFillCommand implements Command
         // Check if translation provider is available
         try {
             $provider = TranslationProviderFactory::create();
-            if (!$provider) {
+            if (!$provider instanceof TranslationProvider) {
                 echo "No translation provider configured. Please set I18N_PROVIDER in your .env file.\n";
                 return 1;
             }
-        } catch (TranslationException $e) {
-            echo "Translation provider error: " . $e->getMessage() . "\n";
+        } catch (TranslationException $translationException) {
+            echo "Translation provider error: " . $translationException->getMessage() . "\n";
             return 1;
         }
 
         echo "Using translation provider to fill missing translations...\n";
-        echo "Default locale: {$defaultLocale}\n";
+        echo sprintf('Default locale: %s%s', $defaultLocale, PHP_EOL);
         echo "Target locales: " . implode(', ', $targetLocales) . "\n\n";
 
         $totalFilled = 0;
@@ -79,10 +84,10 @@ class I18nFillCommand implements Command
 
     private function fillLocale(string $locale, string $defaultLocale, TranslationProvider $provider, bool $force): int
     {
-        echo "Filling missing translations for: {$locale}\n";
+        echo sprintf('Filling missing translations for: %s%s', $locale, PHP_EOL);
 
         if (!$provider->supportsLanguagePair($defaultLocale, $locale)) {
-            echo "  ⚠️  Provider doesn't support {$defaultLocale} -> {$locale}\n";
+            echo sprintf("  ⚠️  Provider doesn't support %s -> %s%s", $defaultLocale, $locale, PHP_EOL);
             return 0;
         }
 
@@ -91,7 +96,7 @@ class I18nFillCommand implements Command
         $filledCount = 0;
 
         foreach ($namespaces as $namespace) {
-            echo "  Processing namespace: {$namespace}\n";
+            echo sprintf('  Processing namespace: %s%s', $namespace, PHP_EOL);
 
             // Load translations
             $defaultTranslations = $i18n->loadTranslations($defaultLocale, $namespace);
@@ -105,7 +110,7 @@ class I18nFillCommand implements Command
                 if (!isset($targetTranslations[$token])) {
                     // Missing translation
                     $shouldTranslate = true;
-                } elseif (empty(trim($targetTranslations[$token]))) {
+                } elseif (in_array(trim((string) $targetTranslations[$token]), ['', '0'], true)) {
                     // Empty translation
                     $shouldTranslate = true;
                 } elseif ($force) {
@@ -113,13 +118,13 @@ class I18nFillCommand implements Command
                     $shouldTranslate = true;
                 }
 
-                if ($shouldTranslate && !empty(trim($value))) {
+                if ($shouldTranslate && !in_array(trim((string) $value), ['', '0'], true)) {
                     $toTranslate[$token] = $value;
                 }
             }
 
-            if (empty($toTranslate)) {
-                echo "    ℹ️  No missing translations in {$namespace}\n";
+            if ($toTranslate === []) {
+                echo sprintf('    ℹ️  No missing translations in %s%s', $namespace, PHP_EOL);
                 continue;
             }
 
@@ -152,7 +157,7 @@ class I18nFillCommand implements Command
                         // Restore placeholders after translation
                         $restoredText = $this->restorePlaceholders($translatedText, $placeholderMaps[$index]);
                         $translated[$token] = $restoredText;
-                        echo "    ✨ Translated: {$token}\n";
+                        echo sprintf('    ✨ Translated: %s%s', $token, PHP_EOL);
                     }
                 } catch (TranslationException $e) {
                     echo "    ⚠️  Batch translation failed: " . $e->getMessage() . "\n";
@@ -166,15 +171,15 @@ class I18nFillCommand implements Command
                             // Restore placeholders after translation
                             $result = $this->restorePlaceholders($result, $protected['map']);
                             $translated[$token] = $result;
-                            echo "    ✨ Translated: {$token}\n";
+                            echo sprintf('    ✨ Translated: %s%s', $token, PHP_EOL);
                         } catch (TranslationException $e2) {
-                            echo "    ❌ Failed to translate {$token}: " . $e2->getMessage() . "\n";
+                            echo sprintf('    ❌ Failed to translate %s: ', $token) . $e2->getMessage() . "\n";
                         }
                     }
                 }
             }
 
-            if (!empty($translated)) {
+            if ($translated !== []) {
                 // Merge with existing translations
                 $updatedTranslations = array_merge($targetTranslations, $translated);
 
@@ -201,16 +206,15 @@ class I18nFillCommand implements Command
      */
     private function protectPlaceholders(string $text): array
     {
-        $placeholders = [];
         $placeholderMap = [];
         $counter = 0;
 
         // Find all placeholders (including nested ICU format)
         $pattern = '/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/';
         
-        $protectedText = preg_replace_callback($pattern, function ($matches) use (&$placeholderMap, &$counter) {
+        $protectedText = preg_replace_callback($pattern, function ($matches) use (&$placeholderMap, &$counter): string {
             $placeholder = $matches[0];
-            $token = "PLACEHOLDER_TOKEN_{$counter}";
+            $token = 'PLACEHOLDER_TOKEN_' . $counter;
             $placeholderMap[$token] = $placeholder;
             $counter++;
             return $token;

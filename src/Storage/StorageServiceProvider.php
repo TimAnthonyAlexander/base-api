@@ -2,6 +2,7 @@
 
 namespace BaseApi\Storage;
 
+use Override;
 use BaseApi\Container\ContainerInterface;
 use BaseApi\Container\ServiceProvider;
 use BaseApi\Config;
@@ -11,10 +12,11 @@ use BaseApi\Config;
  */
 class StorageServiceProvider extends ServiceProvider
 {
+    #[Override]
     public function register(ContainerInterface $container): void
     {
         // Register the storage manager as singleton
-        $container->singleton(StorageManager::class, function () use ($container) {
+        $container->singleton(StorageManager::class, function () use ($container): StorageManager {
             $config = $container->make(Config::class);
             return new StorageManager($config);
         });
@@ -26,6 +28,7 @@ class StorageServiceProvider extends ServiceProvider
         });
     }
 
+    #[Override]
     public function boot(ContainerInterface $container): void
     {
         // No boot logic needed for storage

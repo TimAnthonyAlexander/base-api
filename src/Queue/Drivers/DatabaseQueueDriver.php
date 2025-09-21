@@ -2,6 +2,9 @@
 
 namespace BaseApi\Queue\Drivers;
 
+use Override;
+use Exception;
+use Throwable;
 use BaseApi\Queue\QueueInterface;
 use BaseApi\Queue\QueueJob;
 use BaseApi\Queue\JobInterface;
@@ -13,21 +16,14 @@ use BaseApi\Support\Uuid;
  */
 class DatabaseQueueDriver implements QueueInterface
 {
-    private Connection $connection;
-    
-    public function __construct(Connection $connection)
+    public function __construct(private readonly Connection $connection)
     {
-        $this->connection = $connection;
     }
     
     /**
      * Push a job onto the queue.
-     *
-     * @param JobInterface $job
-     * @param string $queue
-     * @param int $delay
-     * @return string
      */
+    #[Override]
     public function push(JobInterface $job, string $queue = 'default', int $delay = 0): string
     {
         $id = Uuid::v7();
@@ -50,10 +46,8 @@ class DatabaseQueueDriver implements QueueInterface
     
     /**
      * Pop the next job from the queue.
-     *
-     * @param string $queue
-     * @return QueueJob|null
      */
+    #[Override]
     public function pop(string $queue = 'default'): ?QueueJob
     {
         // Start transaction for atomic job claiming
@@ -88,18 +82,16 @@ class DatabaseQueueDriver implements QueueInterface
             $this->connection->commit();
             
             return new QueueJob($jobData['id'], unserialize($jobData['payload']));
-        } catch (\Exception $e) {
+        } catch (Exception $exception) {
             $this->connection->rollback();
-            throw $e;
+            throw $exception;
         }
     }
     
     /**
      * Retry a failed job.
-     *
-     * @param string $jobId
-     * @return bool
      */
+    #[Override]
     public function retry(string $jobId): bool
     {
         $affected = $this->connection->qb()
@@ -118,12 +110,9 @@ class DatabaseQueueDriver implements QueueInterface
     
     /**
      * Mark a job as failed.
-     *
-     * @param string $jobId
-     * @param \Throwable $exception
-     * @return bool
      */
-    public function fail(string $jobId, \Throwable $exception): bool
+    #[Override]
+    public function fail(string $jobId, Throwable $exception): bool
     {
         $jobData = $this->connection->qb()
             ->table('jobs')
@@ -171,10 +160,8 @@ class DatabaseQueueDriver implements QueueInterface
     
     /**
      * Mark a job as completed.
-     *
-     * @param string $jobId
-     * @return bool
      */
+    #[Override]
     public function complete(string $jobId): bool
     {
         $affected = $this->connection->qb()
@@ -190,10 +177,8 @@ class DatabaseQueueDriver implements QueueInterface
     
     /**
      * Get the size of the queue.
-     *
-     * @param string $queue
-     * @return int
      */
+    #[Override]
     public function size(string $queue = 'default'): int
     {
         $result = $this->connection->qb()

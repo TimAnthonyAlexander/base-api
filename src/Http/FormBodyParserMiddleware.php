@@ -2,17 +2,18 @@
 
 namespace BaseApi\Http;
 
-use BaseApi\App;
+use Override;
 
 class FormBodyParserMiddleware implements Middleware
 {
+    #[Override]
     public function handle(Request $req, callable $next): Response
     {
         $contentType = $req->headers['Content-Type'] ?? '';
         
-        if (str_starts_with($contentType, 'application/x-www-form-urlencoded')) {
+        if (str_starts_with((string) $contentType, 'application/x-www-form-urlencoded')) {
             $this->parseFormBody($req);
-        } elseif (str_starts_with($contentType, 'multipart/form-data')) {
+        } elseif (str_starts_with((string) $contentType, 'multipart/form-data')) {
             $this->parseMultipartBody($req);
         }
 
@@ -49,7 +50,8 @@ class FormBodyParserMiddleware implements Middleware
             if (is_array($file['name'])) {
                 // Multiple files
                 $normalized[$key] = [];
-                for ($i = 0; $i < count($file['name']); $i++) {
+                $counter = count($file['name']);
+                for ($i = 0; $i < $counter; $i++) {
                     $normalized[$key][] = [
                         'name' => $file['name'][$i],
                         'type' => $file['type'][$i],

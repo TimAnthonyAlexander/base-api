@@ -2,20 +2,26 @@
 
 namespace BaseApi;
 
+use Throwable;
+
 class Profiler
 {
     private array $spans = [];
-    private array $activeSpans = [];
-    private array $queries = [];
-    private array $exceptions = [];
-    private array $memorySnapshots = [];
-    private array $requests = [];
-    private array $responses = [];
-    private bool $enabled = false;
 
-    public function __construct(bool $enabled = false)
+    private array $activeSpans = [];
+
+    private array $queries = [];
+
+    private array $exceptions = [];
+
+    private array $memorySnapshots = [];
+
+    private array $requests = [];
+
+    private array $responses = [];
+
+    public function __construct(private bool $enabled = false)
     {
-        $this->enabled = $enabled;
     }
 
     public function isEnabled(): bool
@@ -65,7 +71,7 @@ class Profiler
 
         $endTime = hrtime(true);
         $span = $this->activeSpans[$spanId];
-        
+
         $this->spans[] = [
             'name' => $span['name'],
             'duration_ms' => round(($endTime - $span['start_time']) / 1_000_000, 3),
@@ -81,10 +87,9 @@ class Profiler
     public function profile(string $name, callable $callback, array $metadata = []): mixed
     {
         $spanId = $this->start($name, $metadata);
-        
+
         try {
-            $result = $callback();
-            return $result;
+            return $callback();
         } finally {
             $this->stop($spanId);
         }
@@ -102,7 +107,7 @@ class Profiler
     /**
      * Log a SQL query with timing and context
      */
-    public function logQuery(string $query, array $bindings = [], float $time = 0.0, ?\Throwable $exception = null): void
+    public function logQuery(string $query, array $bindings = [], float $time = 0.0, ?Throwable $exception = null): void
     {
         if (!$this->enabled) {
             return;
@@ -112,7 +117,7 @@ class Profiler
             'query' => $query,
             'bindings' => $bindings,
             'time_ms' => round($time, 3),
-            'exception' => $exception ? $exception->getMessage() : null,
+            'exception' => $exception instanceof Throwable ? $exception->getMessage() : null,
             'timestamp' => microtime(true),
             'memory' => memory_get_usage(true),
         ];
@@ -131,7 +136,7 @@ class Profiler
      */
     public function getSlowQueries(float $threshold = 100.0): array
     {
-        return array_filter($this->queries, fn($query) => $query['time_ms'] > $threshold);
+        return array_filter($this->queries, fn($query): bool => $query['time_ms'] > $threshold);
     }
 
     /**
@@ -162,7 +167,7 @@ class Profiler
     /**
      * Log an exception with context
      */
-    public function logException(\Throwable $exception, array $context = []): void
+    public function logException(Throwable $exception, array $context = []): void
     {
         if (!$this->enabled) {
             return;
@@ -172,7 +177,7 @@ class Profiler
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
-            'class' => get_class($exception),
+            'class' => $exception::class,
             'trace' => $exception->getTraceAsString(),
             'context' => $context,
             'timestamp' => microtime(true),
@@ -231,7 +236,7 @@ class Profiler
 
         // Check for slow queries
         $slowQueries = $this->getSlowQueries(100.0);
-        if (!empty($slowQueries)) {
+        if ($slowQueries !== []) {
             $warnings[] = sprintf('Found %d slow queries (>100ms)', count($slowQueries));
         }
 
@@ -260,7 +265,7 @@ class Profiler
 
         $totalTime = array_sum(array_column($this->spans, 'duration_ms'));
         $queryTime = array_sum(array_column($this->queries, 'time_ms'));
-        
+
         return [
             'request' => [
                 'total_time_ms' => round($totalTime, 3),

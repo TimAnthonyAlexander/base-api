@@ -2,14 +2,18 @@
 
 namespace BaseApi\Http;
 
+use Override;
 use BaseApi\App;
 
 class CorsMiddleware implements Middleware
 {
     private array $defaultMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+
     private array $defaultExpose = ['X-Request-Id', 'ETag'];
+
     private array $defaultAllowHeaders = ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-Id'];
 
+    #[Override]
     public function handle(Request $req, callable $next): Response
     {
         $config = App::config();
@@ -29,7 +33,7 @@ class CorsMiddleware implements Middleware
                 $methods = $reqMethod ? [$reqMethod] : $this->defaultMethods;
 
                 $reqHeaders = $req->headers['Access-Control-Request-Headers'] ?? $req->headers['ACCESS-CONTROL-REQUEST-HEADERS'] ?? null;
-                $allowHeaders = $reqHeaders ? $reqHeaders : implode(', ', $this->defaultAllowHeaders);
+                $allowHeaders = $reqHeaders ?: implode(', ', $this->defaultAllowHeaders);
 
                 if ($allowedExact) {
                     $response = $response
@@ -65,15 +69,13 @@ class CorsMiddleware implements Middleware
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Expose-Headers', implode(', ', $this->defaultExpose));
         }
-
-        $response = $this->addVary($response, ['Origin']);
-        return $response;
+        return $this->addVary($response, ['Origin']);
     }
 
     private function addVary(Response $resp, array $keys): Response
     {
         $existing = $resp->headers['Vary'] ?? '';
-        $current = array_map('trim', $existing ? explode(',', $existing) : []);
+        $current = array_map('trim', $existing ? explode(',', (string) $existing) : []);
         $merged = array_unique(array_filter(array_merge($current, $keys)));
         return $resp->withHeader('Vary', implode(', ', $merged));
     }

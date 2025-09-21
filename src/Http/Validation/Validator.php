@@ -2,6 +2,23 @@
 
 namespace BaseApi\Http\Validation;
 
+use ReflectionClass;
+use ReflectionProperty;
+use BaseApi\Http\Validation\Attributes\Required;
+use BaseApi\Http\Validation\Attributes\Email;
+use BaseApi\Http\Validation\Attributes\Min;
+use BaseApi\Http\Validation\Attributes\Max;
+use BaseApi\Http\Validation\Attributes\Confirmed;
+use BaseApi\Http\Validation\Attributes\Numeric;
+use BaseApi\Http\Validation\Attributes\Integer;
+use BaseApi\Http\Validation\Attributes\Boolean;
+use BaseApi\Http\Validation\Attributes\ArrayAttribute;
+use BaseApi\Http\Validation\Attributes\File;
+use BaseApi\Http\Validation\Attributes\Image;
+use BaseApi\Http\Validation\Attributes\Uuid;
+use BaseApi\Http\Validation\Attributes\In;
+use BaseApi\Http\Validation\Attributes\Mimes;
+use BaseApi\Http\Validation\Attributes\Size;
 use BaseApi\Http\UploadedFile;
 
 class Validator
@@ -11,7 +28,7 @@ class Validator
     public function validate(object $controller, array $rules, array $messages = []): void
     {
         $errors = [];
-        $reflection = new \ReflectionClass($controller);
+        $reflection = new ReflectionClass($controller);
 
         foreach ($rules as $field => $ruleString) {
             if (!$reflection->hasProperty($field)) {
@@ -32,7 +49,7 @@ class Validator
             }
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             throw new ValidationException($errors);
         }
     }
@@ -60,10 +77,8 @@ class Validator
         // Validate in order: required → type-ish rules → value rules
         
         // Required check first
-        if (isset($rules['required'])) {
-            if ($this->isEmpty($value)) {
-                return $this->getCustomMessage($field, 'required', $messages, "The {$field} field is required.");
-            }
+        if (isset($rules['required']) && $this->isEmpty($value)) {
+            return $this->getCustomMessage($field, 'required', $messages, sprintf('The %s field is required.', $field));
         }
 
         // If value is empty and not required, skip other validations
@@ -77,57 +92,59 @@ class Validator
             $confirmationValue = $this->getFieldValue($controller, $confirmationField);
             
             if ($value !== $confirmationValue) {
-                return $this->getCustomMessage($field, 'confirmed', $messages, "The {$field} confirmation does not match.");
+                return $this->getCustomMessage($field, 'confirmed', $messages, sprintf('The %s confirmation does not match.', $field));
             }
         }
 
         // Type-ish rules
         if (isset($rules['boolean']) && !is_bool($value)) {
-            return $this->getCustomMessage($field, 'boolean', $messages, "The {$field} field must be a boolean.");
+            return $this->getCustomMessage($field, 'boolean', $messages, sprintf('The %s field must be a boolean.', $field));
         }
 
         if (isset($rules['integer']) && !is_int($value)) {
-            return $this->getCustomMessage($field, 'integer', $messages, "The {$field} field must be an integer.");
+            return $this->getCustomMessage($field, 'integer', $messages, sprintf('The %s field must be an integer.', $field));
         }
 
         if (isset($rules['numeric']) && !is_numeric($value)) {
-            return $this->getCustomMessage($field, 'numeric', $messages, "The {$field} field must be numeric.");
+            return $this->getCustomMessage($field, 'numeric', $messages, sprintf('The %s field must be numeric.', $field));
         }
 
         if (isset($rules['array']) && !is_array($value)) {
-            return $this->getCustomMessage($field, 'array', $messages, "The {$field} field must be an array.");
+            return $this->getCustomMessage($field, 'array', $messages, sprintf('The %s field must be an array.', $field));
         }
 
         if (isset($rules['file'])) {
             if (!($value instanceof UploadedFile)) {
-                return $this->getCustomMessage($field, 'file', $messages, "The {$field} field must be a file.");
+                return $this->getCustomMessage($field, 'file', $messages, sprintf('The %s field must be a file.', $field));
             }
+
             if (!$value->isValid()) {
-                return $this->getCustomMessage($field, 'file', $messages, "The {$field} file upload failed.");
+                return $this->getCustomMessage($field, 'file', $messages, sprintf('The %s file upload failed.', $field));
             }
         }
 
         // Enhanced image validation
         if (isset($rules['image'])) {
             if (!($value instanceof UploadedFile)) {
-                return $this->getCustomMessage($field, 'image', $messages, "The {$field} field must be an image file.");
+                return $this->getCustomMessage($field, 'image', $messages, sprintf('The %s field must be an image file.', $field));
             }
+
             if (!$value->isValid()) {
-                return $this->getCustomMessage($field, 'image', $messages, "The {$field} image upload failed.");
+                return $this->getCustomMessage($field, 'image', $messages, sprintf('The %s image upload failed.', $field));
             }
-            
+
             $imageMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
             if (!in_array($value->getMimeType(), $imageMimes)) {
-                return $this->getCustomMessage($field, 'image', $messages, "The {$field} field must be an image file.");
+                return $this->getCustomMessage($field, 'image', $messages, sprintf('The %s field must be an image file.', $field));
             }
         }
 
         if (isset($rules['email']) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            return $this->getCustomMessage($field, 'email', $messages, "The {$field} field must be a valid email address.");
+            return $this->getCustomMessage($field, 'email', $messages, sprintf('The %s field must be a valid email address.', $field));
         }
 
         if (isset($rules['uuid']) && !$this->isValidUuid($value)) {
-            return $this->getCustomMessage($field, 'uuid', $messages, "The {$field} field must be a valid UUID.");
+            return $this->getCustomMessage($field, 'uuid', $messages, sprintf('The %s field must be a valid UUID.', $field));
         }
 
         // Image dimension rules
@@ -139,14 +156,14 @@ class Validator
                 if (isset($rules['max_width'])) {
                     $maxWidth = (int) $rules['max_width'];
                     if ($width > $maxWidth) {
-                        return $this->getCustomMessage($field, 'max_width', $messages, "The {$field} image width must not exceed {$maxWidth} pixels.");
+                        return $this->getCustomMessage($field, 'max_width', $messages, sprintf('The %s image width must not exceed %d pixels.', $field, $maxWidth));
                     }
                 }
                 
                 if (isset($rules['max_height'])) {
                     $maxHeight = (int) $rules['max_height'];
                     if ($height > $maxHeight) {
-                        return $this->getCustomMessage($field, 'max_height', $messages, "The {$field} image height must not exceed {$maxHeight} pixels.");
+                        return $this->getCustomMessage($field, 'max_height', $messages, sprintf('The %s image height must not exceed %d pixels.', $field, $maxHeight));
                     }
                 }
                 
@@ -163,38 +180,42 @@ class Validator
         if (isset($rules['min'])) {
             $min = (int) $rules['min'];
             if (is_string($value) && strlen($value) < $min) {
-                return $this->getCustomMessage($field, 'min', $messages, "The {$field} field must be at least {$min} characters.", ['min' => $min]);
+                return $this->getCustomMessage($field, 'min', $messages, sprintf('The %s field must be at least %d characters.', $field, $min), ['min' => $min]);
             }
+
             if (is_numeric($value) && $value < $min) {
-                return $this->getCustomMessage($field, 'min', $messages, "The {$field} field must be at least {$min}.", ['min' => $min]);
+                return $this->getCustomMessage($field, 'min', $messages, sprintf('The %s field must be at least %d.', $field, $min), ['min' => $min]);
             }
+
             if (is_array($value) && count($value) < $min) {
-                return $this->getCustomMessage($field, 'min', $messages, "The {$field} field must have at least {$min} items.", ['min' => $min]);
+                return $this->getCustomMessage($field, 'min', $messages, sprintf('The %s field must have at least %d items.', $field, $min), ['min' => $min]);
             }
         }
 
         if (isset($rules['max'])) {
             $max = (int) $rules['max'];
             if (is_string($value) && strlen($value) > $max) {
-                return $this->getCustomMessage($field, 'max', $messages, "The {$field} field must not exceed {$max} characters.", ['max' => $max]);
+                return $this->getCustomMessage($field, 'max', $messages, sprintf('The %s field must not exceed %d characters.', $field, $max), ['max' => $max]);
             }
+
             if (is_numeric($value) && $value > $max) {
-                return $this->getCustomMessage($field, 'max', $messages, "The {$field} field must not exceed {$max}.", ['max' => $max]);
+                return $this->getCustomMessage($field, 'max', $messages, sprintf('The %s field must not exceed %d.', $field, $max), ['max' => $max]);
             }
+
             if (is_array($value) && count($value) > $max) {
-                return $this->getCustomMessage($field, 'max', $messages, "The {$field} field must not have more than {$max} items.", ['max' => $max]);
+                return $this->getCustomMessage($field, 'max', $messages, sprintf('The %s field must not have more than %d items.', $field, $max), ['max' => $max]);
             }
         }
 
         if (isset($rules['in'])) {
-            $allowed = explode(',', $rules['in']);
+            $allowed = explode(',', (string) $rules['in']);
             if (!in_array($value, $allowed, true)) {
-                return $this->getCustomMessage($field, 'in', $messages, "The {$field} field must be one of: " . implode(', ', $allowed) . ".");
+                return $this->getCustomMessage($field, 'in', $messages, sprintf('The %s field must be one of: ', $field) . implode(', ', $allowed) . ".");
             }
         }
 
         if (isset($rules['mimes']) && $value instanceof UploadedFile) {
-            $allowedMimes = explode(',', $rules['mimes']);
+            $allowedMimes = explode(',', (string) $rules['mimes']);
             $extension = $value->getExtension();
             $mimeType = $value->getMimeType();
             
@@ -221,14 +242,14 @@ class Validator
             }
             
             if (!$isValidExtension && !$isValidMime) {
-                return $this->getCustomMessage($field, 'mimes', $messages, "The {$field} field must be a file of type: " . implode(', ', $allowedMimes) . ".");
+                return $this->getCustomMessage($field, 'mimes', $messages, sprintf('The %s field must be a file of type: ', $field) . implode(', ', $allowedMimes) . ".");
             }
         }
 
         if (isset($rules['size']) && $value instanceof UploadedFile) {
             $maxSize = (float) $rules['size']; // MB
             if ($value->getSizeInMB() > $maxSize) {
-                return $this->getCustomMessage($field, 'size', $messages, "The {$field} field must not exceed {$maxSize}MB.", ['size' => $maxSize]);
+                return $this->getCustomMessage($field, 'size', $messages, sprintf('The %s field must not exceed %sMB.', $field, $maxSize), ['size' => $maxSize]);
             }
         }
 
@@ -241,7 +262,7 @@ class Validator
                     : $customRule->validate($value, $parameter, $controller);
                 
                 if (!$isValid) {
-                    return $this->getCustomMessage($field, $ruleName, $messages, "The {$field} field failed {$ruleName} validation.");
+                    return $this->getCustomMessage($field, $ruleName, $messages, sprintf('The %s field failed %s validation.', $field, $ruleName));
                 }
             }
         }
@@ -258,12 +279,7 @@ class Validator
         if ($value === '') {
             return true;
         }
-
-        if (is_array($value) && empty($value)) {
-            return true;
-        }
-
-        return false;
+        return $value === [];
     }
 
     private function isValidUuid(mixed $value): bool
@@ -279,7 +295,7 @@ class Validator
     private function getCustomMessage(string $field, string $rule, array $messages, string $default, array $placeholders = []): string
     {
         // Check for field-specific message: email.required
-        $fieldRuleKey = "{$field}.{$rule}";
+        $fieldRuleKey = sprintf('%s.%s', $field, $rule);
         if (isset($messages[$fieldRuleKey])) {
             return $this->interpolateMessage($messages[$fieldRuleKey], $field, $placeholders);
         }
@@ -299,7 +315,7 @@ class Validator
         $message = str_replace(':attribute', $field, $message);
         
         foreach ($placeholders as $key => $value) {
-            $message = str_replace(":{$key}", (string) $value, $message);
+            $message = str_replace(':' . $key, (string) $value, $message);
         }
         
         return $message;
@@ -307,7 +323,7 @@ class Validator
 
     private function getFieldValue(object $controller, string $field): mixed
     {
-        $reflection = new \ReflectionClass($controller);
+        $reflection = new ReflectionClass($controller);
         
         if (!$reflection->hasProperty($field)) {
             return null;
@@ -340,19 +356,19 @@ class Validator
         }
         
         if (isset($constraints['min_width']) && $width < $constraints['min_width']) {
-            return $this->getCustomMessage($field, 'min_width', $messages, "The {$field} image width must be at least {$constraints['min_width']} pixels.");
+            return $this->getCustomMessage($field, 'min_width', $messages, sprintf('The %s image width must be at least %d pixels.', $field, $constraints['min_width']));
         }
         
         if (isset($constraints['max_width']) && $width > $constraints['max_width']) {
-            return $this->getCustomMessage($field, 'max_width', $messages, "The {$field} image width must not exceed {$constraints['max_width']} pixels.");
+            return $this->getCustomMessage($field, 'max_width', $messages, sprintf('The %s image width must not exceed %d pixels.', $field, $constraints['max_width']));
         }
         
         if (isset($constraints['min_height']) && $height < $constraints['min_height']) {
-            return $this->getCustomMessage($field, 'min_height', $messages, "The {$field} image height must be at least {$constraints['min_height']} pixels.");
+            return $this->getCustomMessage($field, 'min_height', $messages, sprintf('The %s image height must be at least %d pixels.', $field, $constraints['min_height']));
         }
         
         if (isset($constraints['max_height']) && $height > $constraints['max_height']) {
-            return $this->getCustomMessage($field, 'max_height', $messages, "The {$field} image height must not exceed {$constraints['max_height']} pixels.");
+            return $this->getCustomMessage($field, 'max_height', $messages, sprintf('The %s image height must not exceed %d pixels.', $field, $constraints['max_height']));
         }
         
         return null;
@@ -372,9 +388,9 @@ class Validator
     public function validateWithAttributes(object $controller, array $messages = []): void
     {
         $errors = [];
-        $reflection = new \ReflectionClass($controller);
+        $reflection = new ReflectionClass($controller);
 
-        foreach ($reflection->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
+        foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             $field = $property->getName();
             $value = $property->getValue($controller);
             $attributes = $property->getAttributes();
@@ -387,11 +403,11 @@ class Validator
                 if (isset($ruleMapping[$attributeName])) {
                     $ruleName = $ruleMapping[$attributeName];
                     $args = $attribute->getArguments();
-                    $rules[$ruleName] = !empty($args) ? $args[0] : true;
+                    $rules[$ruleName] = empty($args) ? true : $args[0];
                 }
             }
             
-            if (!empty($rules)) {
+            if ($rules !== []) {
                 $error = $this->validateField($field, $value, $rules, $controller, $messages);
                 if ($error) {
                     $errors[$field] = $error;
@@ -399,7 +415,7 @@ class Validator
             }
         }
 
-        if (!empty($errors)) {
+        if ($errors !== []) {
             throw new ValidationException($errors);
         }
     }
@@ -407,21 +423,21 @@ class Validator
     private function getAttributeRuleMapping(): array
     {
         return [
-            'BaseApi\\Http\\Validation\\Attributes\\Required' => 'required',
-            'BaseApi\\Http\\Validation\\Attributes\\Email' => 'email',
-            'BaseApi\\Http\\Validation\\Attributes\\Min' => 'min',
-            'BaseApi\\Http\\Validation\\Attributes\\Max' => 'max',
-            'BaseApi\\Http\\Validation\\Attributes\\Confirmed' => 'confirmed',
-            'BaseApi\\Http\\Validation\\Attributes\\Numeric' => 'numeric',
-            'BaseApi\\Http\\Validation\\Attributes\\Integer' => 'integer',
-            'BaseApi\\Http\\Validation\\Attributes\\Boolean' => 'boolean',
-            'BaseApi\\Http\\Validation\\Attributes\\ArrayAttribute' => 'array',
-            'BaseApi\\Http\\Validation\\Attributes\\File' => 'file',
-            'BaseApi\\Http\\Validation\\Attributes\\Image' => 'image',
-            'BaseApi\\Http\\Validation\\Attributes\\Uuid' => 'uuid',
-            'BaseApi\\Http\\Validation\\Attributes\\In' => 'in',
-            'BaseApi\\Http\\Validation\\Attributes\\Mimes' => 'mimes',
-            'BaseApi\\Http\\Validation\\Attributes\\Size' => 'size',
+            Required::class => 'required',
+            Email::class => 'email',
+            Min::class => 'min',
+            Max::class => 'max',
+            Confirmed::class => 'confirmed',
+            Numeric::class => 'numeric',
+            Integer::class => 'integer',
+            Boolean::class => 'boolean',
+            ArrayAttribute::class => 'array',
+            File::class => 'file',
+            Image::class => 'image',
+            Uuid::class => 'uuid',
+            In::class => 'in',
+            Mimes::class => 'mimes',
+            Size::class => 'size',
         ];
     }
 }
