@@ -33,10 +33,11 @@ class QueueRetryCommand implements Command
         try {
             $options = $this->parseOptions($args);
             $jobId = $options['id'] ?? null;
-            
+
             if ($jobId) {
                 return $this->retrySpecificJob($jobId);
             }
+
             return $this->retryAllFailedJobs();
             
         } catch (Exception $exception) {
@@ -48,11 +49,12 @@ class QueueRetryCommand implements Command
     private function retrySpecificJob(string $jobId): int
     {
         $driver = App::queue()->driver();
-        
+
         if ($driver->retry($jobId)) {
             echo "Job {$jobId} queued for retry.\n";
             return 0;
         }
+
         echo "Failed to retry job {$jobId}. Job may not exist or is not in failed state.\n";
         return 1;
     }

@@ -181,13 +181,11 @@ class DatabaseQueueDriver implements QueueInterface
     #[Override]
     public function size(string $queue = 'default'): int
     {
-        $result = $this->connection->qb()
+        return $this->connection->qb()
             ->table('jobs')
             ->where('queue', '=', $queue)
             ->where('status', '=', 'pending')
             ->where('run_at', '<=', date('Y-m-d H:i:s'))
             ->count();
-            
-        return (int) $result;
     }
 }

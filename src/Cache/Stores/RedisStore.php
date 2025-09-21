@@ -102,6 +102,7 @@ class RedisStore implements StoreInterface
 
                 return true;
             }
+
             // Flush entire database
             return $redis->flushDB();
         } catch (RedisException $redisException) {
@@ -126,6 +127,7 @@ class RedisStore implements StoreInterface
             if ($value === 1) {
                 return $redis->incr($prefixedKey);
             }
+
             return $redis->incrBy($prefixedKey, $value);
         } catch (RedisException $redisException) {
             $this->handleConnectionError($redisException);
@@ -149,6 +151,7 @@ class RedisStore implements StoreInterface
             if ($value === 1) {
                 return $redis->decr($prefixedKey);
             }
+
             return $redis->decrBy($prefixedKey, $value);
         } catch (RedisException $redisException) {
             $this->handleConnectionError($redisException);

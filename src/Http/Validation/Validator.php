@@ -279,6 +279,7 @@ class Validator
         if ($value === '') {
             return true;
         }
+
         return $value === [];
     }
 

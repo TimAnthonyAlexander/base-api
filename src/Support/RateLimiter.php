@@ -113,6 +113,7 @@ class RateLimiter
         if (str_contains($path, '..')) {
             return false;
         }
+
         // Ensure path is absolute to prevent relative path issues
         return str_starts_with($path, '/');
     }

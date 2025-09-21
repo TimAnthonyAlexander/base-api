@@ -99,6 +99,22 @@ else
     print_warning "Composer not found - skipping PHPStan"
 fi
 
+# Rector Analysis
+print_step "Rector Code Modernization"
+if command -v composer > /dev/null 2>&1; then
+    if composer rector:ci > /dev/null 2>&1; then
+        print_success "Rector analysis passed - code follows modern PHP standards"
+    else
+        print_error "Rector found code that can be modernized"
+        echo -e "${YELLOW}Running Rector to show suggestions:${NC}"
+        composer rector:ci
+        echo -e "${YELLOW}To auto-fix these issues, run: ${GREEN}composer rector:fix${NC}"
+        echo ""
+    fi
+else
+    print_warning "Composer not found - skipping Rector"
+fi
+
 # PHPUnit
 print_step "PHPUnit Tests"
 

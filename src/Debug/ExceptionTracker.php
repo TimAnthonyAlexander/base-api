@@ -7,6 +7,7 @@ use Throwable;
 class ExceptionTracker
 {
     private array $exceptions = [];
+
     private array $sensitiveFields = ['password', 'token', 'secret', 'key', 'auth'];
 
     public function __construct(private bool $enabled = false, array $sensitiveFields = [])
@@ -42,7 +43,7 @@ class ExceptionTracker
 
         // Filter sensitive data from context
         $filteredContext = $this->filterSensitiveData($context);
-        
+
         $this->exceptions[] = [
             'message' => $exception->getMessage(),
             'class' => $exception::class,
@@ -70,7 +71,7 @@ class ExceptionTracker
     public function getStats(): array
     {
         $exceptionClasses = array_count_values(array_column($this->exceptions, 'class'));
-        
+
         return [
             'total_exceptions' => count($this->exceptions),
             'unique_exception_types' => count($exceptionClasses),
@@ -85,7 +86,7 @@ class ExceptionTracker
     private function filterSensitiveData(array $data): array
     {
         $filtered = [];
-        
+
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 $filtered[$key] = $this->filterSensitiveData($value);
@@ -95,7 +96,7 @@ class ExceptionTracker
                 $filtered[$key] = $value;
             }
         }
-        
+
         return $filtered;
     }
 
@@ -105,13 +106,13 @@ class ExceptionTracker
     private function isSensitiveField(string $fieldName): bool
     {
         $fieldLower = strtolower($fieldName);
-        
+
         foreach ($this->sensitiveFields as $sensitive) {
             if (str_contains($fieldLower, strtolower((string) $sensitive))) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -121,7 +122,7 @@ class ExceptionTracker
     private function formatStackTrace(array $trace): array
     {
         $formatted = [];
-        
+
         foreach ($trace as $index => $frame) {
             $formatted[] = [
                 'index' => $index,
@@ -132,7 +133,7 @@ class ExceptionTracker
                 'type' => $frame['type'] ?? null,
             ];
         }
-        
+
         return $formatted;
     }
 

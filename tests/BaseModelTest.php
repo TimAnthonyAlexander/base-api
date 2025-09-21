@@ -209,11 +209,11 @@ class BaseModelTest extends TestCase
         $jsonData = $model->jsonSerialize();
 
         $expectedData = [
-            'id' => '123', 
-            'name' => 'John Doe', 
-            'email' => '', 
-            'description' => null, 
-            'age' => 0, 
+            'id' => '123',
+            'name' => 'John Doe',
+            'email' => '',
+            'description' => null,
+            'age' => 0,
             'active' => true,
             'created_at' => null,
             'updated_at' => null,
@@ -230,7 +230,7 @@ class BaseModelTest extends TestCase
 
         $this->assertEquals('latestPost_id', $fkColumn);
         $this->assertEquals('test_post_models', $relatedTable);
-        $this->assertEquals('BaseApi\Tests\TestPostModel', $relatedClass);
+        $this->assertEquals(\BaseApi\Tests\TestPostModel::class, $relatedClass);
     }
 
     public function testInferForeignKeyFromTypedPropertyThrowsOnInvalidProperty(): void

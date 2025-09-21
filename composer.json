@@ -49,7 +49,7 @@
         "test-unit": "phpunit --colors=always --testdox",
         "rector": "vendor/bin/rector process --dry-run",
         "rector:fix": "vendor/bin/rector process",
-        "rector:ci": "vendor/bin/rector process --dry-run --no-progress --ansi"
+        "rector:ci": "vendor/bin/rector process --dry-run --ansi"
     },
     "config": {
         "optimize-autoloader": true,

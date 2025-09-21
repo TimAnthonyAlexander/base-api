@@ -13,10 +13,12 @@ class DeepLProvider implements TranslationProvider
     private readonly string $formality;
 
     private string $baseUrl = 'https://api-free.deepl.com/v2';
+
      // Use https://api.deepl.com/v2 for pro
     private int $maxRetries = 6;
 
     private int $maxDelay = 30;
+
      // seconds
     private static CurlHandle|bool|null $curlHandle = null;
 
@@ -247,7 +249,7 @@ class DeepLProvider implements TranslationProvider
     /**
      * Get or create persistent cURL handle with keep-alive
      */
-    private function getCurlHandle()
+    private function getCurlHandle(): CurlHandle|bool
     {
         if (self::$curlHandle === null) {
             self::$curlHandle = curl_init();

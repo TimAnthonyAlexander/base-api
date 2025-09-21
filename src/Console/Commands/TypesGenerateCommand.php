@@ -396,7 +396,7 @@ HELP;
         // Handle union types (like string|null)
         if (str_contains($typeName, '|')) {
             $types = explode('|', $typeName);
-            $nonNullTypes = array_filter($types, fn($t): bool => trim((string) $t) !== 'null');
+            $nonNullTypes = array_filter($types, fn($t): bool => trim($t) !== 'null');
             if (count($nonNullTypes) === 1) {
                 $typeName = trim($nonNullTypes[0]);
             }

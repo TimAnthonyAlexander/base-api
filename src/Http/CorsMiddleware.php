@@ -69,6 +69,7 @@ class CorsMiddleware implements Middleware
                 ->withHeader('Access-Control-Allow-Origin', '*')
                 ->withHeader('Access-Control-Expose-Headers', implode(', ', $this->defaultExpose));
         }
+
         return $this->addVary($response, ['Origin']);
     }
 
