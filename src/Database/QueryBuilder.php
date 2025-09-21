@@ -24,6 +24,8 @@ class QueryBuilder
 
     private array $joins = [];
 
+    private bool $forUpdate = false;
+
     public function __construct(private Connection $connection)
     {
     }
@@ -39,6 +41,7 @@ class QueryBuilder
         $this->offsetCount = null;
         $this->joins = [];
         $this->bindings = [];
+        $this->forUpdate = false;
         return $this;
     }
 
@@ -335,6 +338,12 @@ class QueryBuilder
     public function offset(int $count): self
     {
         $this->offsetCount = max(0, $count);
+        return $this;
+    }
+
+    public function lockForUpdate(): self
+    {
+        $this->forUpdate = true;
         return $this;
     }
 
@@ -710,6 +719,10 @@ class QueryBuilder
             $sql .= ' OFFSET ' . $this->offsetCount;
         }
 
+        if ($this->forUpdate && $this->supportsForUpdate()) {
+            $sql .= ' FOR UPDATE';
+        }
+
         return $sql;
     }
 
@@ -842,6 +855,17 @@ class QueryBuilder
     private function camelToSnake(string $input): string
     {
         return strtolower((string) preg_replace('/([a-z])([A-Z])/', '$1_$2', $input));
+    }
+
+    /**
+     * Check if the current database driver supports FOR UPDATE
+     */
+    private function supportsForUpdate(): bool
+    {
+        $driverName = $this->connection->getDriver()->getName();
+        
+        // SQLite doesn't support FOR UPDATE, MySQL and PostgreSQL do
+        return in_array($driverName, ['mysql', 'postgresql', 'pgsql'], true);
     }
 
     /**

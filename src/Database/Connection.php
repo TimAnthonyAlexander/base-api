@@ -109,4 +109,36 @@ class Connection
         $stmt = $this->executeQuery($sql, $params);
         return $stmt->rowCount();
     }
+
+    /**
+     * Create a new query builder instance
+     */
+    public function qb(): QueryBuilder
+    {
+        return new QueryBuilder($this);
+    }
+
+    /**
+     * Begin a database transaction
+     */
+    public function beginTransaction(): bool
+    {
+        return $this->pdo()->beginTransaction();
+    }
+
+    /**
+     * Commit the current transaction
+     */
+    public function commit(): bool
+    {
+        return $this->pdo()->commit();
+    }
+
+    /**
+     * Roll back the current transaction
+     */
+    public function rollback(): bool
+    {
+        return $this->pdo()->rollBack();
+    }
 }
