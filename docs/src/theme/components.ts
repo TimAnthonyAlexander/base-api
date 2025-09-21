@@ -78,6 +78,53 @@ export const components: Components<Theme> = {
       },
     },
   },
+  MuiTable: {
+    styleOverrides: {
+      root: {
+        borderCollapse: 'collapse',
+      },
+    },
+  },
+  MuiTableHead: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        '& .MuiTableRow-root': {
+          backgroundColor: theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.05)'
+            : theme.palette.grey[50],
+        },
+      }),
+    },
+  },
+  MuiTableRow: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        '&:nth-of-type(even)': {
+          backgroundColor: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.02)'
+            : theme.palette.action.hover,
+        },
+        '&:hover': {
+          backgroundColor: theme.palette.mode === 'dark'
+            ? 'rgba(255, 255, 255, 0.08) !important'
+            : 'rgba(0, 0, 0, 0.04) !important',
+        },
+      }),
+    },
+  },
+  MuiTableCell: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        fontSize: '0.875rem',
+      }),
+      head: ({ theme }) => ({
+        fontWeight: 600,
+        color: theme.palette.text.primary,
+        backgroundColor: 'transparent',
+      }),
+    },
+  },
   MuiCssBaseline: {
     styleOverrides: (theme) => ({
       code: {

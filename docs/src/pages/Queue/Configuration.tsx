@@ -307,7 +307,7 @@ CREATE INDEX jobs_status_run_at_index ON jobs (status, run_at);`} />
             <TableContainer component={Paper} sx={{ my: 3 }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Setting</strong></TableCell>
                             <TableCell><strong>Low Traffic</strong></TableCell>
                             <TableCell><strong>Medium Traffic</strong></TableCell>

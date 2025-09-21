@@ -22,14 +22,14 @@ export default function QueueOverview() {
             </Typography>
 
             <Typography>
-                The BaseAPI Queue System provides a powerful background job processing capability that allows you to handle 
-                time-consuming tasks asynchronously, improving your application's performance and user experience. Jobs can 
-                include sending emails, processing images, making API calls, generating reports, and any other tasks that 
+                The BaseAPI Queue System provides a powerful background job processing capability that allows you to handle
+                time-consuming tasks asynchronously, improving your application's performance and user experience. Jobs can
+                include sending emails, processing images, making API calls, generating reports, and any other tasks that
                 don't need to block the user's request.
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                The queue system supports multiple drivers (database, sync), automatic retries, failed job handling, 
+                The queue system supports multiple drivers (database, sync), automatic retries, failed job handling,
                 and includes a comprehensive CLI for managing workers and monitoring job status.
             </Alert>
 
@@ -86,12 +86,12 @@ export default function QueueOverview() {
 
             <CodeBlock language="bash" code={`# 1. Install the queue system (creates jobs table)
 ./bin/console queue:install
-./bin/console migrate:apply
+./bin/console migrate:apply`} />
 
-# 2. Create your first job
-./bin/console make:job SendWelcomeEmailJob
+            <CodeBlock language="bash" code={`# 2. Create your first job
+./bin/console make:job SendWelcomeEmailJob`} />
 
-# 3. Start processing jobs
+            <CodeBlock language="bash" code={`# 3. Start processing jobs
 ./bin/console queue:work`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -162,7 +162,7 @@ dispatch_later(new SendWelcomeEmailJob('user@example.com', 'John'))
             <TableContainer component={Paper} sx={{ my: 3 }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Driver</strong></TableCell>
                             <TableCell><strong>Use Case</strong></TableCell>
                             <TableCell><strong>Persistence</strong></TableCell>
@@ -203,7 +203,7 @@ dispatch_later(new SendWelcomeEmailJob('user@example.com', 'John'))
             <TableContainer component={Paper} sx={{ my: 3 }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Example</strong></TableCell>
@@ -263,7 +263,7 @@ dispatch_later(new SendWelcomeEmailJob('user@example.com', 'John'))
             </List>
 
             <Callout type="tip" title="Development vs Production">
-                Use the <code>sync</code> driver during development for immediate job execution and debugging. 
+                Use the <code>sync</code> driver during development for immediate job execution and debugging.
                 Switch to <code>database</code> driver in production for persistent, reliable job processing.
             </Callout>
 

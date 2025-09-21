@@ -82,7 +82,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>
@@ -133,7 +133,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>
@@ -184,7 +184,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>
@@ -236,7 +236,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>
@@ -281,7 +281,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>
@@ -343,7 +343,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>
@@ -398,7 +398,7 @@ php bin/console types:generate --openapi --typescript`} />
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Command</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                             <TableCell><strong>Examples</strong></TableCell>

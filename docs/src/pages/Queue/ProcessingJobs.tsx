@@ -58,7 +58,7 @@ export default function ProcessingJobs() {
             <TableContainer component={Paper} sx={{ my: 3 }}>
                 <Table>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                        <TableRow>
                             <TableCell><strong>Option</strong></TableCell>
                             <TableCell><strong>Description</strong></TableCell>
                         </TableRow>
