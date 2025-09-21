@@ -79,9 +79,11 @@ class ModelScanner
         return null;
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function scanModel(ReflectionClass $reflection): TableDef
     {
-        $reflection->getName();
 
         // Get table name - check for static $table property, otherwise infer
         $tableName = $this->getTableName($reflection);
@@ -133,6 +135,9 @@ class ModelScanner
         return $table;
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getTableName(ReflectionClass $reflection): string
     {
         // Check for static $table property
@@ -232,6 +237,9 @@ class ModelScanner
         return new ColumnDef($name, $sqlType, $nullable, $default, $isPk);
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function propertyToForeignKey(ReflectionProperty $property, ReflectionClass $reflection): ?ForeignKeyDef
     {
         $type = $property->getType();
@@ -263,6 +271,9 @@ class ModelScanner
         return new ForeignKeyDef($fkName, $fkColumnName, $refTableName, 'id');
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function idPropertyToForeignKey(ReflectionProperty $property, ReflectionClass $reflection): ?ForeignKeyDef
     {
         $propertyName = $property->getName();
@@ -342,6 +353,9 @@ class ModelScanner
         return $driver->phpTypeToSqlType($typeName, $propertyName);
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function addIndexes(TableDef $table, ReflectionClass $reflection): void
     {
         if (!$reflection->hasProperty('indexes')) {
@@ -366,6 +380,9 @@ class ModelScanner
         }
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function applyColumnOverrides(TableDef $table, ReflectionClass $reflection): void
     {
         if (!$reflection->hasProperty('columns')) {

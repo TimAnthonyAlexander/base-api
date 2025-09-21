@@ -109,7 +109,7 @@ class DB
 
         try {
             $profiler = App::profiler();
-            if ($profiler && $profiler->isEnabled()) {
+            if ($profiler->isEnabled()) {
                 $duration = (hrtime(true) - $startTime) / 1_000_000; // Convert to milliseconds
                 $profiler->logQuery($sql, $bindings, $duration, $exception);
             }

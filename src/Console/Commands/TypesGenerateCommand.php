@@ -148,11 +148,8 @@ HELP;
 
         // Mock the App::router() method by creating a temporary class
         $mockRouter = new class($routes) {
-            private array $routes;
-
-            public function __construct(array &$routes)
+            public function __construct(private array &$routes)
             {
-                $this->routes = &$routes;
             }
 
             public function get(string $path, array $pipeline): void
@@ -304,6 +301,9 @@ HELP;
         ];
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getControllerProperties(ReflectionClass $reflection): array
     {
         $properties = [];
@@ -345,6 +345,9 @@ HELP;
         return $parameters;
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getAllParameters(ReflectionClass $reflection, ReflectionMethod $method): array
     {
         $parameters = [];
@@ -358,6 +361,9 @@ HELP;
         return array_merge($parameters, $scalarProperties);
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getScalarProperties(ReflectionClass $reflection): array
     {
         $parameters = [];
@@ -419,6 +425,9 @@ HELP;
         return $responseTypes;
     }
 
+    /**
+     * @param ReflectionClass<object> $class
+     */
     private function getTags(ReflectionClass $class, ReflectionMethod $method): array
     {
         $tags = [];
@@ -506,7 +515,7 @@ HELP;
         return $schema;
     }
 
-    private function getTypeInfo($type): array
+    private function getTypeInfo(mixed $type): array
     {
         if (!$type) {
             return ['type' => 'mixed', 'nullable' => true, 'isArray' => false];
@@ -1127,7 +1136,7 @@ HELP;
     {
         $pathParamNames = [];
         preg_match_all('/\{(\w+)\}/', (string) $route['path'], $matches);
-        if (isset($matches[1]) && $matches[1] !== []) {
+        if ($matches[1] !== []) {
             $pathParamNames = $matches[1];
         }
 

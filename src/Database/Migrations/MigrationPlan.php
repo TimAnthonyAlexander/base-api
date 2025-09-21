@@ -5,7 +5,7 @@ namespace BaseApi\Database\Migrations;
 class MigrationPlan
 {
     public function __construct(
-        /** @var array<array{op: string, table?: string, column?: array, destructive: bool}> */
+        /** @var array<array{op: string, table?: string, column?: array, fk?: array, destructive: bool}> */
         public array $operations = []
     ) {}
 

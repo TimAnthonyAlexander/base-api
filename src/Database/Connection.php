@@ -74,7 +74,7 @@ class Connection
             // Log query to profiler if enabled
             if (class_exists(App::class) && method_exists(App::class, 'profiler')) {
                 $profiler = App::profiler();
-                if ($profiler && $profiler->isEnabled()) {
+                if ($profiler->isEnabled()) {
                     $duration = (hrtime(true) - $start) / 1_000_000; // Convert to milliseconds
                     $profiler->logQuery($sql, $params, $duration, $exception);
                 }

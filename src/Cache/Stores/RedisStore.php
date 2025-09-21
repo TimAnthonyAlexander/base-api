@@ -78,7 +78,8 @@ class RedisStore implements StoreInterface
         $prefixedKey = $this->prefixedKey($key);
 
         try {
-            return $redis->del($prefixedKey) > 0;
+            $result = $redis->del($prefixedKey);
+            return is_int($result) && $result > 0;
         } catch (RedisException $redisException) {
             $this->handleConnectionError($redisException);
             return false;
@@ -97,7 +98,8 @@ class RedisStore implements StoreInterface
                 $keys = $redis->keys($pattern);
 
                 if (!empty($keys)) {
-                    return $redis->del($keys) > 0;
+                    $result = $redis->del($keys);
+                    return is_int($result) && $result > 0;
                 }
 
                 return true;
@@ -172,7 +174,8 @@ class RedisStore implements StoreInterface
         $prefixedKey = $this->prefixedKey($key);
 
         try {
-            return $redis->exists($prefixedKey) > 0;
+            $result = $redis->exists($prefixedKey);
+            return is_int($result) && $result > 0;
         } catch (RedisException $redisException) {
             $this->handleConnectionError($redisException);
             return false;

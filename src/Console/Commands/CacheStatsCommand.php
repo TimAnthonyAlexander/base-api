@@ -125,8 +125,8 @@ class CacheStatsCommand implements Command
         echo "  Used Memory: " . ($stats['used_memory_human'] ?? $this->formatBytes($stats['used_memory'] ?? 0)) . "\n";
         
         if (isset($stats['keyspace_hits']) && isset($stats['keyspace_misses'])) {
-            $hits = $stats['keyspace_hits'];
-            $misses = $stats['keyspace_misses'];
+            $hits = (int)$stats['keyspace_hits'];
+            $misses = (int)$stats['keyspace_misses'];
             $total = $hits + $misses;
             $hitRate = $total > 0 ? round(($hits / $total) * 100, 2) : 0;
             

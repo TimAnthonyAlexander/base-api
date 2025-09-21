@@ -31,6 +31,7 @@ class ModelQuery
 
     /**
      * Add a WHERE clause
+     * @return ModelQuery<T>
      */
     public function where(string $column, string $operator, mixed $value): self
     {
@@ -40,6 +41,7 @@ class ModelQuery
 
     /**
      * Add WHERE IN clause
+     * @return ModelQuery<T>
      */
     public function whereIn(string $column, array $values): self
     {
