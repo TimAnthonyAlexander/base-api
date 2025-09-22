@@ -21,9 +21,8 @@ export default function FAQ() {
                     <Typography variant="h6">How do I start a new BaseAPI project?</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <CodeBlock language="bash" code={`composer create-project baseapi/baseapi my-project
+                    <CodeBlock language="bash" code={`composer create-project baseapi/baseapi-template my-project
 cd my-project
-cp .env.example .env
 ./mason serve`} />
                 </AccordionDetails>
             </Accordion>
