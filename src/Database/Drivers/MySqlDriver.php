@@ -402,6 +402,8 @@ class MySqlDriver implements DatabaseDriverInterface
         if ($column->default !== null) {
             if ($column->default === 'CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
+            } elseif ($column->default === 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
+                $sql .= ' DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
             } else {
                 $sql .= sprintf(" DEFAULT '%s'", $column->default);
             }

@@ -468,6 +468,10 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         if ($column->default !== null) {
             if ($column->default === 'CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
+            } elseif ($column->default === 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
+                // PostgreSQL doesn't support ON UPDATE clause in column defaults
+                // Use only CURRENT_TIMESTAMP for now - auto-update would need triggers
+                $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } elseif (str_starts_with($column->default, 'nextval(')) {
                 // Handle SERIAL/BIGSERIAL defaults
                 $sql .= ' DEFAULT ' . $column->default;
