@@ -196,6 +196,45 @@ else
     echo ""
 fi
 
+# Security Checks
+print_step "Security Checks"
+
+# Check for eval() usage - simple and robust approach
+EVAL_FOUND=0
+
+# Find staged PHP files and check for eval usage - NUL-safe with comprehensive excludes
+STAGED_PHP_FILES="$(git diff --cached --name-only -z | tr '\0' '\n' \
+  | sed 's|^\./||' | grep -E '\.php$' \
+  | grep -v -E '^(vendor/|node_modules/)|/vendor/|/node_modules/' || true)"
+
+if [ -n "$STAGED_PHP_FILES" ]; then
+    # Use xargs to efficiently check all files at once
+    # Exclude known test files that legitimately contain eval in strings/comments
+    eval_results=$(echo "$STAGED_PHP_FILES" | \
+        grep -v -E '^tests/Console/Commands/TypesGenerateCommandTest\.php$|^tests/RateLimitMiddlewareTest\.php$' | \
+        xargs -r grep -nE '\beval\s*\(' 2>/dev/null || true)
+    
+    if [ -n "$eval_results" ]; then
+        print_error "SECURITY VIOLATION: eval() usage found in staged files:"
+        echo -e "${RED}eval() poses significant security risks and is prohibited.${NC}"
+        echo ""
+        echo "$eval_results" | while IFS= read -r line; do
+            echo -e "${RED}  • $line${NC}"
+        done
+        echo ""
+        EVAL_FOUND=1
+    fi
+fi
+
+if [ $EVAL_FOUND -eq 0 ]; then
+    print_success "No security violations found"
+else
+    echo -e "${YELLOW}Please refactor the code to avoid eval() usage.${NC}"
+    echo -e "${YELLOW}Consider using file generation, proper class loading, or configuration-based approaches.${NC}"
+    echo ""
+    FAILED=1
+fi
+
 # Final result
 echo -e "${CYAN}═══════════════════════════════════════${NC}"
 if [ $FAILED -eq 1 ]; then

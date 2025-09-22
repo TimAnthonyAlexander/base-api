@@ -177,18 +177,25 @@ HELP;
         if (!$originalAppExists) {
             // If App isn't loaded yet, we need to ensure we can mock it
             $mockRouterRef = &$mockRouter; // Create reference for closure
-            eval('
-            namespace BaseApi {
-                class App {
-                    private static $mockRouter;
-                    public static function setMockRouter($router) { self::$mockRouter = $router; }
-                    public static function router() { return self::$mockRouter; }
+            $mockClassFile = $this->generateMockAppClass();
+
+            try {
+                require_once $mockClassFile;
+
+                // Verify mock class has required method before calling
+                if (!method_exists(App::class, 'setMockRouter')) {
+                    throw new Exception('Mock App class missing setMockRouter method');
                 }
+
+                // Now the mock App class exists, we can call setMockRouter
+                /** @phpstan-ignore-next-line */
+                App::setMockRouter($mockRouterRef);
+
+                require $routesFile;
+            } finally {
+                // Always clean up the temporary file
+                @unlink($mockClassFile);
             }
-            ');
-            // Now the mock App class exists, we can call setMockRouter
-            /** @phpstan-ignore-next-line */
-            App::setMockRouter($mockRouterRef);
         } else {
             // If App is already loaded, we need to work around it
             // Store original router method (this is tricky with static methods)
@@ -197,7 +204,6 @@ HELP;
             return;
         }
 
-        require $routesFile;
         $this->routes = $routes;
 
         echo ColorHelper::success("   Found " . count($this->routes) . " routes") . "\n";
@@ -1167,5 +1173,95 @@ HELP;
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
             throw new Exception('Failed to create directory: ' . $directory);
         }
+    }
+
+    /**
+     * Generate a temporary PHP file with mock App class
+     * 
+     * @return string Path to the generated temporary file
+     * @throws Exception If file generation fails
+     */
+    private function generateMockAppClass(): string
+    {
+        $namespace = 'BaseApi';
+        $className = 'App';
+
+        // Validate namespace and class name to prevent code injection
+        if (!$this->isValidPhpIdentifier($namespace)) {
+            throw new Exception('Invalid namespace: ' . $namespace);
+        }
+
+        if (!$this->isValidPhpIdentifier($className)) {
+            throw new Exception('Invalid class name: ' . $className);
+        }
+
+        $mockClassContent = $this->generateMockClassContent($namespace, $className);
+
+        // Generate temporary file - fix tempnam() leak by renaming
+        $tempFile = tempnam(sys_get_temp_dir(), 'baseapi_mock_');
+        if ($tempFile === false) {
+            throw new Exception('Failed to create temporary file');
+        }
+
+        // Rename to .php extension to avoid file leak
+        $phpTempFile = $tempFile . '.php';
+        if (!rename($tempFile, $phpTempFile)) {
+            @unlink($tempFile); // Clean up original if rename fails
+            throw new Exception('Failed to rename temporary file');
+        }
+
+        if (file_put_contents($phpTempFile, $mockClassContent) === false) {
+            @unlink($phpTempFile);
+            throw new Exception('Failed to write mock class to temporary file');
+        }
+
+        return $phpTempFile;
+    }
+
+    /**
+     * Generate the actual PHP code for the mock class
+     */
+    private function generateMockClassContent(string $namespace, string $className): string
+    {
+        return <<<PHP
+<?php
+namespace {$namespace} {
+    class {$className} {
+        private static \$mockRouter;
+        
+        public static function setMockRouter(\$router): void 
+        { 
+            self::\$mockRouter = \$router; 
+        }
+        
+        public static function router() 
+        { 
+            return self::\$mockRouter; 
+        }
+    }
+}
+PHP;
+    }
+
+    /**
+     * Validate that a string is a valid PHP identifier (namespace or class name)
+     * Validates each namespace segment separately to handle backslashes correctly
+     */
+    private function isValidPhpIdentifier(string $identifier): bool
+    {
+        // Pattern for individual PHP identifier segments (no backslashes)
+        $segmentPattern = '/^[A-Za-z_\x7f-\xff][A-Za-z0-9_\x7f-\xff]*$/';
+        
+        // Split by backslashes and validate each segment
+        $segments = explode('\\', $identifier);
+        
+        foreach ($segments as $segment) {
+            // Empty segments are invalid (e.g., leading/trailing/double backslashes)
+            if ($segment === '' || !preg_match($segmentPattern, $segment)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

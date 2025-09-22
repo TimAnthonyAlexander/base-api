@@ -2,6 +2,7 @@
 
 namespace BaseApi\Tests;
 
+use Exception;
 use Override;
 use ReflectionClass;
 use PHPUnit\Framework\TestCase;
@@ -28,8 +29,8 @@ class RateLimitMiddlewareTest extends TestCase
         $_ENV['RATE_LIMIT_DIR'] = $this->tempDir;
 
         // Mock App::basePath to avoid dependency on App being booted
-        if (!class_exists(App::class)) {
-            eval('namespace BaseApi; class App { public static function basePath($path = "") { return "/tmp" . ($path ? "/" . ltrim($path, "/") : ""); } }');
+        if (!class_exists(App::class, false)) {
+            $this->createMockAppClass();
         }
 
         $this->middleware = new RateLimitMiddleware();
@@ -345,6 +346,62 @@ class RateLimitMiddlewareTest extends TestCase
         }
 
         rmdir($dir);
+    }
+
+    /**
+     * Create a mock App class for testing without using eval()
+     */
+    private function createMockAppClass(): void
+    {
+        $mockClassContent = <<<'PHP'
+<?php
+namespace BaseApi {
+    class MockConfig {
+        public function list(string $key): array {
+            return match($key) {
+                'CORS_ALLOWLIST' => ['*'],
+                default => []
+            };
+        }
+    }
+    
+    class App {
+        public static function basePath($path = ""): string 
+        { 
+            return "/tmp" . ($path ? "/" . ltrim($path, "/") : ""); 
+        }
+        
+        public static function config(): MockConfig
+        {
+            return new MockConfig();
+        }
+    }
+}
+PHP;
+
+        // Fix temp file leak: tempnam() creates a file, rename it to avoid leak
+        $tempFile = tempnam(sys_get_temp_dir(), 'mock_app_');
+        if ($tempFile === false) {
+            throw new Exception('Failed to create temporary file');
+        }
+
+        $phpTempFile = $tempFile . '.php';
+        if (!rename($tempFile, $phpTempFile)) {
+            @unlink($tempFile); // Clean up original if rename fails
+            throw new Exception('Failed to rename temporary file');
+        }
+        
+        if (file_put_contents($phpTempFile, $mockClassContent) === false) {
+            @unlink($phpTempFile);
+            throw new Exception('Failed to create mock App class file');
+        }
+
+        try {
+            require_once $phpTempFile;
+        } finally {
+            // Always clean up the temporary file
+            @unlink($phpTempFile);
+        }
     }
 }
 
