@@ -140,13 +140,11 @@ class MigrateApplyCommand implements Command
 
         echo ColorHelper::header("🔄 Executing migrations...") . "\n";
 
-        // Group migrations by table for transaction boundaries
+        // Group migrations by table for better organization
         $tableGroups = $this->groupMigrationsByTable($migrations);
 
         foreach ($tableGroups as $table => $tableMigrations) {
             echo ColorHelper::info(sprintf('📋 Processing table: %s', $table)) . "\n";
-
-            $pdo->beginTransaction();
 
             try {
                 foreach ($tableMigrations as $i => $migration) {
@@ -154,14 +152,13 @@ class MigrateApplyCommand implements Command
                     echo ColorHelper::comment(sprintf('  %s. Executing [%s]: ', $num, $migration['operation'])) .
                         ColorHelper::colorize(substr((string) $migration['sql'], 0, 50) . "...", ColorHelper::BRIGHT_BLACK) . "\n";
 
+                    // Execute DDL statements individually (they cause implicit commits in MySQL)
                     $pdo->exec($migration['sql']);
                     $executedIds[] = $migration['id'];
                 }
 
-                $pdo->commit();
                 echo ColorHelper::success(sprintf('  ✓ Table %s completed successfully', $table)) . "\n";
             } catch (Exception $e) {
-                $pdo->rollBack();
                 throw new Exception(ColorHelper::error(sprintf('Failed to execute migration for table %s: ', $table)) . $e->getMessage(), $e->getCode(), $e);
             }
         }
