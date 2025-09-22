@@ -381,7 +381,7 @@ class PostgreSqlDriverTest extends TestCase
         
         $plan->addOperation('drop_column', [
             'table' => 'users',
-            'column_name' => 'phone'
+            'column' => 'phone'
         ]);
         
         $plan->addOperation('drop_table', [

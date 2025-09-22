@@ -366,7 +366,7 @@ class MySqlDriver implements DatabaseDriverInterface
     private function generateDropColumn(array $op): array
     {
         $tableName = $op['table'];
-        $columnName = $op['column_name'];
+        $columnName = $op['column'];
         
         $sql = sprintf('ALTER TABLE `%s` DROP COLUMN `%s`', $tableName, $columnName);
         
