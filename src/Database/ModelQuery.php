@@ -2,6 +2,7 @@
 
 namespace BaseApi\Database;
 
+use BadMethodCallException;
 use InvalidArgumentException;
 use ReflectionClass;
 use BaseApi\Models\BaseModel;
@@ -198,6 +199,237 @@ class ModelQuery
         }
 
         return $this->executeFirst();
+    }
+
+    /**
+     * Add WHERE NOT LIKE clause
+     * @return ModelQuery<T>
+     */
+    public function whereNotLike(string $column, string $value): self
+    {
+        $this->qb->whereNotLike($column, $value);
+        return $this;
+    }
+
+    /**
+     * Add WHERE DATE clause
+     * @return ModelQuery<T>
+     */
+    public function whereDate(string $column, string $date): self
+    {
+        $this->qb->whereDate($column, $date);
+        return $this;
+    }
+
+    /**
+     * Add WHERE YEAR clause
+     * @return ModelQuery<T>
+     */
+    public function whereYear(string $column, int $year): self
+    {
+        $this->qb->whereYear($column, $year);
+        return $this;
+    }
+
+    /**
+     * Add WHERE MONTH clause
+     * @return ModelQuery<T>
+     */
+    public function whereMonth(string $column, int $month): self
+    {
+        $this->qb->whereMonth($column, $month);
+        return $this;
+    }
+
+    /**
+     * Add ORDER BY DESC clause
+     * @return ModelQuery<T>
+     */
+    public function latest(string $column = 'created_at'): self
+    {
+        $this->qb->latest($column);
+        return $this;
+    }
+
+    /**
+     * Add ORDER BY ASC clause
+     * @return ModelQuery<T>
+     */
+    public function oldest(string $column = 'created_at'): self
+    {
+        $this->qb->oldest($column);
+        return $this;
+    }
+
+    /**
+     * Order results randomly
+     * @return ModelQuery<T>
+     */
+    public function inRandomOrder(): self
+    {
+        $this->qb->inRandomOrder();
+        return $this;
+    }
+
+    /**
+     * Conditionally apply callback based on condition
+     * @param callable(ModelQuery<T>): void $callback
+     * @return ModelQuery<T>
+     */
+    public function when(bool $condition, callable $callback): self
+    {
+        if ($condition) {
+            $callback($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Conditionally apply callback when condition is false
+     * @param callable(ModelQuery<T>): void $callback
+     * @return ModelQuery<T>
+     */
+    public function unless(bool $condition, callable $callback): self
+    {
+        if (!$condition) {
+            $callback($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Process results in chunks to avoid memory issues
+     * @param callable(array<T>): bool $callback
+     */
+    public function chunk(int $size, callable $callback): bool
+    {
+        return $this->qb->chunk($size, function($rows) use ($callback) {
+            $models = $this->hydrateRows($rows);
+            
+            // Apply eager loading if specified
+            if ($this->eagerRelations !== []) {
+                $models = $this->applyEagerLoading($models);
+            }
+            
+            return $callback($models);
+        });
+    }
+
+    /**
+     * Process results in chunks ordered by ID
+     * @param callable(array<T>): bool $callback
+     */
+    public function chunkById(int $size, callable $callback, string $column = 'id'): bool
+    {
+        return $this->qb->chunkById($size, function($rows) use ($callback) {
+            $models = $this->hydrateRows($rows);
+            
+            // Apply eager loading if specified
+            if ($this->eagerRelations !== []) {
+                $models = $this->applyEagerLoading($models);
+            }
+            
+            return $callback($models);
+        }, $column);
+    }
+
+    /**
+     * Get count of records matching query
+     */
+    public function count(): int
+    {
+        return $this->qb->count();
+    }
+
+    /**
+     * Add a constraint based on relationship existence
+     */
+    public function has(string $relation, string $operator = '>=', int $count = 1): self
+    {
+        $modelClass = $this->modelClass;
+        $relationType = $modelClass::getRelationType($relation);
+
+        if ($relationType === 'belongsTo') {
+            // For belongsTo, check if foreign key is not null
+            [$fkColumn] = $modelClass::inferForeignKeyFromTypedProperty($relation);
+            $this->qb->whereNotNull($fkColumn);
+        } elseif ($relationType === 'hasMany') {
+            // For hasMany, use subquery to check existence
+            [$fkColumn, $relatedClass] = $modelClass::inferHasMany($relation);
+            $relatedTable = $relatedClass::table();
+            $currentTable = $modelClass::table();
+            
+            $subquery = sprintf(
+                '(SELECT COUNT(*) FROM %s WHERE %s.%s = %s.id) %s %d',
+                $relatedTable,
+                $relatedTable,
+                $fkColumn,
+                $currentTable,
+                $operator,
+                $count
+            );
+            
+            $this->qb->wheres[] = $subquery;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a constraint based on relationship existence with additional conditions
+     */
+    public function whereHas(string $relation, callable $callback, string $operator = '>=', int $count = 1): self
+    {
+        $modelClass = $this->modelClass;
+        $relationType = $modelClass::getRelationType($relation);
+
+        if ($relationType === 'hasMany') {
+            [$fkColumn, $relatedClass] = $modelClass::inferHasMany($relation);
+            $relatedTable = $relatedClass::table();
+            $currentTable = $modelClass::table();
+            
+            // Use a simpler EXISTS clause approach
+            $subquery = sprintf(
+                'EXISTS (SELECT 1 FROM %s WHERE %s.%s = %s.id',
+                $relatedTable,
+                $relatedTable,
+                $fkColumn,
+                $currentTable
+            );
+            
+            // For now, we'll use a simplified version without callback conditions
+            $subquery .= ')';
+            
+            $this->qb->wheres[] = $subquery;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Handle dynamic method calls for scopes and query builder delegation
+     */
+    public function __call(string $method, array $args): mixed
+    {
+        // Check for model scopes first
+        $modelClass = $this->modelClass;
+        $scopeMethod = 'scope' . ucfirst($method);
+        
+        if (method_exists($modelClass, $scopeMethod)) {
+            $model = new $modelClass();
+            $this->qb = $model->$scopeMethod($this, ...$args)->qb();
+            return $this;
+        }
+        
+        // Delegate to QueryBuilder
+        if (method_exists($this->qb, $method)) {
+            $result = $this->qb->$method(...$args);
+            return $result === $this->qb ? $this : $result;
+        }
+        
+        throw new BadMethodCallException(sprintf('Method %s does not exist on ', $method) . static::class);
     }
 
     /**

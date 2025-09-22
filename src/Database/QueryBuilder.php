@@ -59,7 +59,7 @@ class QueryBuilder
     public function where(string $column, string $operator, mixed $value): self
     {
         $op = strtoupper(trim($operator));
-        $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'IN'];
+        $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE', 'IN'];
 
         if (!in_array($op, $allowedOperators, true)) {
             throw new DbException('Invalid operator: ' . $operator);
@@ -86,7 +86,7 @@ class QueryBuilder
     public function orWhere(string $column, string $operator, mixed $value): self
     {
         $op = strtoupper(trim($operator));
-        $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'IN'];
+        $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE', 'IN'];
 
         if (!in_array($op, $allowedOperators, true)) {
             throw new DbException('Invalid operator: ' . $operator);
@@ -131,6 +131,35 @@ class QueryBuilder
         $minPlaceholder = $this->addBinding($min);
         $maxPlaceholder = $this->addBinding($max);
         $this->wheres[] = sprintf('%s BETWEEN %s AND %s', $column, $minPlaceholder, $maxPlaceholder);
+        return $this;
+    }
+
+    public function whereNotLike(string $column, string $value): self
+    {
+        return $this->where($column, 'NOT LIKE', $value);
+    }
+
+    public function whereDate(string $column, string $date): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $placeholder = $this->addBinding($date);
+        $this->wheres[] = sprintf('DATE(%s) = %s', $column, $placeholder);
+        return $this;
+    }
+
+    public function whereYear(string $column, int $year): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $placeholder = $this->addBinding($year);
+        $this->wheres[] = sprintf('YEAR(%s) = %s', $column, $placeholder);
+        return $this;
+    }
+
+    public function whereMonth(string $column, int $month): self
+    {
+        $column = $this->sanitizeColumnName($column);
+        $placeholder = $this->addBinding($month);
+        $this->wheres[] = sprintf('MONTH(%s) = %s', $column, $placeholder);
         return $this;
     }
 
@@ -287,6 +316,22 @@ class QueryBuilder
         return $this;
     }
 
+    public function latest(string $column = 'created_at'): self
+    {
+        return $this->orderBy($column, 'desc');
+    }
+
+    public function oldest(string $column = 'created_at'): self
+    {
+        return $this->orderBy($column, 'asc');
+    }
+
+    public function inRandomOrder(): self
+    {
+        $this->orders[] = 'RANDOM()';
+        return $this;
+    }
+
     public function join(string $table, string $firstColumn, string $operator, string $secondColumn, string $type = 'INNER'): self
     {
         $table = $this->sanitizeTableName($table);
@@ -347,6 +392,89 @@ class QueryBuilder
     {
         $this->forUpdate = true;
         return $this;
+    }
+
+    /**
+     * Conditionally apply callback based on condition
+     */
+    public function when(bool $condition, callable $callback): self
+    {
+        if ($condition) {
+            $callback($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Conditionally apply callback when condition is false
+     */
+    public function unless(bool $condition, callable $callback): self
+    {
+        if (!$condition) {
+            $callback($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Process results in chunks to avoid memory issues
+     */
+    public function chunk(int $size, callable $callback): bool
+    {
+        $page = 1;
+        
+        do {
+            $results = $this->limit($size)->offset(($page - 1) * $size)->get();
+            
+            if ($results === []) {
+                break;
+            }
+            
+            // Call the callback with the chunk
+            if ($callback($results) === false) {
+                return false;
+            }
+            
+            $page++;
+        } while (count($results) === $size);
+        
+        return true;
+    }
+
+    /**
+     * Process results in chunks ordered by ID
+     */
+    public function chunkById(int $size, callable $callback, string $column = 'id'): bool
+    {
+        $lastId = null;
+        $column = $this->sanitizeColumnName($column);
+        
+        do {
+            $query = clone $this;
+            
+            if ($lastId !== null) {
+                $query->where($column, '>', $lastId);
+            }
+            
+            $results = $query->orderBy($column)->limit($size)->get();
+            
+            if ($results === []) {
+                break;
+            }
+            
+            // Call the callback with the chunk
+            if ($callback($results) === false) {
+                return false;
+            }
+            
+            // Get the last ID for the next iteration
+            $lastId = end($results)[$column] ?? null;
+            
+        } while (count($results) === $size);
+        
+        return true;
     }
 
     public function get(): array

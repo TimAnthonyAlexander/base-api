@@ -17,12 +17,18 @@ abstract class BaseModel implements \JsonSerializable
     public ?string $updated_at = null;
 
     protected static ?string $table = null;
+    
+    /** @var array<string, callable> Global scopes applied to all queries */
+    protected static array $globalScopes = [];
 
     /** @var array Original row data for change detection and FK extraction */
     protected array $__row = [];
 
     /** @var array Cached loaded relations */
     protected array $__relationCache = [];
+    
+    /** @var array<string, string> Attribute casting definitions */
+    protected array $casts = [];
 
     public static function table(): string
     {
@@ -50,72 +56,63 @@ abstract class BaseModel implements \JsonSerializable
 
     public static function find(string $id): ?static
     {
-        $row = App::db()->qb()
-            ->table(static::table())
-            ->where('id', '=', $id)
-            ->first();
-
-        return $row ? static::fromRow($row) : null;
+        return static::query()->where('id', '=', $id)->first();
     }
 
-    public static function where(string $column, string $operator, mixed $value): QueryBuilder
+    public static function where(string $column, string $operator, mixed $value): ModelQuery
     {
-        return App::db()->qb()
-            ->table(static::table())
-            ->where($column, $operator, $value);
+        return static::query()->where($column, $operator, $value);
     }
 
-    public static function whereEQ(string $column, mixed $value): QueryBuilder
+    public static function whereEQ(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '=', $value);
     }
 
-    public static function whereNEQ(string $column, mixed $value): QueryBuilder
+    public static function whereNEQ(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '!=', $value);
     }
 
-    public static function whereLT(string $column, mixed $value): QueryBuilder
+    public static function whereLT(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '<', $value);
     }
 
-    public static function whereLTE(string $column, mixed $value): QueryBuilder
+    public static function whereLTE(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '<=', $value);
     }
 
-    public static function whereGT(string $column, mixed $value): QueryBuilder
+    public static function whereGT(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '>', $value);
     }
 
-    public static function whereGTE(string $column, mixed $value): QueryBuilder
+    public static function whereGTE(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '>=', $value);
     }
 
-    public static function whereLike(string $column, string $value): QueryBuilder
+    public static function whereLike(string $column, string $value): ModelQuery
     {
         return static::where($column, 'LIKE', $value);
     }
 
-    public static function whereConditions(array $conditions): QueryBuilder
+    public static function whereConditions(array $conditions): ModelQuery
     {
-        $qb = App::db()->qb()->table(static::table());
+        $query = static::query();
 
         foreach ($conditions as $condition) {
-            $qb->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
+            $query->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
         }
 
-        return $qb;
+        return $query;
     }
 
-    public static function whereIn(string $column, array $values): QueryBuilder
+    public static function whereIn(string $column, array $values): ModelQuery
     {
-        return App::db()->qb()
-            ->table(static::table())
-            ->whereIn($column, $values);
+        return static::query()->whereIn($column, $values);
     }
 
     /**
@@ -126,88 +123,42 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function with(array $relations): ModelQuery
     {
-        $qb = App::db()->qb()->table(static::table());
-        $modelQuery = new ModelQuery($qb, static::class);
-        return $modelQuery->with($relations);
+        return static::query()->with($relations);
     }
 
     public static function firstWhere(string $column, string $operator, mixed $value): ?static
     {
-        $row = static::where($column, $operator, $value)->first();
-
-        return $row ? static::fromRow($row) : null;
+        return static::where($column, $operator, $value)->first();
     }
 
     public static function firstWhereConditions(array $conditions): ?static
     {
-        $row = static::whereConditions($conditions)->first();
-
-        return $row ? static::fromRow($row) : null;
+        return static::whereConditions($conditions)->first();
     }
 
     public static function countWhere(string $column, string $operator, mixed $value): int
     {
-        $result = App::db()->qb()
-            ->table(static::table())
-            ->select('COUNT(*) as count')
-            ->where($column, $operator, $value)
-            ->first();
-
-        return (int) ($result['count'] ?? 0);
+        return static::where($column, $operator, $value)->qb()->count();
     }
 
     public static function countWhereConditions(array $conditions): int
     {
-        $qb = App::db()->qb()
-            ->table(static::table())
-            ->select('COUNT(*) as count');
-
-        foreach ($conditions as $condition) {
-            $qb->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
-        }
-
-        $result = $qb->first();
-
-        return (int) ($result['count'] ?? 0);
+        return static::whereConditions($conditions)->qb()->count();
     }
 
     public static function exists(string $column, string $operator, mixed $value): bool
     {
-        $result = App::db()->qb()
-            ->table(static::table())
-            ->select('1')
-            ->where($column, $operator, $value)
-            ->limit(1)
-            ->first();
-
-        return $result !== null;
+        return static::where($column, $operator, $value)->first() !== null;
     }
 
     public static function existsConditions(array $conditions): bool
     {
-        $qb = App::db()->qb()
-            ->table(static::table())
-            ->select('1')
-            ->limit(1);
-
-        foreach ($conditions as $condition) {
-            $qb->where($condition['column'], $condition['operator'] ?? '=', $condition['value']);
-        }
-
-        $result = $qb->first();
-
-        return $result !== null;
+        return static::whereConditions($conditions)->first() !== null;
     }
 
     public static function all(int $limit = 1000, int $offset = 0): array
     {
-        $rows = App::db()->qb()
-            ->table(static::table())
-            ->limit($limit)
-            ->offset($offset)
-            ->get();
-
-        return array_map([static::class, 'fromRow'], $rows);
+        return static::query()->limit($limit)->offset($offset)->get();
     }
 
     /**
@@ -236,6 +187,61 @@ abstract class BaseModel implements \JsonSerializable
 
         // Always include total count for API responses
         return $query->paginate($page, $perPage, $maxPerPage, true);
+    }
+
+    /**
+     * Add a global scope that applies to all queries for this model
+     */
+    public static function addGlobalScope(string $name, callable $scope): void
+    {
+        static::$globalScopes[$name] = $scope;
+    }
+
+    /**
+     * Remove a global scope
+     */
+    public static function removeGlobalScope(string $name): void
+    {
+        unset(static::$globalScopes[$name]);
+    }
+
+    /**
+     * Create a new query with all global scopes applied
+     */
+    public static function query(): ModelQuery
+    {
+        $qb = App::db()->qb()->table(static::table());
+        $modelQuery = new ModelQuery($qb, static::class);
+        
+        // Apply global scopes
+        foreach (static::$globalScopes as $scope) {
+            $scope($modelQuery);
+        }
+        
+        return $modelQuery;
+    }
+
+    /**
+     * Handle static method calls for scopes and query builder methods
+     */
+    public static function __callStatic(string $method, array $args): mixed
+    {
+        $instance = new static();
+        
+        // Check for scope methods first
+        $scopeMethod = 'scope' . ucfirst($method);
+        if (method_exists($instance, $scopeMethod)) {
+            $query = static::query();
+            return $instance->$scopeMethod($query, ...$args);
+        }
+        
+        // Delegate to query builder methods
+        $query = static::query();
+        if (method_exists($query, $method)) {
+            return $query->$method(...$args);
+        }
+        
+        throw new \BadMethodCallException("Method {$method} does not exist on " . static::class);
     }
 
     public function save(): bool
@@ -527,16 +533,21 @@ abstract class BaseModel implements \JsonSerializable
             if (array_key_exists($name, $row)) {
                 $value = $row[$name];
 
-                // Simple type casting based on property type
-                $type = $property->getType();
-                if ($type instanceof \ReflectionNamedType) {
-                    $value = match ($type->getName()) {
-                        'int' => (int) $value,
-                        'float' => (float) $value,
-                        'bool' => (bool) $value,
-                        'string' => (string) $value,
-                        default => $value,
-                    };
+                // Apply casting if defined
+                $value = $instance->castAttribute($name, $value);
+
+                // Simple type casting based on property type if no cast is defined
+                if (!isset($instance->casts[$name])) {
+                    $type = $property->getType();
+                    if ($type instanceof \ReflectionNamedType) {
+                        $value = match ($type->getName()) {
+                            'int' => (int) $value,
+                            'float' => (float) $value,
+                            'bool' => (bool) $value,
+                            'string' => (string) $value,
+                            default => $value,
+                        };
+                    }
                 }
 
                 $property->setValue($instance, $value);
@@ -599,16 +610,63 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function cached(int $ttl = 300): ModelQuery
     {
-        $qb = App::db()->qb()->table(static::table());
-        $modelQuery = new ModelQuery($qb, static::class);
-
         // Auto-tag with model information
         $tags = [
             'model:' . static::table(),
             'model:' . static::class,
         ];
 
-        return $modelQuery->cacheWithTags($tags, $ttl);
+        return static::query()->cacheWithTags($tags, $ttl);
+    }
+
+    /**
+     * Load relations after model creation
+     */
+    public function load(array $relations): self
+    {
+        foreach ($relations as $relation) {
+            if (method_exists($this, $relation)) {
+                $this->$relation = $this->$relation()->get();
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Get a fresh instance of the model from database
+     */
+    public function fresh(array $with = []): ?static
+    {
+        if (empty($this->id)) {
+            return null;
+        }
+
+        $query = static::query();
+        if (!empty($with)) {
+            $query = $query->with($with);
+        }
+
+        return $query->find($this->id);
+    }
+
+    /**
+     * Cast an attribute to the appropriate type
+     */
+    protected function castAttribute(string $key, mixed $value): mixed
+    {
+        if (!isset($this->casts[$key])) {
+            return $value;
+        }
+
+        return match ($this->casts[$key]) {
+            'int', 'integer' => (int) $value,
+            'float' => (float) $value,
+            'bool', 'boolean' => (bool) $value,
+            'array' => is_string($value) ? json_decode($value, true) : $value,
+            'json' => is_string($value) ? json_decode($value, true) : $value,
+            'date' => $value instanceof \DateTimeInterface ? $value : new \DateTime($value),
+            default => $value,
+        };
     }
 
     private function insert(): bool

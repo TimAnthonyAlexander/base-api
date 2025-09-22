@@ -137,12 +137,12 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         $stmt = $pdo->prepare("
             SELECT 
-                CONSTRAINT_NAME,
-                COLUMN_NAME,
-                REFERENCED_TABLE_NAME,
-                REFERENCED_COLUMN_NAME,
-                UPDATE_RULE,
-                DELETE_RULE
+                kcu.CONSTRAINT_NAME,
+                kcu.COLUMN_NAME,
+                kcu.REFERENCED_TABLE_NAME,
+                kcu.REFERENCED_COLUMN_NAME,
+                rc.UPDATE_RULE,
+                rc.DELETE_RULE
             FROM information_schema.KEY_COLUMN_USAGE kcu
             JOIN information_schema.REFERENTIAL_CONSTRAINTS rc 
                 ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME 
