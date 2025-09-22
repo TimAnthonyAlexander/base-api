@@ -18,7 +18,7 @@ abstract class BaseModel implements \JsonSerializable
 
     protected static ?string $table = null;
     
-    /** @var array<string, callable> Global scopes applied to all queries */
+    /** @var array<string, callable(ModelQuery<static>): void> Global scopes applied to all queries */
     protected static array $globalScopes = [];
 
     /** @var array Original row data for change detection and FK extraction */
@@ -59,46 +59,73 @@ abstract class BaseModel implements \JsonSerializable
         return static::query()->where('id', '=', $id)->first();
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function where(string $column, string $operator, mixed $value): ModelQuery
     {
         return static::query()->where($column, $operator, $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereEQ(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '=', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereNEQ(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '!=', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereLT(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '<', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereLTE(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '<=', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereGT(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '>', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereGTE(string $column, mixed $value): ModelQuery
     {
         return static::where($column, '>=', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereLike(string $column, string $value): ModelQuery
     {
         return static::where($column, 'LIKE', $value);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereConditions(array $conditions): ModelQuery
     {
         $query = static::query();
@@ -110,6 +137,9 @@ abstract class BaseModel implements \JsonSerializable
         return $query;
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
     public static function whereIn(string $column, array $values): ModelQuery
     {
         return static::query()->whereIn($column, $values);
@@ -191,6 +221,7 @@ abstract class BaseModel implements \JsonSerializable
 
     /**
      * Add a global scope that applies to all queries for this model
+     * @param callable(ModelQuery<static>): void $scope
      */
     public static function addGlobalScope(string $name, callable $scope): void
     {
@@ -207,6 +238,7 @@ abstract class BaseModel implements \JsonSerializable
 
     /**
      * Create a new query with all global scopes applied
+     * @return ModelQuery<static>
      */
     public static function query(): ModelQuery
     {
@@ -222,16 +254,25 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /**
+     * Create a new instance safely
+     * @return static
+     */
+    protected static function createInstance(): static
+    {
+        $reflection = new \ReflectionClass(static::class);
+        return $reflection->newInstanceWithoutConstructor();
+    }
+
+    /**
      * Handle static method calls for scopes and query builder methods
      */
     public static function __callStatic(string $method, array $args): mixed
     {
-        $instance = new static();
-        
         // Check for scope methods first
         $scopeMethod = 'scope' . ucfirst($method);
-        if (method_exists($instance, $scopeMethod)) {
+        if (method_exists(static::class, $scopeMethod)) {
             $query = static::query();
+            $instance = static::createInstance();
             return $instance->$scopeMethod($query, ...$args);
         }
         

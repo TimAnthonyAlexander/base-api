@@ -344,7 +344,18 @@ class ModelQuery
     }
 
     /**
+     * Find a single model by ID
+     * @return T|null
+     */
+    public function find(mixed $id): ?BaseModel
+    {
+        return $this->where('id', '=', $id)->first();
+    }
+
+
+    /**
      * Add a constraint based on relationship existence
+     * @return ModelQuery<T>
      */
     public function has(string $relation, string $operator = '>=', int $count = 1): self
     {
@@ -371,7 +382,7 @@ class ModelQuery
                 $count
             );
             
-            $this->qb->wheres[] = $subquery;
+            $this->qb->whereRaw($subquery);
         }
 
         return $this;
@@ -379,6 +390,8 @@ class ModelQuery
 
     /**
      * Add a constraint based on relationship existence with additional conditions
+     * @param callable(ModelQuery<T>): void $callback
+     * @return ModelQuery<T>
      */
     public function whereHas(string $relation, callable $callback, string $operator = '>=', int $count = 1): self
     {
@@ -402,7 +415,7 @@ class ModelQuery
             // For now, we'll use a simplified version without callback conditions
             $subquery .= ')';
             
-            $this->qb->wheres[] = $subquery;
+            $this->qb->whereRaw($subquery);
         }
 
         return $this;
@@ -419,8 +432,7 @@ class ModelQuery
         
         if (method_exists($modelClass, $scopeMethod)) {
             $model = new $modelClass();
-            $this->qb = $model->$scopeMethod($this, ...$args)->qb();
-            return $this;
+            return $model->$scopeMethod($this, ...$args);
         }
         
         // Delegate to QueryBuilder

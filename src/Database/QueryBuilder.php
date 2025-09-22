@@ -306,6 +306,15 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * Add a raw where condition
+     */
+    public function whereRaw(string $rawWhere): self
+    {
+        $this->wheres[] = $rawWhere;
+        return $this;
+    }
+
     public function orderBy(string $column, string $direction = 'asc'): self
     {
         $column = $this->sanitizeColumnName($column);
@@ -396,6 +405,7 @@ class QueryBuilder
 
     /**
      * Conditionally apply callback based on condition
+     * @param callable(QueryBuilder): void $callback
      */
     public function when(bool $condition, callable $callback): self
     {
@@ -408,6 +418,7 @@ class QueryBuilder
 
     /**
      * Conditionally apply callback when condition is false
+     * @param callable(QueryBuilder): void $callback
      */
     public function unless(bool $condition, callable $callback): self
     {
@@ -420,6 +431,7 @@ class QueryBuilder
 
     /**
      * Process results in chunks to avoid memory issues
+     * @param callable(array): bool $callback
      */
     public function chunk(int $size, callable $callback): bool
     {
@@ -445,6 +457,7 @@ class QueryBuilder
 
     /**
      * Process results in chunks ordered by ID
+     * @param callable(array): bool $callback
      */
     public function chunkById(int $size, callable $callback, string $column = 'id'): bool
     {

@@ -2,6 +2,7 @@
 
 namespace BaseApi\Models\Traits;
 
+use BaseApi\App;
 use BaseApi\Database\ModelQuery;
 
 trait SoftDeletes
@@ -22,10 +23,9 @@ trait SoftDeletes
      */
     public static function withTrashed(): ModelQuery
     {
-        $query = static::query();
-        // Remove the soft delete global scope
-        $query->qb()->wheres = array_filter($query->qb()->wheres ?? [], fn($where): bool => !str_contains((string) $where, 'deleted_at IS NULL'));
-        return $query;
+        // Create a fresh query without global scopes
+        $qb = App::db()->qb()->table(static::table());
+        return new ModelQuery($qb, static::class);
     }
 
     /**
