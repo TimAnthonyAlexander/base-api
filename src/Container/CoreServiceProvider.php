@@ -2,6 +2,7 @@
 
 namespace BaseApi\Container;
 
+use BaseApi\App;
 use BaseApi\Config;
 use BaseApi\Logger;
 use BaseApi\Router;
@@ -58,18 +59,20 @@ class CoreServiceProvider extends ServiceProvider
         // Register Kernel as singleton
         $container->singleton(Kernel::class, function (ContainerInterface $c) {
             $kernel = new Kernel($c->make(Router::class), $c);
-            
+
             // Configure global middleware here instead of in boot()
             $kernel->addGlobal(\BaseApi\Http\ProfilerMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
-            $kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
+            if ($c->make(Config::class)->get('app.env') === 'local' && $c->make(Config::class)->get('app.response_time') === true) {
+                $kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
+            }
             $kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\SecurityHeadersMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
             $kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
-            
+
             return $kernel;
         });
 
