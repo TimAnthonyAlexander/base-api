@@ -566,12 +566,7 @@ class OpenApiGenerator
                 'description' => 'Success',
                 'content' => [
                     'application/json' => [
-                        'schema' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'data' => ['type' => 'object']
-                            ]
-                        ]
+                        'schema' => ['type' => 'object']
                     ]
                 ]
             ];
@@ -592,12 +587,7 @@ class OpenApiGenerator
             'description' => $responseType->when ? ucfirst($responseType->when) : 'Success',
             'content' => [
                 'application/json' => [
-                    'schema' => [
-                        'type' => 'object',
-                        'properties' => [
-                            'data' => $this->convertShapeToOpenApiSchema($shapeInfo)
-                        ]
-                    ]
+                    'schema' => $this->convertShapeToOpenApiSchema($shapeInfo)
                 ]
             ]
         ];
