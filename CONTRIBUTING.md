@@ -40,7 +40,7 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 BaseAPI is a **high-performance, lightweight PHP 8.4+ framework** that provides comprehensive functionality for building REST APIs. It's designed to be used with the **BaseAPI Template** project:
 
-- **BaseAPI Core** (`timanthonyalexander/base-api`) - The framework package (this repository)
+- **BaseAPI Core** (`baseapi/baseapi`) - The framework package (this repository)
 - **BaseAPI Template** (`baseapi/baseapi-template`) - The project template that users create new projects from
 
 **Key Features:**
@@ -97,7 +97,7 @@ This installs BaseAPI as a dependency and provides the application structure (co
    }
    
    # Then require your local version
-   composer require timanthonyalexander/base-api:dev-main
+   composer require baseapi/baseapi:dev-main
    ```
 
 7. **Create a new branch** for your feature or bugfix:
@@ -115,7 +115,7 @@ After making changes to BaseAPI core:
 1. **Update your test project**:
    ```bash
    cd ../test-project
-   composer update timanthonyalexander/base-api
+   composer update baseapi/baseapi
    ```
 
 2. **Set up the test project**:
@@ -171,7 +171,7 @@ BaseAPI accepts several types of contributions:
 - **Setup guides** - Create database setup guides (like `examples/postgresql-setup.md`)
 
 #### Template Project Contributions
-For contributions to the project template (the structure users get when they run `composer create-project`), please contribute to the [BaseAPI Template repository](https://github.com/baseapi/baseapi-template).
+For contributions to the project template (the structure users get when they run `composer create-project`), please contribute to the [BaseAPI Template repository](https://github.com/timanthonyalexander/base-api-template).
 
 #### What NOT to Contribute Here
 - Application-specific controllers or models (those belong in individual projects)
@@ -405,7 +405,7 @@ When making changes that affect users:
 
 Include the following information:
 
-- **BaseAPI version** (check `composer show timanthonyalexander/base-api`)
+- **BaseAPI version** (check `composer show baseapi/baseapi`)
 - **BaseAPI Template version** (if using template project)
 - **PHP version** (8.4+ required)
 - **Operating system**
@@ -421,7 +421,7 @@ Include the following information:
 ### Bug Report Template
 
 ```markdown
-**BaseAPI Version:** 0.3.11 (from `composer show timanthonyalexander/base-api`)
+**BaseAPI Version:** 0.3.11 (from `composer show baseapi/baseapi`)
 **Template Version:** 1.0.0 (if applicable)
 **PHP Version:** 8.4.0
 **OS:** macOS 14.0
