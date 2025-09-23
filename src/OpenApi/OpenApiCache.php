@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace BaseApi\OpenApi;
 
+use BaseApi\Cache\Cache;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
+use Exception;
 use BaseApi\App;
 
 class OpenApiCache
 {
-    private const CACHE_KEY = 'openapi_spec';
-    private const CACHE_FILE = 'storage/cache/openapi.json';
+    private const string CACHE_KEY = 'openapi_spec';
+
+    private const string CACHE_FILE = 'storage/cache/openapi.json';
 
     public function get(): ?array
     {
         // First try to get from memory cache if available
         if (class_exists('BaseApi\Cache\Cache')) {
-            $cached = \BaseApi\Cache\Cache::get(self::CACHE_KEY);
+            $cached = Cache::get(self::CACHE_KEY);
             if ($cached !== null) {
                 return $cached;
             }
@@ -23,7 +28,7 @@ class OpenApiCache
 
         // Fallback to file-based cache
         $cacheFile = App::basePath(self::CACHE_FILE);
-        
+
         if (!file_exists($cacheFile)) {
             return null;
         }
@@ -50,7 +55,7 @@ class OpenApiCache
     {
         // Store in memory cache if available
         if (class_exists('BaseApi\Cache\Cache')) {
-            \BaseApi\Cache\Cache::put(self::CACHE_KEY, $spec, 3600); // Cache for 1 hour
+            Cache::put(self::CACHE_KEY, $spec, 3600); // Cache for 1 hour
         }
 
         // Store in file cache
@@ -65,7 +70,7 @@ class OpenApiCache
     {
         // Clear memory cache if available
         if (class_exists('BaseApi\Cache\Cache')) {
-            \BaseApi\Cache\Cache::delete(self::CACHE_KEY);
+            Cache::forget(self::CACHE_KEY);
         }
 
         // Clear file cache
@@ -94,8 +99,8 @@ class OpenApiCache
         // Check if any controller files in app/Controllers are newer than cache
         $controllersDir = App::basePath('app/Controllers');
         if (is_dir($controllersDir)) {
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($controllersDir)
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($controllersDir)
             );
 
             foreach ($iterator as $file) {
@@ -115,7 +120,7 @@ class OpenApiCache
     private function ensureDirectoryExists(string $directory): void
     {
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
-            throw new \Exception('Failed to create directory: ' . $directory);
+            throw new Exception('Failed to create directory: ' . $directory);
         }
     }
 }

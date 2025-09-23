@@ -16,6 +16,7 @@ use ReflectionUnionType;
 class OpenApiGenerator
 {
     private array $routes = [];
+
     private array $dtoSchemas = [];
 
     public function generate(): array
@@ -159,6 +160,9 @@ class OpenApiGenerator
         ];
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getControllerProperties(ReflectionClass $reflection): array
     {
         $properties = [];
@@ -200,6 +204,9 @@ class OpenApiGenerator
         return $parameters;
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getAllParameters(ReflectionClass $reflection, ReflectionMethod $method): array
     {
         $parameters = [];
@@ -213,6 +220,9 @@ class OpenApiGenerator
         return array_merge($parameters, $scalarProperties);
     }
 
+    /**
+     * @param ReflectionClass<object> $reflection
+     */
     private function getScalarProperties(ReflectionClass $reflection): array
     {
         $parameters = [];
@@ -282,6 +292,9 @@ class OpenApiGenerator
         return $responseTypes;
     }
 
+    /**
+     * @param ReflectionClass<object> $class
+     */
     private function getTags(ReflectionClass $class, ReflectionMethod $method): array
     {
         $tags = [];
