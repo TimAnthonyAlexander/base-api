@@ -63,7 +63,7 @@ class CoreServiceProvider extends ServiceProvider
             // Configure global middleware here instead of in boot()
             $kernel->addGlobal(\BaseApi\Http\ProfilerMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\RequestIdMiddleware::class);
-            if ($c->make(Config::class)->get('app.env') === 'local' && $c->make(Config::class)->get('app.response_time') === true) {
+            if ($c->make(Config::class)->get('app.env') === 'local' && $c->make(Config::class)->bool('app.response_time') === true) {
                 $kernel->addGlobal(\BaseApi\Http\ResponseTimeMiddleware::class);
             }
             $kernel->addGlobal(\BaseApi\Http\CorsMiddleware::class);
