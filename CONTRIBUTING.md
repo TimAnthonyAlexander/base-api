@@ -30,17 +30,27 @@ This project and everyone participating in it is governed by our Code of Conduct
 
 ### Prerequisites
 
-- PHP 8.4+ or higher
+- PHP 8.4+
 - Composer
 - Git
 - One of the supported databases (MySQL, PostgreSQL, SQLite)
+- Redis (optional, for caching and queue drivers)
 
 ### Understanding BaseAPI Architecture
 
-BaseAPI is a **framework package** that provides the core functionality. It's designed to be used with the **BaseAPI Template** project:
+BaseAPI is a **high-performance, lightweight PHP 8.4+ framework** that provides comprehensive functionality for building REST APIs. It's designed to be used with the **BaseAPI Template** project:
 
 - **BaseAPI Core** (`timanthonyalexander/base-api`) - The framework package (this repository)
 - **BaseAPI Template** (`baseapi/baseapi-template`) - The project template that users create new projects from
+
+**Key Features:**
+- **High Performance** - <1ms overhead per request, 1,350+ req/s, 0.8MB memory per request
+- **Database Agnostic** - Automatic migrations from model definitions (MySQL, SQLite, PostgreSQL)
+- **Unified Caching** - Multi-driver system (Redis, File, Array) with tagged invalidation
+- **Built-in Security** - CORS, rate limiting, authentication, input validation
+- **Internationalization** - Full i18n with automatic translation providers (OpenAI, DeepL)
+- **Auto Documentation** - Generate OpenAPI specs and TypeScript types
+- **Dependency Injection** - Built-in DI container with auto-wiring
 
 Users create new projects with:
 ```bash
@@ -108,10 +118,29 @@ After making changes to BaseAPI core:
    composer update timanthonyalexander/base-api
    ```
 
-2. **Test the functionality**:
+2. **Set up the test project**:
    ```bash
+   # Generate and apply migrations
+   ./mason migrate:generate
+   ./mason migrate:apply
+   
+   # Start development server
    ./mason serve
    # Test your changes in the running application
+   ```
+   
+   **Common mason commands for testing:**
+   ```bash
+   # Generate models and controllers
+   ./mason make:model TestModel
+   ./mason make:controller TestController
+   
+   # Database operations
+   ./mason migrate:generate  # Generate migrations from model changes
+   ./mason migrate:apply     # Apply migrations to database
+   
+   # Queue operations (if testing queue features)
+   ./mason queue:work        # Start queue worker
    ```
 
 3. **Run BaseAPI core tests**:
@@ -129,9 +158,12 @@ BaseAPI accepts several types of contributions:
 #### Framework Core Contributions
 - **Bug fixes** - Fix issues in the core framework
 - **Feature development** - Add new framework functionality (middleware, database features, CLI commands)
-- **Database drivers** - Add support for new databases (like we recently added PostgreSQL)
-- **Performance improvements** - Optimize framework performance
-- **Security enhancements** - Improve framework security features
+- **Database drivers** - Add support for new databases (MySQL, SQLite, PostgreSQL currently supported)
+- **Performance improvements** - Optimize framework performance (maintain 1,350+ req/s benchmarks)
+- **Security enhancements** - Improve framework security features (CORS, rate limiting, validation)
+- **Caching improvements** - Enhance the unified caching system (Redis, File, Array drivers)
+- **i18n features** - Improve internationalization and translation provider integrations
+- **Auto documentation** - Enhance OpenAPI spec and TypeScript type generation
 
 #### Documentation & Examples
 - **Documentation** - Improve setup guides, API docs, and examples
@@ -375,9 +407,11 @@ Include the following information:
 
 - **BaseAPI version** (check `composer show timanthonyalexander/base-api`)
 - **BaseAPI Template version** (if using template project)
-- **PHP version**
+- **PHP version** (8.4+ required)
 - **Operating system**
-- **Database type and version**
+- **Database type and version** (MySQL, SQLite, or PostgreSQL)
+- **Cache driver** (if using Redis, File, or Array cache)
+- **Queue driver** (if using database or sync queues)
 - **Steps to reproduce** (preferably in a fresh template project)
 - **Expected behavior**
 - **Actual behavior**
@@ -392,6 +426,8 @@ Include the following information:
 **PHP Version:** 8.4.0
 **OS:** macOS 14.0
 **Database:** PostgreSQL 15.2
+**Cache Driver:** Redis 7.0 (or File/Array)
+**Queue Driver:** database (or sync)
 
 **Description:**
 Brief description of the issue
@@ -467,9 +503,11 @@ Any other context, screenshots, or examples.
 BaseAPI follows these principles:
 
 - **KISS (Keep It Simple, Stupid)** - Favor simplicity over complexity
-- **Convention over Configuration** - Sensible defaults with minimal setup
-- **Performance First** - Optimize for speed and efficiency
-- **Developer Experience** - Make common tasks easy and intuitive
+- **Convention over Configuration** - Sensible defaults with minimal setup  
+- **Performance First** - Maintain <1ms framework overhead, 1,350+ req/s throughput, 0.8MB memory per request
+- **Developer Experience** - Make common tasks easy and intuitive with mason CLI tools
+- **Security by Default** - Built-in CORS, rate limiting, validation, and authentication
+- **Database Agnostic** - Support MySQL, SQLite, PostgreSQL with automatic migrations
 - **Backward Compatibility** - Avoid breaking changes when possible
 
 ### Adding New Features
@@ -497,11 +535,17 @@ When adding new database drivers:
 
 ### Performance Considerations
 
-- Profile your changes to ensure they don't degrade performance
-- Use appropriate data structures and algorithms
-- Minimize database queries
-- Cache expensive operations when appropriate
-- Consider memory usage for large datasets
+BaseAPI maintains high performance standards. All contributions should:
+
+- **Maintain performance targets**: <1ms framework overhead, 1,350+ req/s, 0.8MB memory per request
+- **Profile your changes** to ensure they don't degrade performance benchmarks
+- **Use appropriate data structures and algorithms** for optimal efficiency
+- **Minimize database queries** - leverage the unified caching system when possible
+- **Cache expensive operations** using the multi-driver cache system (Redis/File/Array)
+- **Consider memory usage** for large datasets and implement pagination where appropriate
+- **Test against all database drivers** - MySQL, SQLite, PostgreSQL performance may vary
+
+Run performance tests using the benchmark suite when making core changes.
 
 ## Release Process
 
