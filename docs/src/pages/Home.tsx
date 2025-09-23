@@ -63,15 +63,12 @@ const features = [
 const quickStartCode = `composer create-project baseapi/baseapi-template my-api
 cd my-api
 
-# Start the development server
-./mason serve
-
-# Create your first model
-./mason make:model Product
-
-# Generate and apply migrations
+# Generate and apply migrations from models
 ./mason migrate:generate
-./mason migrate:apply`;
+./mason migrate:apply
+
+# Start the development server
+./mason serve`;
 
 export default function Home() {
     return (
