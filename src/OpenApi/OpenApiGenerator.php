@@ -1,150 +1,60 @@
 <?php
 
-namespace BaseApi\Console\Commands;
+declare(strict_types=1);
 
-use Override;
-use BaseApi\Console\Application;
-use Exception;
-use ReflectionUnionType;
-use BaseApi\Console\Command;
-use BaseApi\Console\ColorHelper;
+namespace BaseApi\OpenApi;
+
+use BaseApi\App;
 use BaseApi\Http\Attributes\ResponseType;
 use BaseApi\Http\Attributes\Tag;
-use BaseApi\App;
+use Exception;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionProperty;
-use BaseApi\OpenApi\OpenApiGenerator;
+use ReflectionUnionType;
 
-class TypesGenerateCommand implements Command
+class OpenApiGenerator
 {
-    private OpenApiGenerator $generator;
     private array $routes = [];
     private array $dtoSchemas = [];
 
-    public function __construct()
+    public function generate(): array
     {
-        $this->generator = new OpenApiGenerator();
+        // Step 1: Load and analyze routes
+        $this->loadRoutes();
+
+        // Step 2: Reflect controllers and build component graph
+        $this->analyzeControllers();
+
+        // Step 3: Resolve DTOs recursively
+        $this->resolveDtos();
+
+        // Step 4: Generate OpenAPI specification
+        return $this->generateOpenApiSpec();
     }
 
-    #[Override]
-    public function name(): string
+    public function generateToFile(string $filePath): void
     {
-        return 'types:generate';
-    }
-
-    #[Override]
-    public function description(): string
-    {
-        return 'Generate OpenAPI spec and TypeScript definitions from controllers and routes';
-    }
-
-    #[Override]
-    public function execute(array $args, ?Application $app = null): int
-    {
-        $options = $this->parseArgs($args);
-
-        if (isset($options['help'])) {
-            $this->showHelp();
-            return 0;
-        }
-
-        echo ColorHelper::header("🔧 Generating types from BaseApi controllers and routes...") . "\n";
-
-        try {
-            // Step 1: Generate using OpenApiGenerator
-            echo ColorHelper::info("📖 Analyzing routes and controllers...") . "\n";
-            $spec = $this->generator->generate();
-            
-            // Step 2: Generate OpenAPI if requested
-            if (isset($options['out-openapi'])) {
-                echo ColorHelper::info("🌐 Writing OpenAPI spec...") . "\n";
-                $this->writeOpenApiSpec($spec, $options);
-            }
-
-            // Step 3: Generate TypeScript if requested
-            if (isset($options['out-ts'])) {
-                echo ColorHelper::info("🔷 Generating TypeScript definitions...") . "\n";
-                $this->generateTypeScriptFromSpec($spec, $options);
-            }
-
-            echo ColorHelper::success("Type generation completed!") . "\n";
-            return 0;
-        } catch (Exception $exception) {
-            echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
-            return 1;
-        }
-    }
-
-    private function parseArgs(array $args): array
-    {
-        $options = [];
-
-        foreach ($args as $arg) {
-            if ($arg === '--help' || $arg === '-h') {
-                $options['help'] = true;
-            } elseif (str_starts_with((string) $arg, '--out-ts=')) {
-                $options['out-ts'] = substr((string) $arg, 9);
-            } elseif (str_starts_with((string) $arg, '--out-openapi=')) {
-                $options['out-openapi'] = substr((string) $arg, 14);
-            } elseif (str_starts_with((string) $arg, '--format=')) {
-                $options['format'] = substr((string) $arg, 9);
-            } elseif (str_starts_with((string) $arg, '--schemas-dir=')) {
-                $options['schemas-dir'] = substr((string) $arg, 14);
-            }
-        }
-
-        // Defaults
-        if (!isset($options['format'])) {
-            $options['format'] = 'json';
-        }
-
-        if (!isset($options['out-ts'])) {
-            $options['out-ts'] = 'types.ts';
-        }
-
-        if (!isset($options['out-openapi'])) {
-            $options['out-openapi'] = 'openapi.json';
-        }
-
-        return $options;
-    }
-
-    private function showHelp(): void
-    {
-        echo <<<HELP
-Generate OpenAPI spec and TypeScript definitions
-
-Usage:
-  ./mason types:generate [options]
-
-Options:
-  --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
-  --out-openapi=PATH     Output path for OpenAPI specification (default: openapi.json)
-  --format=FORMAT        OpenAPI format: json (default) or yaml
-  --schemas-dir=PATH     Output directory for individual JSON schemas
-  --help, -h             Show this help message
-
-Examples:
-  ./mason types:generate
-  ./mason types:generate --out-ts=web/types/baseapi.d.ts
-  ./mason types:generate --out-openapi=storage/openapi.json
-  ./mason types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
-
-HELP;
-    }
-
-    private function writeOpenApiSpec(array $spec, array $options): void
-    {
+        $spec = $this->generate();
         $output = json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-        $this->ensureDirectoryExists(dirname((string) $options['out-openapi']));
+        $this->ensureDirectoryExists(dirname($filePath));
 
-        if (file_put_contents($options['out-openapi'], $output) === false) {
-            throw new Exception('Failed to write OpenAPI spec to ' . $options['out-openapi']);
+        if (file_put_contents($filePath, $output) === false) {
+            throw new Exception('Failed to write OpenAPI spec to ' . $filePath);
+        }
+    }
+
+    private function loadRoutes(): void
+    {
+        $routesFile = App::basePath('routes/api.php');
+
+        if (!file_exists($routesFile)) {
+            throw new Exception('Routes file not found: ' . $routesFile);
         }
 
-        echo ColorHelper::success(sprintf('   📄 OpenAPI spec written to %s', $options['out-openapi'])) . "\n";
+        // Parse the routes file manually to avoid conflicts with existing App class
+        $this->parseRoutesFile($routesFile);
     }
 
     private function parseRoutesFile(string $routesFile): void
@@ -154,7 +64,7 @@ HELP;
 
         // Simple regex parsing of router calls
         // Match $router->get('/path', [...]);
-        $pattern = '/\$router->(get|post|delete)\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*\[(.*?)\]\s*,?\s*\);/s';
+        $pattern = '/\$router->(get|post|delete|put|patch)\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*\[(.*?)\]\s*,?\s*\);/s';
 
         if (preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
@@ -182,7 +92,6 @@ HELP;
         }
 
         $this->routes = $routes;
-        echo ColorHelper::success("   Found " . count($this->routes) . " routes") . "\n";
     }
 
     private function resolveClassName(string $shortName, string $content): string
@@ -209,7 +118,6 @@ HELP;
             $controllerClass = end($pipeline); // Last element should be controller
 
             if (!class_exists($controllerClass)) {
-                echo ColorHelper::warning(sprintf('   ⚠️  Controller not found: %s', $controllerClass)) . "\n";
                 continue;
             }
 
@@ -225,6 +133,8 @@ HELP;
         $methodName = match ($method) {
             'GET' => 'get',
             'POST' => 'post',
+            'PUT' => 'put',
+            'PATCH' => 'patch',
             'DELETE' => 'delete',
             default => 'action'
         };
@@ -249,9 +159,6 @@ HELP;
         ];
     }
 
-    /**
-     * @param ReflectionClass<object> $reflection
-     */
     private function getControllerProperties(ReflectionClass $reflection): array
     {
         $properties = [];
@@ -293,9 +200,6 @@ HELP;
         return $parameters;
     }
 
-    /**
-     * @param ReflectionClass<object> $reflection
-     */
     private function getAllParameters(ReflectionClass $reflection, ReflectionMethod $method): array
     {
         $parameters = [];
@@ -309,9 +213,6 @@ HELP;
         return array_merge($parameters, $scalarProperties);
     }
 
-    /**
-     * @param ReflectionClass<object> $reflection
-     */
     private function getScalarProperties(ReflectionClass $reflection): array
     {
         $parameters = [];
@@ -381,9 +282,6 @@ HELP;
         return $responseTypes;
     }
 
-    /**
-     * @param ReflectionClass<object> $class
-     */
     private function getTags(ReflectionClass $class, ReflectionMethod $method): array
     {
         $tags = [];
@@ -424,8 +322,6 @@ HELP;
                 $this->resolveDto($dtoClass);
             }
         }
-
-        echo ColorHelper::success("   Resolved " . count($this->dtoSchemas) . " DTOs") . "\n";
     }
 
     private function resolveDto(string $className): array
@@ -521,7 +417,7 @@ HELP;
         ];
     }
 
-    private function generateOpenApi(array $options): void
+    private function generateOpenApiSpec(): array
     {
         $spec = [
             'openapi' => '3.0.3',
@@ -592,61 +488,7 @@ HELP;
             ]
         ];
 
-        // Write output
-        $output = json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-        $this->ensureDirectoryExists(dirname((string) $options['out-openapi']));
-
-        if (file_put_contents($options['out-openapi'], $output) === false) {
-            throw new Exception('Failed to write OpenAPI spec to ' . $options['out-openapi']);
-        }
-
-        echo ColorHelper::success(sprintf('   📄 OpenAPI spec written to %s', $options['out-openapi'])) . "\n";
-    }
-
-    private function generateTypeScript(array $options): void
-    {
-        $ts = [];
-
-        // Header and base types
-        $ts[] = "// Generated TypeScript definitions for BaseApi";
-        $ts[] = "// Do not edit manually - regenerate with: ./mason types:generate";
-        $ts[] = "";
-        $ts[] = "export type UUID = string;";
-        $ts[] = "export type Envelope<T> = { data: T };";
-        $ts[] = "";
-        $ts[] = "export interface ErrorResponse {";
-        $ts[] = "  error: string;";
-        $ts[] = "  requestId: string;";
-        $ts[] = "  errors?: Record<string, string>;";
-        $ts[] = "}";
-        $ts[] = "";
-
-        // Generate DTO interfaces
-        foreach ($this->dtoSchemas as $schema) {
-            $ts = array_merge($ts, $this->generateTypeScriptInterface($schema));
-            $ts[] = "";
-        }
-
-        // Generate request/response types for each route
-        foreach ($this->routes as $route) {
-            if (!isset($route['controller'])) {
-                continue;
-            }
-
-            $ts = array_merge($ts, $this->generateTypeScriptOperation($route));
-            $ts[] = "";
-        }
-
-        $output = implode("\n", $ts);
-
-        $this->ensureDirectoryExists(dirname((string) $options['out-ts']));
-
-        if (file_put_contents($options['out-ts'], $output) === false) {
-            throw new Exception('Failed to write TypeScript definitions to ' . $options['out-ts']);
-        }
-
-        echo ColorHelper::success(sprintf('   📘 TypeScript definitions written to %s', $options['out-ts'])) . "\n";
+        return $spec;
     }
 
     private function convertPathToOpenApi(string $path): string
@@ -679,13 +521,13 @@ HELP;
             ];
         }
 
-        // Add query parameters (GET) or request body (POST)
+        // Add query parameters (GET) or request body (POST, PUT, PATCH)
         if ($method === 'get') {
             $operation['parameters'] = array_merge(
                 $operation['parameters'],
                 $this->generateQueryParameters($controller['parameters'], $matches[1])
             );
-        } elseif ($method === 'post') {
+        } elseif (in_array($method, ['post', 'put', 'patch'])) {
             $bodySchema = $this->generateRequestBodySchema($controller['parameters'], $matches[1]);
             if (!empty($bodySchema['properties'])) {
                 $operation['requestBody'] = [
@@ -842,137 +684,6 @@ HELP;
         };
     }
 
-    private function generateTypeScriptInterface(array $schema): array
-    {
-        $lines = [];
-        $lines[] = sprintf('export interface %s {', $schema['shortName']);
-
-        foreach ($schema['properties'] as $prop) {
-            $tsType = $this->phpTypeToTypeScript($prop);
-            $optional = $prop['nullable'] ? '?' : '';
-            $lines[] = sprintf('  %s%s: %s;', $prop['name'], $optional, $tsType);
-        }
-
-        $lines[] = "}";
-        return $lines;
-    }
-
-    private function phpTypeToTypeScript(array $prop): string
-    {
-        $baseType = $prop['className']
-            ? $this->getShortClassName($prop['className'])
-            : $this->phpTypeToTsType($prop['type']);
-
-        if ($prop['isArray']) {
-            $baseType .= '[]';
-        }
-
-        if ($prop['nullable']) {
-            $baseType .= ' | null';
-        }
-
-        return $baseType;
-    }
-
-    private function phpTypeToTsType(string $phpType): string
-    {
-        return match ($phpType) {
-            'integer', 'int' => 'number',
-            'number', 'float' => 'number',
-            'string' => 'string',
-            'boolean', 'bool' => 'boolean',
-            'array' => 'any[]',
-            default => 'any'
-        };
-    }
-
-    private function generateTypeScriptOperation(array $route): array
-    {
-        $controller = $route['controller'];
-        $operationName = $this->generateOperationName($route);
-        $lines = [];
-
-        // Generate path parameters interface
-        $pathParams = $this->getPathParameters($route['path'], $controller['parameters']);
-        if ($pathParams !== []) {
-            $lines[] = sprintf('export interface %sRequestPath {', $operationName);
-            foreach ($pathParams as $param) {
-                $tsType = $this->phpTypeToTsType($param['type']);
-                $lines[] = sprintf('  %s: %s;', $param['name'], $tsType);
-            }
-
-            $lines[] = "}";
-            $lines[] = "";
-        }
-
-        // Generate query/body parameters interface
-        $bodyParams = $this->getBodyParameters($route, $controller['parameters']);
-        if ($bodyParams !== []) {
-            $interfaceType = $route['method'] === 'GET' ? 'Query' : 'Body';
-            $lines[] = sprintf('export interface %sRequest%s {', $operationName, $interfaceType);
-            foreach ($bodyParams as $param) {
-                $tsType = $this->phpTypeToTsType($param['type']);
-                $optional = $param['nullable'] || $param['hasDefault'] ? '?' : '';
-                $lines[] = sprintf('  %s%s: %s;', $param['name'], $optional, $tsType);
-            }
-
-            $lines[] = "}";
-            $lines[] = "";
-        }
-
-        // Generate response types
-        if (!empty($controller['responseTypes'])) {
-            $responseUnions = [];
-            foreach ($controller['responseTypes'] as $responseType) {
-                $shapeInfo = $responseType->getShapeInfo();
-                $tsType = $this->convertShapeToTypeScript($shapeInfo);
-                $responseUnions[] = sprintf('Envelope<%s>', $tsType);
-            }
-
-            $lines[] = sprintf('export type %sResponse = ', $operationName) . implode(' | ', $responseUnions) . ";";
-        } else {
-            $lines[] = sprintf('export type %sResponse = Envelope<any>;', $operationName);
-        }
-
-        return $lines;
-    }
-
-    private function convertShapeToTypeScript(array $shapeInfo): string
-    {
-        switch ($shapeInfo['type']) {
-            case 'null':
-                return 'null';
-
-            case 'class':
-                return $this->getShortClassName($shapeInfo['class']);
-
-            case 'array':
-                if (class_exists($shapeInfo['items'])) {
-                    return $this->getShortClassName($shapeInfo['items']) . '[]';
-                }
-
-                return $this->phpTypeToTsType($shapeInfo['items']) . '[]';
-
-            case 'object':
-                $props = [];
-                foreach ($shapeInfo['properties'] as $propName => $propType) {
-                    $tsType = $this->phpTypeToTsType($propType);
-                    $props[] = sprintf('%s: %s', $propName, $tsType);
-                }
-
-                return '{ ' . implode('; ', $props) . ' }';
-
-            default:
-                return 'any';
-        }
-    }
-
-    private function getShortClassName(string $fullClassName): string
-    {
-        $parts = explode('\\', $fullClassName);
-        return end($parts);
-    }
-
     private function generateOperationSummary(array $route): string
     {
         $controller = $this->getShortClassName($route['controller']['class']);
@@ -989,15 +700,10 @@ HELP;
         return $method . $controller . $pathSuffix;
     }
 
-    private function generateOperationName(array $route): string
+    private function getShortClassName(string $fullClassName): string
     {
-        $controller = str_replace('Controller', '', $this->getShortClassName($route['controller']['class']));
-        $method = ucfirst(strtolower((string) $route['method']));
-
-        // Add path parameters to make operation names unique
-        $pathSuffix = $this->getPathSuffix($route['path']);
-
-        return $method . $controller . $pathSuffix;
+        $parts = explode('\\', $fullClassName);
+        return end($parts);
     }
 
     private function getPathSuffix(string $path): string
@@ -1071,135 +777,10 @@ HELP;
         return $schema;
     }
 
-    private function getPathParameters(string $path, array $parameters): array
-    {
-        $params = [];
-        preg_match_all('/\{(\w+)\}/', $path, $matches);
-
-        foreach ($matches[1] as $paramName) {
-            foreach ($parameters as $param) {
-                if ($param['name'] === $paramName) {
-                    $params[] = $param;
-                    break;
-                }
-            }
-        }
-
-        return $params;
-    }
-
-    private function getBodyParameters(array $route, array $parameters): array
-    {
-        $pathParamNames = [];
-        preg_match_all('/\{(\w+)\}/', (string) $route['path'], $matches);
-        if ($matches[1] !== []) {
-            $pathParamNames = $matches[1];
-        }
-
-        $bodyParams = [];
-        foreach ($parameters as $param) {
-            if (!in_array($param['name'], $pathParamNames)) {
-                $bodyParams[] = $param;
-            }
-        }
-
-        return $bodyParams;
-    }
-
     private function ensureDirectoryExists(string $directory): void
     {
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
             throw new Exception('Failed to create directory: ' . $directory);
         }
-    }
-
-    /**
-     * Generate a temporary PHP file with mock App class
-     * 
-     * @return string Path to the generated temporary file
-     * @throws Exception If file generation fails
-     */
-    private function generateMockAppClass(): string
-    {
-        $namespace = 'BaseApi';
-        $className = 'App';
-
-        // Validate namespace and class name to prevent code injection
-        if (!$this->isValidPhpIdentifier($namespace)) {
-            throw new Exception('Invalid namespace: ' . $namespace);
-        }
-
-        if (!$this->isValidPhpIdentifier($className)) {
-            throw new Exception('Invalid class name: ' . $className);
-        }
-
-        $mockClassContent = $this->generateMockClassContent($namespace, $className);
-
-        // Generate temporary file - fix tempnam() leak by renaming
-        $tempFile = tempnam(sys_get_temp_dir(), 'baseapi_mock_');
-        if ($tempFile === false) {
-            throw new Exception('Failed to create temporary file');
-        }
-
-        // Rename to .php extension to avoid file leak
-        $phpTempFile = $tempFile . '.php';
-        if (!rename($tempFile, $phpTempFile)) {
-            @unlink($tempFile); // Clean up original if rename fails
-            throw new Exception('Failed to rename temporary file');
-        }
-
-        if (file_put_contents($phpTempFile, $mockClassContent) === false) {
-            @unlink($phpTempFile);
-            throw new Exception('Failed to write mock class to temporary file');
-        }
-
-        return $phpTempFile;
-    }
-
-    /**
-     * Generate the actual PHP code for the mock class
-     */
-    private function generateMockClassContent(string $namespace, string $className): string
-    {
-        return <<<PHP
-<?php
-namespace {$namespace} {
-    class {$className} {
-        private static \$mockRouter;
-        
-        public static function setMockRouter(\$router): void 
-        { 
-            self::\$mockRouter = \$router; 
-        }
-        
-        public static function router() 
-        { 
-            return self::\$mockRouter; 
-        }
-    }
-}
-PHP;
-    }
-
-    /**
-     * Validate that a string is a valid PHP identifier (namespace or class name)
-     * Validates each namespace segment separately to handle backslashes correctly
-     */
-    private function isValidPhpIdentifier(string $identifier): bool
-    {
-        // Pattern for individual PHP identifier segments (no backslashes)
-        $segmentPattern = '/^[A-Za-z_\x7f-\xff][A-Za-z0-9_\x7f-\xff]*$/';
-        
-        // Split by backslashes and validate each segment
-        $segments = explode('\\', $identifier);
-        
-        foreach ($segments as $segment) {
-            // Empty segments are invalid (e.g., leading/trailing/double backslashes)
-            if ($segment === '' || !preg_match($segmentPattern, $segment)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
