@@ -18,12 +18,9 @@ class OpenApiCache
 
     public function get(): ?array
     {
-        // First try to get from memory cache if available
-        if (class_exists('BaseApi\Cache\Cache')) {
-            $cached = Cache::get(self::CACHE_KEY);
-            if ($cached !== null) {
-                return $cached;
-            }
+        $cached = Cache::get(self::CACHE_KEY);
+        if ($cached !== null) {
+            return $cached;
         }
 
         // Fallback to file-based cache
