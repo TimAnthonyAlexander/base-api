@@ -3,3 +3,6 @@ vendor
 
 # Rector cache
 var/cache/rector
+
+build/logs
+.phpunit.cache
