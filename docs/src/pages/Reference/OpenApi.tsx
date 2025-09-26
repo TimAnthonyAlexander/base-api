@@ -32,17 +32,17 @@ export default function OpenAPI() {
                 Use the BaseAPI CLI to generate OpenAPI specifications:
             </Typography>
 
-            <CodeBlock language="bash" code={`# Generate OpenAPI specification only
-./mason types:generate --openapi
-
-# Generate both OpenAPI and TypeScript types
-./mason types:generate --openapi --typescript
+            <CodeBlock language="bash" code={`# Generate both OpenAPI and TypeScript (default behavior)
+./mason types:generate
 
 # Generate with custom output paths
-./mason types:generate --openapi --output-openapi custom-api.json
+./mason types:generate --out-openapi=custom-api.json --out-ts=my-types.d.ts
 
-# Generate for specific version
-./mason types:generate --openapi --version "1.2.0"`} />
+# Generate only OpenAPI specification
+./mason types:generate --out-openapi=openapi.json
+
+# Generate with YAML format (not yet implemented)
+./mason types:generate --format=yaml`} />
 
             <Typography>
                 This generates an <code>openapi.json</code> file in your project root containing the complete
@@ -72,8 +72,8 @@ export default function OpenAPI() {
                 </ListItem>
                 <ListItem>
                     <ListItemText
-                        primary="Validation Rules"
-                        secondary="Parameter validation requirements from controller validation rules"
+                        primary="Request Parameters"
+                        secondary="Path, query, and body parameters from controller properties"
                     />
                 </ListItem>
                 <ListItem>
@@ -133,14 +133,13 @@ class UserController extends Controller
             <CodeBlock language="json" code={`{
   "openapi": "3.0.3",
   "info": {
-    "title": "BaseAPI Application",
+    "title": "BaseApi",
     "version": "1.0.0",
-    "description": "API documentation generated from BaseAPI"
+    "description": "Generated API documentation from BaseApi controllers"
   },
   "servers": [
     {
-      "url": "http://localhost:7879",
-      "description": "Development server"
+      "url": "http://localhost:7879"
     }
   ],
   "paths": {
@@ -193,7 +192,7 @@ class UserController extends Controller
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ValidationError"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -278,28 +277,23 @@ class UserController extends Controller
           }
         }
       },
-      "ValidationError": {
+      "ErrorResponse": {
         "type": "object",
         "properties": {
           "error": {
             "type": "string"
           },
-          "message": {
+          "requestId": {
             "type": "string"
           },
           "errors": {
             "type": "object",
             "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "type": "string"
             }
-          },
-          "status": {
-            "type": "integer"
           }
-        }
+        },
+        "required": ["error", "requestId"]
       }
     }
   }
@@ -367,33 +361,50 @@ dredd openapi.json http://localhost:7879`} />
             </Typography>
 
             <Typography>
-                You can customize the generated OpenAPI specification using PHP attributes:
+                You can customize the generated OpenAPI specification using PHP attributes. The main attributes are:
+            </Typography>
+            
+            <List sx={{ my: 2 }}>
+                <ListItem>
+                    <ListItemText
+                        primary="#[ResponseType]"
+                        secondary="Defines the response data shape and status codes for controller methods"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="#[Tag]"
+                        secondary="Groups endpoints by category in the generated documentation"
+                    />
+                </ListItem>
+            </List>
+            
+            <Typography>
+                Example usage:
             </Typography>
 
             <CodeBlock language="php" code={`<?php
-use BaseApi\\Http\\Attributes\\OpenAPI;
+use BaseApi\\Http\\Attributes\\ResponseType;
+use BaseApi\\Http\\Attributes\\Tag;
 
-#[OpenAPI\\Operation(
-    summary: 'Create a new user account',
-    description: 'Creates a new user with the provided information. Email must be unique.',
-    tags: ['Users', 'Authentication']
-)]
+#[Tag('Users', 'Authentication')]
 class UserController extends Controller
 {
-    #[OpenAPI\\Parameter(
-        description: 'User ID (UUID format)',
-        example: '123e4567-e89b-12d3-a456-426614174000'
-    )]
     public string $id = '';
+    public string $name = '';
+    public string $email = '';
+    public int $age = 0;
     
-    #[OpenAPI\\RequestBody(
-        description: 'User creation data',
-        example: [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'age' => 25
-        ]
-    )]
+    #[ResponseType(User::class)]
+    public function get(): JsonResponse
+    {
+        // GET /users/{id} - returns single user
+        $user = User::find($this->id);
+        return JsonResponse::ok($user->jsonSerialize());
+    }
+    
+    #[ResponseType(User::class, status: 201, when: 'created')]
+    #[ResponseType(['error' => 'string', 'errors' => 'array'], status: 422, when: 'validation_failed')]
     public function post(): JsonResponse
     {
         $this->validate([
@@ -403,29 +414,55 @@ class UserController extends Controller
         ]);
         
         // Implementation...
+        $user = new User();
+        // ... create user
+        return JsonResponse::created($user->jsonSerialize());
     }
 }`} />
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                ResponseType Attribute Options
+            </Typography>
+            
+            <Typography>
+                The ResponseType attribute supports several formats:
+            </Typography>
+            
+            <CodeBlock language="php" code={`// Class reference - single object
+#[ResponseType(User::class)]
+
+// Array of objects  
+#[ResponseType('User[]')]
+
+// Custom status code and condition
+#[ResponseType(User::class, status: 201, when: 'created')]
+
+// Inline object shape
+#[ResponseType(['message' => 'string', 'count' => 'int'])]
+
+// Multiple response types for different scenarios
+#[ResponseType(User::class, status: 200, when: 'success')]
+#[ResponseType(['error' => 'string'], status: 404, when: 'not_found')]`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Configuration Options
             </Typography>
 
             <Typography>
-                Configure OpenAPI generation in your environment or CLI options:
+                BaseAPI automatically generates OpenAPI specs with minimal configuration required:
             </Typography>
 
-            <CodeBlock language="bash" code={`# Environment variables for OpenAPI generation
-OPENAPI_TITLE="My API"
-OPENAPI_VERSION="2.1.0"
-OPENAPI_DESCRIPTION="My awesome API built with BaseAPI"
-OPENAPI_CONTACT_NAME="API Support"
-OPENAPI_CONTACT_EMAIL="api-support@example.com"
-OPENAPI_LICENSE_NAME="MIT"
-OPENAPI_LICENSE_URL="https://opensource.org/licenses/MIT"
+            <CodeBlock language="bash" code={`# Environment variables used for OpenAPI generation
+APP_URL="https://api.example.com"  # Used for server URL in spec
 
-# Server configuration
-OPENAPI_SERVER_URL="https://api.example.com"
-OPENAPI_SERVER_DESCRIPTION="Production server"`} />
+# CLI options for types:generate command
+./mason types:generate --help
+
+# Available options:
+#   --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
+#   --out-openapi=PATH     Output path for OpenAPI specification (default: openapi.json)
+#   --format=FORMAT        OpenAPI format: json (default) or yaml (not yet implemented)
+#   --schemas-dir=PATH     Output directory for individual JSON schemas (not yet implemented)`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Integration with CI/CD
@@ -456,7 +493,7 @@ jobs:
         run: composer install --no-dev --optimize-autoloader
         
       - name: Generate OpenAPI spec
-        run: ./mason types:generate --openapi --typescript
+        run: ./mason types:generate
         
       - name: Deploy docs
         run: |

@@ -54,7 +54,7 @@ APP_ENV=production
 ./mason migrate:apply
 
 # Generate API docs
-./mason types:generate --openapi --typescript`} />
+./mason types:generate`} />
                 </AccordionDetails>
             </Accordion>
 

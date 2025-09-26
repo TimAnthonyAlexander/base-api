@@ -64,7 +64,7 @@ export default function CLIOverview() {
 ./mason migrate:apply
 
 # 6. Generate API documentation
-./mason types:generate --openapi --typescript`} />
+./mason types:generate`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Complete Command Reference
@@ -248,8 +248,8 @@ export default function CLIOverview() {
                             <TableCell>Generate OpenAPI specs and TypeScript types</TableCell>
                             <TableCell>
                                 <code>./mason types:generate</code><br />
-                                <code>./mason types:generate --openapi --typescript</code><br />
-                                <code>./mason types:generate --output=dist/</code>
+                                <code>./mason types:generate --out-ts=types.d.ts</code><br />
+                                <code>./mason types:generate --out-openapi=api.json</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
