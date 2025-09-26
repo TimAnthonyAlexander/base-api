@@ -32,17 +32,11 @@ cd my-api
 ```
 
 This will create a new project in the `my-api` directory.
-It will contain a User model, and some basic controllers:
-
-```php
-app/Controllers/MeController.php
-app/Controllers/LoginController.php
-app/Controllers/HealthController.php
-app/Controllers/SignupController.php
-app/Controllers/LogoutController.php
-```
+It will contain a User model, and some basic controllers and configs.
 
 From there, you can easily create new models and controllers and immediately start building your API.
+
+Project ideas are available in the [PROJECT_IDEAS](PROJECT_IDEAS.md) file.
 
 ## 📖 Usage
 
