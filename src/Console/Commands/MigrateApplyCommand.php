@@ -159,7 +159,9 @@ class MigrateApplyCommand implements Command
 
                 echo ColorHelper::success(sprintf('  ✓ Table %s completed successfully', $table)) . "\n";
             } catch (Exception $e) {
-                throw new Exception(ColorHelper::error(sprintf('Failed to execute migration for table %s: ', $table)) . $e->getMessage(), $e->getCode(), $e);
+                // Convert PDO error code to int since Exception constructor expects int
+                $code = is_numeric($e->getCode()) ? (int)$e->getCode() : 0;
+                throw new Exception(ColorHelper::error(sprintf('Failed to execute migration for table %s: ', $table)) . $e->getMessage(), $code, $e);
             }
         }
 
