@@ -47,8 +47,8 @@ export default function ApiTokenAuth() {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
                 <Chip label="AuthMiddleware" color="default" variant="outlined" />
-                <Chip label="ApiTokenAuthMiddleware" color="primary" variant="outlined" />
-                <Chip label="CombinedAuthMiddleware" color="secondary" variant="outlined" />
+                <Chip label="App\Middleware\ApiTokenAuthMiddleware" color="primary" variant="outlined" />
+                <Chip label="App\Middleware\CombinedAuthMiddleware" color="secondary" variant="outlined" />
             </Box>
 
             <CodeBlock language="php" code={`<?php
@@ -61,13 +61,13 @@ $router->get('/me', [
 
 // API token-only authentication (new)
 $router->get('/api/me', [
-    ApiTokenAuthMiddleware::class,
+    App\Middleware\ApiTokenAuthMiddleware::class,
     MeController::class,
 ]);
 
 // Combined authentication - supports both (new)
 $router->get('/profile', [
-    CombinedAuthMiddleware::class,
+    App\Middleware\App\\Middleware\\CombinedAuthMiddleware::class,
     MeController::class,
 ]);`} />
 
@@ -217,13 +217,13 @@ $router->get('/api-tokens', [AuthMiddleware::class, ApiTokenController::class]);
 
 // Public API routes (token auth for external integrations) 
 $router->get('/api/users', [
-    ApiTokenAuthMiddleware::class, 
+    App\\Middleware\\ApiTokenAuthMiddleware::class, 
     RateLimitMiddleware::class => ['limit' => '100/1h'],
     UserController::class
 ]);
 
 // Shared endpoints (both auth methods supported)
-$router->get('/profile', [CombinedAuthMiddleware::class, ProfileController::class]);`} />
+$router->get('/profile', [App\\Middleware\\CombinedAuthMiddleware::class, ProfileController::class]);`} />
 
             <Typography variant="h3" gutterBottom sx={{ mt: 3, mb: 2 }}>
                 2. Mobile App Integration
@@ -233,14 +233,14 @@ $router->get('/profile', [CombinedAuthMiddleware::class, ProfileController::clas
 
 // Mobile apps can use either tokens (native) or sessions (web view)
 $router->get('/api/posts', [
-    CombinedAuthMiddleware::class,
+    App\\Middleware\\CombinedAuthMiddleware::class,
     RateLimitMiddleware::class => ['limit' => '200/1h'],
     PostController::class
 ]);
 
 // Push notification endpoints (token-only for background services)
 $router->post('/api/notifications/register', [
-    ApiTokenAuthMiddleware::class,
+    App\\Middleware\\ApiTokenAuthMiddleware::class,
     NotificationController::class
 ]);`} />
 
@@ -252,14 +252,14 @@ $router->post('/api/notifications/register', [
 
 // Strict token-only authentication for external services
 $router->post('/webhook/payments', [
-    ApiTokenAuthMiddleware::class,
+    App\\Middleware\\ApiTokenAuthMiddleware::class,
     RateLimitMiddleware::class => ['limit' => '1000/1h'],
     WebhookController::class
 ]);
 
 // API for partner integrations
 $router->get('/api/export/data', [
-    ApiTokenAuthMiddleware::class,
+    App\\Middleware\\ApiTokenAuthMiddleware::class,
     RateLimitMiddleware::class => ['limit' => '50/1h'],
     ExportController::class
 ]);`} />
@@ -283,7 +283,7 @@ $router->get('/api/export/data', [
 $router->get('/users', [AuthMiddleware::class, UserController::class]);
 
 // Option 2: Switch to combined auth to support both methods
-$router->get('/users', [CombinedAuthMiddleware::class, UserController::class]);
+$router->get('/users', [App\\Middleware\\CombinedAuthMiddleware::class, UserController::class]);
 
 // Option 3: Create parallel API routes
 $router->get('/api/users', [ApiTokenAuthMiddleware::class, UserController::class]);`} />
@@ -310,7 +310,7 @@ $router->get('/api/users', [ApiTokenAuthMiddleware::class, UserController::class
 
 // Different rate limits for different auth methods
 $router->get('/api/data', [
-    ApiTokenAuthMiddleware::class,
+    App\\Middleware\\ApiTokenAuthMiddleware::class,
     RateLimitMiddleware::class => ['limit' => '1000/1h'], // Higher limit for authenticated API
     DataController::class
 ]);
