@@ -98,6 +98,7 @@ export const NAV: NavNode[] = [
         icon: 'security',
         children: [
             { title: 'Overview', path: '/security/overview', icon: 'visibility' },
+            { title: 'API Token Auth', path: '/security/api-token-auth', icon: 'key' },
         ]
     },
     {

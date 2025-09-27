@@ -23,6 +23,8 @@ class Request
     public array $session;
 
     public ?array $user = null;
+    
+    public ?string $authMethod = null;
 
     public string $requestId;
 

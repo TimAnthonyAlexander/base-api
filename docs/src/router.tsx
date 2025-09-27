@@ -32,6 +32,7 @@ const CLIOverview = lazy(() => import('./pages/CLI/Overview'));
 const DevelopmentDebugging = lazy(() => import('./pages/Development/Debugging'));
 const I18nOverview = lazy(() => import('./pages/I18n/Overview'));
 const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
+const SecurityApiTokenAuth = lazy(() => import('./pages/Security/ApiTokenAuth'));
 const GuidesCrudApi = lazy(() => import('./pages/Guides/CrudApi'));
 const ReferenceOpenApi = lazy(() => import('./pages/Reference/OpenApi'));
 const ReferenceHttpResponses = lazy(() => import('./pages/Reference/HttpResponses'));
@@ -91,6 +92,7 @@ const router = createBrowserRouter([
 
             // Security
             { path: 'security/overview', element: <SecurityOverview /> },
+            { path: 'security/api-token-auth', element: <SecurityApiTokenAuth /> },
 
             // Guides
             { path: 'guides/crud-api', element: <GuidesCrudApi /> },
