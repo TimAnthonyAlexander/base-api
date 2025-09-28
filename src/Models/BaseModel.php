@@ -706,37 +706,58 @@ abstract class BaseModel implements \JsonSerializable
     private function getInsertData(): array
     {
         $data = [];
-        $reflection = new \ReflectionClass($this);
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $ref = new \ReflectionClass($this);
+        $props = $ref->getProperties(\ReflectionProperty::IS_PUBLIC);
 
-        foreach ($properties as $property) {
-            // Skip static properties
-            if ($property->isStatic()) {
+        foreach ($props as $prop) {
+            if ($prop->isStatic()) {
                 continue;
             }
 
-            $name = $property->getName();
+            $name = $prop->getName();
+            $type = $prop->getType();
 
-            // Skip relationship properties (BaseModel subclasses)
-            if ($property->hasType()) {
-                $type = $property->getType();
-                if ($type instanceof \ReflectionNamedType) {
-                    $typeName = $type->getName();
-                    if (is_subclass_of($typeName, BaseModel::class)) {
-                        continue; // Skip relationship properties entirely
+            // Collect constituent types as ReflectionNamedType only
+            $namedTypes = [];
+            if ($type instanceof \ReflectionNamedType) {
+                $namedTypes = [$type];
+            } elseif ($type instanceof \ReflectionUnionType || $type instanceof \ReflectionIntersectionType) {
+                foreach ($type->getTypes() as $t) {
+                    if ($t instanceof \ReflectionNamedType) {
+                        $namedTypes[] = $t;
                     }
                 }
             }
 
-            // Skip uninitialized typed properties
-            if ($property->hasType() && !$property->isInitialized($this)) {
+            // Is this property a relation to a BaseModel subclass?
+            $isRelation = false;
+            foreach ($namedTypes as $nt) {
+                $typeName = $nt->getName(); // safe: $nt is ReflectionNamedType
+                if (!$nt->isBuiltin() && is_subclass_of($typeName, \BaseApi\Models\BaseModel::class)) {
+                    $isRelation = true;
+                    break;
+                }
+            }
+
+            if ($isRelation) {
+                if ($prop->isInitialized($this)) {
+                    $rel = $prop->getValue($this);
+                    if ($rel instanceof \BaseApi\Models\BaseModel) {
+                        $data[$name . '_id'] = $rel->id;
+                    }
+                }
                 continue;
             }
 
-            $value = $property->getValue($this);
+            // Skip uninitialized typed properties
+            if ($prop->hasType() && !$prop->isInitialized($this)) {
+                continue;
+            }
 
-            // Skip timestamps for insert (let DB handle them)
-            if (in_array($name, ['created_at', 'updated_at']) && $value === null) {
+            $value = $prop->getValue($this);
+
+            // Let DB handle timestamps if null
+            if (in_array($name, ['created_at', 'updated_at'], true) && $value === null) {
                 continue;
             }
 
