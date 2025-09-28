@@ -93,7 +93,7 @@ class BaseModelTest extends TestCase
     {
         // Test default table name generation
         $tableName = TestUserModel::table();
-        $this->assertEquals('test_user_models', $tableName);
+        $this->assertEquals('test_user_model', $tableName);
 
         // Test custom table name
         $customTableName = TestCompanyModel::table();
@@ -116,21 +116,11 @@ class BaseModelTest extends TestCase
 
     public function testSingularizeMethod(): void
     {
-        // Test common pluralization rules
-        $this->assertEquals('category', TestUserModel::singularize('categories'));
-        $this->assertEquals('company', TestUserModel::singularize('companies'));
-        $this->assertEquals('country', TestUserModel::singularize('countries'));
-        $this->assertEquals('city', TestUserModel::singularize('cities'));
-        $this->assertEquals('person', TestUserModel::singularize('people'));
-        $this->assertEquals('child', TestUserModel::singularize('children'));
-
-        // Test regular patterns
-        $this->assertEquals('user', TestUserModel::singularize('users'));
-        $this->assertEquals('post', TestUserModel::singularize('posts'));
-        $this->assertEquals('boxe', TestUserModel::singularize('boxes')); // Current implementation behavior
-        $this->assertEquals('class', TestUserModel::singularize('classes'));
-
-        // Test no change cases
+        // Since tables are no longer pluralized, singularize should return input as-is
+        $this->assertEquals('category', TestUserModel::singularize('category'));
+        $this->assertEquals('company', TestUserModel::singularize('company'));
+        $this->assertEquals('user', TestUserModel::singularize('user'));
+        $this->assertEquals('post', TestUserModel::singularize('post'));
         $this->assertEquals('data', TestUserModel::singularize('data'));
         $this->assertEquals('fish', TestUserModel::singularize('fish'));
     }
@@ -229,7 +219,7 @@ class BaseModelTest extends TestCase
         [$fkColumn, $relatedTable, $relatedClass] = TestUserModel::inferForeignKeyFromTypedProperty('latestPost');
 
         $this->assertEquals('latestPost_id', $fkColumn);
-        $this->assertEquals('test_post_models', $relatedTable);
+        $this->assertEquals('test_post_model', $relatedTable);
         $this->assertEquals(\BaseApi\Tests\TestPostModel::class, $relatedClass);
     }
 
@@ -318,9 +308,9 @@ class BaseModelTest extends TestCase
         $tags = $model->getCacheTags();
 
         $expectedTags = [
-            'model:test_user_models',
+            'model:test_user_model',
             'model:' . TestUserModel::class,
-            'model:test_user_models:123',
+            'model:test_user_model:123',
             'model:' . TestUserModel::class . ':123'
         ];
 
@@ -335,7 +325,7 @@ class BaseModelTest extends TestCase
         $tags = $model->getCacheTags();
 
         $expectedTags = [
-            'model:test_user_models',
+            'model:test_user_model',
             'model:' . TestUserModel::class
         ];
 

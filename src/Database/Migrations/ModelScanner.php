@@ -152,22 +152,15 @@ class ModelScanner
             }
         }
 
-        // Infer from class name: UserPost -> user_posts
+        // Infer from class name: UserPost -> user_post
         $className = $reflection->getShortName();
         return $this->classNameToTableName($className);
     }
 
     private function classNameToTableName(string $className): string
     {
-        // Convert PascalCase to snake_case and pluralize
-        $snakeCase = strtolower((string) preg_replace('/([A-Z])/', '_$1', lcfirst($className)));
-
-        // Simple pluralization (just add 's' for now)
-        if (!str_ends_with($snakeCase, 's')) {
-            $snakeCase .= 's';
-        }
-
-        return $snakeCase;
+        // Convert PascalCase to snake_case (no pluralization)
+        return strtolower((string) preg_replace('/([A-Z])/', '_$1', lcfirst($className)));
     }
 
     private function snakeCaseToPascalCase(string $snakeCase): string

@@ -39,15 +39,8 @@ abstract class BaseModel implements \JsonSerializable
         // Convert ClassName to table_name
         $className = (new \ReflectionClass(static::class))->getShortName();
 
-        // Convert PascalCase to snake_case and pluralize
+        // Convert PascalCase to snake_case (no pluralization)
         $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $className));
-
-        // Simple pluralization
-        if (str_ends_with($tableName, 'y')) {
-            $tableName = substr($tableName, 0, -1) . 'ies';
-        } else {
-            $tableName .= 's';
-        }
 
         return $tableName;
     }
@@ -488,42 +481,12 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /**
-     * Simple singularization with common irregular cases
+     * Return the table name as-is since tables are no longer pluralized
      */
-    public static function singularize(string $plural): string
+    public static function singularize(string $tableName): string
     {
-        // Handle common irregular cases
-        $irregulars = [
-            'categories' => 'category',
-            'companies' => 'company',
-            'countries' => 'country',
-            'cities' => 'city',
-            'people' => 'person',
-            'children' => 'child',
-        ];
-
-        if (isset($irregulars[$plural])) {
-            return $irregulars[$plural];
-        }
-
-        // Handle regular patterns
-        if (str_ends_with($plural, 'ies')) {
-            return substr($plural, 0, -3) . 'y';
-        }
-
-        if (str_ends_with($plural, 'ves')) {
-            return substr($plural, 0, -3) . 'f';
-        }
-
-        if (str_ends_with($plural, 'ses') || str_ends_with($plural, 'shes') || str_ends_with($plural, 'ches')) {
-            return substr($plural, 0, -2);
-        }
-
-        if (str_ends_with($plural, 's') && !str_ends_with($plural, 'ss')) {
-            return substr($plural, 0, -1);
-        }
-
-        return $plural; // No change if can't singularize
+        // Since table names are no longer pluralized, just return as-is
+        return $tableName;
     }
 
     public function toArray(): array
