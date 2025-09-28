@@ -23,6 +23,7 @@ export default function ModelsOrm() {
                 Models automatically generate migrations, handle relationships, and provide caching
                 for optimal performance. They use PHP 8.4+ typed properties for automatic data validation.
                 They support eager loading, query caching, and API-ready pagination out of the box.
+                The toArray() method provides clean JSON output with automatic FK mapping and no ORM internals.
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -77,9 +78,8 @@ class User extends BaseModel
     public string $type = '';
     public int $capacity = 1;
     
-    // Define typed relationship property
-    public Hotel $hotel;
-    public string $hotel_id = '';
+    // Define typed relationship properties (single source of truth)
+    public ?Hotel $hotel = null;
     
     /** @var Offer[] */
     public array $offers = [];
@@ -96,10 +96,16 @@ class User extends BaseModel
     }
 }
 
-// Usage
+// Usage examples
 $room = Room::find($id);
+
+// Load individual relationships
 $hotel = $room->hotel()->get();    // Load related hotel
-$offers = $room->offers()->get();  // Load related offers`} />
+$offers = $room->offers()->get();  // Load related offers
+
+// The room's JSON will automatically include hotel_id from the database
+$json = $room->toArray();  // Contains: hotel_id, but not hotel object
+$jsonWithRelations = $room->toArray(true);  // Contains: hotel_id + hotel object`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Eager Loading
@@ -170,14 +176,15 @@ $hotel->save(); // Automatically clears related cache`} />
 
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Best Practices:</strong>
-                <br />• Use typed properties for automatic validation
-                <br />• Define relationships for data integrity
+                <br />• Use typed properties for automatic validation and clean API responses
+                <br />• Define relationships with single source of truth (no duplicate FK properties)
                 <br />• Add indexes for frequently queried columns
                 <br />• Use eager loading to avoid N+1 queries
                 <br />• Leverage caching for expensive queries
                 <br />• Keep business logic in models, HTTP logic in controllers
                 <br />• Use apiQuery() for API endpoints with pagination
                 <br />• Cache expensive queries with cached() method
+                <br />• Use toArray() vs toArray(true) to control JSON output depth
             </Alert>
         </Box>
     );

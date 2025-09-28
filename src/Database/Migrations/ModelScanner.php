@@ -217,7 +217,24 @@ class ModelScanner
         $isPk = $name === 'id';
         $default = null;
 
-        // Special handling for timestamps
+        // Extract default value from property if it has one
+        if ($property->hasDefaultValue()) {
+            $defaultValue = $property->getDefaultValue();
+            
+            // Convert the default value to a string representation suitable for SQL
+            if ($defaultValue !== null) {
+                if (is_bool($defaultValue)) {
+                    $default = $defaultValue ? '1' : '0';
+                } elseif (is_string($defaultValue) || is_numeric($defaultValue)) {
+                    $default = (string) $defaultValue;
+                } else {
+                    // For arrays, objects, etc., convert to JSON string
+                    $default = json_encode($defaultValue);
+                }
+            }
+        }
+
+        // Special handling for timestamps (override extracted defaults)
         if (in_array($name, ['created_at', 'updated_at'])) {
             $sqlType = 'DATETIME';
             if ($name === 'created_at') {
