@@ -23,7 +23,7 @@ export default function ModelsOrm() {
                 Models automatically generate migrations, handle relationships, and provide caching
                 for optimal performance. They use PHP 8.4+ typed properties for automatic data validation.
                 They support eager loading, query caching, and API-ready pagination out of the box.
-                The toArray() method provides clean JSON output with automatic FK mapping and no ORM internals.
+                The toArray() method provides clean JSON output with foreign key fields and no ORM internals.
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -69,7 +69,7 @@ class User extends BaseModel
             </Typography>
 
             <Typography>
-                Models support typed relationships using <code>belongsTo</code> and <code>hasMany</code> methods:
+                Models support relationships using string foreign keys and <code>belongsTo</code> and <code>hasMany</code> methods:
             </Typography>
 
             <CodeBlock language="php" code={`class Room extends BaseModel
@@ -78,11 +78,8 @@ class User extends BaseModel
     public string $type = '';
     public int $capacity = 1;
     
-    // Define typed relationship properties (single source of truth)
-    public ?Hotel $hotel = null;
-    
-    /** @var Offer[] */
-    public array $offers = [];
+    // Use string foreign keys directly (single source of truth)
+    public string $hotel_id = '';
     
     // Define relationship methods
     public function hotel(): BelongsTo
@@ -96,6 +93,20 @@ class User extends BaseModel
     }
 }
 
+class Offer extends BaseModel
+{
+    public string $name = '';
+    public float $price = 0.0;
+    
+    // String foreign key
+    public string $room_id = '';
+    
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
+    }
+}
+
 // Usage examples
 $room = Room::find($id);
 
@@ -103,9 +114,9 @@ $room = Room::find($id);
 $hotel = $room->hotel()->get();    // Load related hotel
 $offers = $room->offers()->get();  // Load related offers
 
-// The room's JSON will automatically include hotel_id from the database
-$json = $room->toArray();  // Contains: hotel_id, but not hotel object
-$jsonWithRelations = $room->toArray(true);  // Contains: hotel_id + hotel object`} />
+// The room's JSON automatically includes foreign key fields
+$json = $room->toArray();  // Contains: hotel_id and all other properties
+$jsonWithRelations = $room->toArray(true);  // Contains: hotel_id + loaded hotel object`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Eager Loading
@@ -177,7 +188,7 @@ $hotel->save(); // Automatically clears related cache`} />
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Best Practices:</strong>
                 <br />• Use typed properties for automatic validation and clean API responses
-                <br />• Define relationships with single source of truth (no duplicate FK properties)
+                <br />• Use string foreign key properties (e.g., <code>public string $user_id = '';</code>)
                 <br />• Add indexes for frequently queried columns
                 <br />• Use eager loading to avoid N+1 queries
                 <br />• Leverage caching for expensive queries

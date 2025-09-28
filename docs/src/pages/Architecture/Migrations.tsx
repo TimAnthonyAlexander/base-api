@@ -61,8 +61,8 @@ export default function Migrations() {
             <List sx={{ mb: 2 }}>
                 <ListItem>
                     <ListItemText
-                        primary="Typed Properties"
-                        secondary="Properties typed as other BaseModel classes automatically create FK columns (e.g., public ?User $user creates user_id column)"
+                        primary="String Foreign Keys"
+                        secondary="Properties ending with '_id' are created as foreign key columns (e.g., public string $user_id creates FK to User model)"
                     />
                 </ListItem>
                 <ListItem>
@@ -77,9 +77,9 @@ export default function Migrations() {
 
 class Order extends BaseModel
 {
-    // Relationship definitions
-    public ?User $user = null;
-    public ?Product $product = null;
+    // String foreign key properties
+    public string $user_id = '';
+    public string $product_id = '';
     public int $quantity = 1;
     public float $total = 0.0;
     
