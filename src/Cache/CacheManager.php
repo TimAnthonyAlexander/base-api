@@ -4,6 +4,7 @@ namespace BaseApi\Cache;
 
 use Override;
 use InvalidArgumentException;
+use BaseApi\App;
 use BaseApi\Config;
 use BaseApi\Cache\Stores\StoreInterface;
 use BaseApi\Cache\Stores\ArrayStore;
@@ -243,8 +244,7 @@ class CacheManager implements CacheInterface
      */
     protected function getDefaultCachePath(): string
     {
-        // Get storage path from app base path
-        $storagePath = dirname(__DIR__, 2) . '/storage';
-        return $storagePath . '/cache';
+        // Use application's storage path instead of framework path
+        return App::storagePath('cache');
     }
 }
