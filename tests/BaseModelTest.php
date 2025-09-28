@@ -153,8 +153,6 @@ class BaseModelTest extends TestCase
         $model->name = 'John Doe';
         $model->email = 'john@example.com';
         // age, active have default values so they're initialized
-        // description is nullable with default null, so it's initialized
-        // created_at, updated_at are nullable with default null, so they're initialized
 
         $array = $model->toArray();
 
@@ -164,26 +162,70 @@ class BaseModelTest extends TestCase
         $this->assertEquals(0, $array['age']);
         $this->assertTrue($array['active']);
 
-        // Properties with default values are included
-        $this->assertEquals(null, $array['description']);
-        $this->assertEquals(null, $array['created_at']);
-        $this->assertEquals(null, $array['updated_at']);
+        // New behavior omits nulls for cleanliness - description, created_at, updated_at won't be included
+        $this->assertArrayNotHasKey('description', $array);
+        $this->assertArrayNotHasKey('created_at', $array);
+        $this->assertArrayNotHasKey('updated_at', $array);
 
-        // With new dynamic properties approach, uninitialized relations won't be in output
-        // unless explicitly included with includeRelations=true
-        // Since latestPost and posts are nullable/empty by default, they won't be included
-        // in the basic toArray() call
+        // Relations are not included unless includeRelations=true
+        $this->assertArrayNotHasKey('latestPost', $array);
+        $this->assertArrayNotHasKey('posts', $array);
     }
 
-    public function testToArrayExcludesStaticProperties(): void
+    public function testToArrayExcludesInternalsAndStaticProperties(): void
     {
         $model = new TestUserModel();
         $model->id = '123';
+        
+        // Use reflection to set protected properties
+        $reflection = new ReflectionClass($model);
+        
+        $rowProperty = $reflection->getProperty('__row');
+        $rowProperty->setAccessible(true);
+        $rowProperty->setValue($model, ['some' => 'data']);
+        
+        $cacheProperty = $reflection->getProperty('__relationCache');
+        $cacheProperty->setAccessible(true);
+        $cacheProperty->setValue($model, []);
 
         $array = $model->toArray();
 
         // Should not include static properties like $table
         $this->assertArrayNotHasKey('table', $array);
+        
+        // Should not include internal properties
+        $this->assertArrayNotHasKey('__row', $array);
+        $this->assertArrayNotHasKey('__relationCache', $array);
+        $this->assertArrayNotHasKey('casts', $array);
+    }
+
+    public function testToArraySeedsFromRowData(): void
+    {
+        $model = new TestUserModel();
+        
+        // Use reflection to set __row data (what would come from DB)
+        $reflection = new ReflectionClass($model);
+        $rowProperty = $reflection->getProperty('__row');
+        $rowProperty->setAccessible(true);
+        $rowProperty->setValue($model, [
+            'id' => '123',
+            'name' => 'John Doe',
+            'user_id' => 'user-456',
+            'location_id' => 'loc-789',
+            'created_at' => '2023-01-01 10:00:00'
+        ]);
+
+        $array = $model->toArray();
+
+        // Should include data from __row
+        $this->assertEquals('123', $array['id']);
+        $this->assertEquals('John Doe', $array['name']);
+        $this->assertEquals('user-456', $array['user_id']);
+        $this->assertEquals('loc-789', $array['location_id']);
+        $this->assertEquals('2023-01-01 10:00:00', $array['created_at']);
+        
+        // Should still exclude __row itself
+        $this->assertArrayNotHasKey('__row', $array);
     }
 
     public function testJsonSerialize(): void
@@ -194,17 +236,21 @@ class BaseModelTest extends TestCase
 
         $jsonData = $model->jsonSerialize();
 
-        // With dynamic properties approach, only initialized properties and object vars are included
+        // With the clean approach, only non-null values are included
         $this->assertEquals('123', $jsonData['id']);
         $this->assertEquals('John Doe', $jsonData['name']);
         $this->assertEquals('', $jsonData['email']);
         $this->assertEquals(0, $jsonData['age']);
         $this->assertTrue($jsonData['active']);
-        $this->assertEquals(null, $jsonData['description']);
-        $this->assertEquals(null, $jsonData['created_at']);
-        $this->assertEquals(null, $jsonData['updated_at']);
-
-        // Relations are handled differently - they're excluded unless includeRelations=true
+        
+        // Nulls are omitted for cleanliness
+        $this->assertArrayNotHasKey('description', $jsonData);
+        $this->assertArrayNotHasKey('created_at', $jsonData);
+        $this->assertArrayNotHasKey('updated_at', $jsonData);
+        
+        // Relations are excluded unless includeRelations=true
+        $this->assertArrayNotHasKey('latestPost', $jsonData);
+        $this->assertArrayNotHasKey('posts', $jsonData);
     }
 
     public function testInferForeignKeyFromTypedProperty(): void

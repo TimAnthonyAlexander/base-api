@@ -31,6 +31,26 @@ abstract class BaseModel implements \JsonSerializable
     /** @var array<string, string> Attribute casting definitions */
     protected array $casts = [];
 
+    private const INTERNAL_KEYS = ['__row', '__relationCache', 'casts'];
+
+    protected function isInternalKey(string $k): bool
+    {
+        return $k === '' || $k[0] === '_' || in_array($k, self::INTERNAL_KEYS, true);
+    }
+
+    /**
+     * Check if a property is a relation property (has BaseModel[] docblock for hasMany)
+     */
+    protected function isRelationProperty(string $property): bool
+    {
+        try {
+            $relationType = static::getRelationType($property);
+            return $relationType === 'hasMany';
+        } catch (\InvalidArgumentException) {
+            return false;
+        }
+    }
+
     public static function table(): string
     {
         if (static::$table !== null) {
@@ -492,31 +512,52 @@ abstract class BaseModel implements \JsonSerializable
 
     public function toArray(bool $includeRelations = false): array
     {
-        $data = get_object_vars($this);
+        $vars = get_object_vars($this);
+        $out = [];
 
-        $ref = new \ReflectionClass($this);
-        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-            if ($prop->isStatic()) continue;
-            if ($prop->hasType() && !$prop->isInitialized($this)) continue;
-
-            $val = $prop->getValue($this);
-            if ($val instanceof \BaseApi\Models\BaseModel) {
-                $name = $prop->getName();
-                $fk = $name . '_id';
-
-                if (!array_key_exists($fk, $data) && $val->id !== null) {
-                    $data[$fk] = $val->id;
-                }
-
-                if ($includeRelations) {
-                    $data[$name] = $val->toArray(true);
-                } else {
-                    unset($data[$name]);
-                }
-            }
+        // If the ORM keeps raw DB row in __row, seed from it
+        if (isset($vars['__row']) && is_array($vars['__row'])) {
+            $out = $vars['__row'];
         }
 
-        return $data;
+        foreach ($vars as $k => $v) {
+            if ($this->isInternalKey($k)) continue;
+
+            if ($v instanceof self) {
+                $fk = $k . '_id';
+                if (!array_key_exists($fk, $out) && $v->id !== null) {
+                    $out[$fk] = $v->id;
+                }
+                if ($includeRelations) {
+                    $out[$k] = $v->toArray(true);
+                }
+                continue; // don't expose relation object when not requested
+            }
+
+            // Check if this is a relation property (array type with BaseModel[] docblock)
+            if (is_array($v) && $this->isRelationProperty($k)) {
+                if ($includeRelations) {
+                    $relatedData = [];
+                    foreach ($v as $item) {
+                        if ($item instanceof self) {
+                            $relatedData[] = $item->toArray(true);
+                        }
+                    }
+                    $out[$k] = $relatedData;
+                }
+                continue; // don't expose relation arrays when not requested
+            }
+
+            // Skip if this value already exists in output from __row (prioritize DB data)
+            if (array_key_exists($k, $out)) continue;
+
+            // Omit nulls for cleanliness
+            if ($v === null) continue;
+
+            $out[$k] = $v;
+        }
+
+        return $out;
     }
 
     public function jsonSerialize(): array
@@ -713,20 +754,22 @@ abstract class BaseModel implements \JsonSerializable
         $vars = get_object_vars($this);
         $data = [];
 
+        // Start with DB columns/dynamic vars; drop internals and objects
         foreach ($vars as $k => $v) {
-            if ($v === null) continue;
+            if ($this->isInternalKey($k)) continue;
             if ($k === 'created_at' || $k === 'updated_at') continue;
-            if ($v instanceof \BaseApi\Models\BaseModel) continue;
-            $data[$k] = $v;
+            if ($v instanceof self) continue;
+            if ($v !== null) $data[$k] = $v;
         }
 
+        // Map relation objects -> *_id if not already present
         $ref = new \ReflectionClass($this);
         foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
             if ($prop->isStatic()) continue;
             if ($prop->hasType() && !$prop->isInitialized($this)) continue;
 
             $val = $prop->getValue($this);
-            if ($val instanceof \BaseApi\Models\BaseModel) {
+            if ($val instanceof self) {
                 $fk = $prop->getName() . '_id';
                 if (!array_key_exists($fk, $data) && $val->id !== null) {
                     $data[$fk] = $val->id;
@@ -742,20 +785,22 @@ abstract class BaseModel implements \JsonSerializable
         $vars = get_object_vars($this);
         $data = [];
 
+        // Start with DB columns/dynamic vars; drop internals and objects
         foreach ($vars as $k => $v) {
+            if ($this->isInternalKey($k)) continue;
             if ($k === 'id' || $k === 'created_at') continue;
-            if ($v === null) continue;
-            if ($v instanceof \BaseApi\Models\BaseModel) continue;
-            $data[$k] = $v;
+            if ($v instanceof self) continue;
+            if ($v !== null) $data[$k] = $v;
         }
 
+        // Map relation objects -> *_id if not already present
         $ref = new \ReflectionClass($this);
         foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
             if ($prop->isStatic()) continue;
             if ($prop->hasType() && !$prop->isInitialized($this)) continue;
 
             $val = $prop->getValue($this);
-            if ($val instanceof \BaseApi\Models\BaseModel) {
+            if ($val instanceof self) {
                 $fk = $prop->getName() . '_id';
                 if (!array_key_exists($fk, $data) && $val->id !== null) {
                     $data[$fk] = $val->id;
