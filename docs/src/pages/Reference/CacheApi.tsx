@@ -19,8 +19,8 @@ export default function CacheAPI() {
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                Access the cache through <code>App::cache()</code> or inject <code>CacheInterface</code>
-                into your services. Model caching is automatic and uses tagged invalidation.
+                Access the cache through the <code>Cache</code> facade using static methods, or inject <code>CacheInterface</code>
+                into your services via the container. Model caching uses tagged invalidation for automatic cache clearing.
             </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
@@ -29,16 +29,18 @@ export default function CacheAPI() {
 
             <CodeBlock language="php" code={`<?php
 
-use BaseApi\\App;
+use BaseApi\\Cache\\Cache;
 
-$cache = App::cache();
+// Basic operations using Cache facade
+Cache::put('user:123', $userData, 3600); // Store for 1 hour  
+$user = Cache::get('user:123'); // Retrieve
+$exists = Cache::has('user:123'); // Check existence
+Cache::forget('user:123'); // Remove
+Cache::flush(); // Clear all
 
-// Basic operations
-$cache->put('user:123', $userData, 3600); // Store for 1 hour
-$user = $cache->get('user:123'); // Retrieve
-$exists = $cache->has('user:123'); // Check existence
-$cache->forget('user:123'); // Remove
-$cache->flush(); // Clear all`} />
+// Alternative: through dependency injection
+$cache = App::container()->make(CacheInterface::class);
+$user = $cache->get('user:123');`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Advanced Methods
@@ -47,16 +49,21 @@ $cache->flush(); // Clear all`} />
             <CodeBlock language="php" code={`<?php
 
 // Remember pattern - get from cache or compute and store
-$expensiveData = $cache->remember('expensive_calc', 3600, function() {
+$expensiveData = Cache::remember('expensive_calc', 3600, function() {
     return performExpensiveCalculation();
 });
 
 // Store forever (no expiration)
-$cache->forever('app_version', '1.0.0');
+Cache::forever('app_version', '1.0.0');
 
 // Atomic counters
-$cache->increment('page_views'); 
-$cache->decrement('page_views', 2);`} />
+Cache::increment('page_views'); 
+Cache::decrement('page_views', 2);
+
+// Additional operations
+Cache::add('unique_key', 'value', 300); // Store only if key doesn't exist
+$value = Cache::pull('temp_data'); // Get and remove
+Cache::putMany(['key1' => 'value1', 'key2' => 'value2'], 300); // Store multiple`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Tagged Caching
@@ -69,11 +76,16 @@ $cache->decrement('page_views', 2);`} />
             <CodeBlock language="php" code={`<?php
 
 // Store cache entries with tags
-$cache->tags(['users', 'profile'])->put('user:123:profile', $profile, 3600);
-$cache->tags(['posts'])->put('featured_posts', $posts, 1800);
+Cache::tags(['users', 'profile'])->put('user:123:profile', $profile, 3600);
+Cache::tags(['posts'])->put('featured_posts', $posts, 1800);
 
 // Invalidate all entries with specific tags
-$cache->tags(['users'])->flush(); // Clears all user-related cache`} />
+Cache::tags(['users'])->flush(); // Clears all user-related cache
+
+// Tagged remember pattern
+$userPosts = Cache::tags(['users', 'posts'])->remember('user:123:posts', 300, function() {
+    return getUserPosts(123);
+});`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Model-Level Caching
@@ -85,13 +97,22 @@ $cache->tags(['users'])->flush(); // Clears all user-related cache`} />
 
             <CodeBlock language="php" code={`<?php
 
-// Cache model queries automatically
-$users = User::cached(3600)->where('active', true)->get();
+// Cache model queries with default TTL (300 seconds)
+$users = User::cached()->where('active', true)->get();
+
+// Cache with custom TTL
+$activeUsers = User::cached(3600)->where('status', 'active')->get();
 
 // Cache is automatically invalidated when models change
 $user = User::find('user-123');
 $user->name = 'Updated Name';
-$user->save(); // Automatically clears related cache entries`} />
+$user->save(); // Automatically clears related cache entries tagged with this model
+
+// Manual cache key generation for complex queries
+$cacheKey = Cache::key('users', 'active', serialize($filters));
+$users = Cache::remember($cacheKey, 300, function() use ($filters) {
+    return User::where($filters)->get();
+});`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Driver Management
@@ -99,23 +120,58 @@ $user->save(); // Automatically clears related cache entries`} />
 
             <CodeBlock language="php" code={`<?php
 
-$cacheManager = App::cache();
+// Access cache manager through container  
+$cacheManager = App::container()->make(CacheManager::class);
 
 // Use specific drivers
-$redisCache = $cacheManager->driver('redis');
-$fileCache = $cacheManager->driver('file');
-$arrayCache = $cacheManager->driver('array');
+$redisCache = Cache::driver('redis');
+$fileCache = Cache::driver('file'); 
+$arrayCache = Cache::driver('array');
 
-// Get cache statistics (if supported)
-$stats = $cache->getStats();
-$removedCount = $cache->cleanup(); // Clean expired entries`} />
+// Get cache statistics and cleanup
+$stats = Cache::stats('redis'); // Get stats for specific driver
+$removedCount = Cache::cleanup('file'); // Clean expired entries
+
+// Cache manager operations
+$cacheManager->purge('redis'); // Clear and recreate driver instance
+$drivers = $cacheManager->getStoreNames(); // Get all configured drivers`} />
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Configuration & Multiple Operations
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+// Configuration is handled via .env and config/app.php
+// CACHE_DRIVER=redis (or 'file', 'array')
+// REDIS_HOST=127.0.0.1
+// REDIS_PORT=6379
+// REDIS_CACHE_DB=0
+
+// Multiple key operations
+$values = Cache::many(['user:123', 'user:456', 'settings']);
+Cache::putMany([
+    'user:123' => $userData,
+    'settings' => $appSettings
+], 3600);
+
+// Cache key helpers
+$complexKey = Cache::key('user', $userId, 'permissions', $roleId);
+// Generates: "user:123:permissions:456"
+
+// Extended cache driver with custom logic
+Cache::extend('custom', function($config) {
+    return new CustomCacheDriver($config);
+});`} />
 
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Best Practices:</strong>
-                <br />• Use tagged caching for related data
-                <br />• Set appropriate TTL values
-                <br />• Use atomic operations for counters
-                <br />• Handle cache failures gracefully
+                <br />• Use the <code>Cache</code> facade for simple operations
+                <br />• Inject <code>CacheInterface</code> for services requiring testability  
+                <br />• Use tagged caching for related data that should be invalidated together
+                <br />• Set appropriate TTL values based on data freshness requirements
+                <br />• Use model caching with <code>Model::cached()</code> for database queries
+                <br />• Handle cache failures gracefully with fallback logic
             </Alert>
         </Box>
     );
