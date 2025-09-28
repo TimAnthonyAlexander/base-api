@@ -2,6 +2,8 @@
 
 namespace BaseApi\Tests;
 
+use PDO;
+use PDOStatement;
 use Override;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -430,6 +432,64 @@ class QueryBuilderTest extends TestCase
         $this->expectExceptionMessage('Table not specified');
 
         $this->queryBuilder->update(['name' => 'John']);
+    }
+
+    public function testUpdateBindingsOrderWithWhereCondition(): void
+    {
+        // This test ensures that SET clause bindings come before WHERE clause bindings
+        // This addresses the critical bug where WHERE bindings were added first, causing
+        // SQL like "UPDATE table SET col=? WHERE id=?" to have bindings [id_value, col_value]
+        // instead of the correct order [col_value, id_value]
+        
+        // Create a custom QueryBuilder with mocked connection to capture executeUpdate calls
+        $pdoMock = $this->createMock(PDO::class);
+        $stmtMock = $this->createMock(PDOStatement::class);
+        
+        // Capture the bindings passed to execute()
+        $capturedBindings = [];
+        $capturedSQL = '';
+        
+        $stmtMock->expects($this->once())
+                 ->method('execute')
+                 ->willReturnCallback(function ($bindings) use (&$capturedBindings): true {
+                     $capturedBindings = $bindings;
+                     return true;
+                 });
+                 
+        $stmtMock->method('rowCount')->willReturn(1);
+        
+        $pdoMock->expects($this->once())
+                ->method('prepare')
+                ->willReturnCallback(function ($sql) use (&$capturedSQL, $stmtMock): MockObject {
+                    $capturedSQL = $sql;
+                    return $stmtMock;
+                });
+        
+        $this->connectionMock->method('pdo')->willReturn($pdoMock);
+        
+        // Set up the query with WHERE conditions first (this adds WHERE bindings)
+        $result = $this->queryBuilder
+            ->table('users')
+            ->where('id', '=', 'user-123')      // This should be the last binding
+            ->where('active', '=', true)        // This should be the second-to-last binding
+            ->update([
+                'name' => 'Updated Name',        // This should be the first binding
+                'status' => 'modified'           // This should be the second binding
+            ]);
+        
+        // Verify the SQL structure
+        $this->assertEquals(1, $result);
+        $this->assertStringContainsString('UPDATE `users` SET `name` = ?, `status` = ? WHERE `id` = ? AND `active` = ?', $capturedSQL);
+        
+        // Verify the binding order: SET bindings first, then WHERE bindings
+        $expectedBindings = [
+            'Updated Name',  // SET clause binding 1
+            'modified',      // SET clause binding 2
+            'user-123',      // WHERE clause binding 1
+            true             // WHERE clause binding 2
+        ];
+        
+        $this->assertEquals($expectedBindings, $capturedBindings);
     }
 
     public function testDeleteThrowsExceptionWithoutTable(): void

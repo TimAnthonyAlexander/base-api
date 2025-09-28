@@ -537,12 +537,21 @@ class QueryBuilder
 
         $this->validateTable();
 
+        // Save existing WHERE bindings
+        $whereBindings = $this->bindings;
+        
+        // Reset bindings to collect SET bindings first
+        $this->bindings = [];
+
         $sets = [];
         foreach ($data as $column => $value) {
             $column = $this->sanitizeColumnName($column);
             $placeholder = $this->addBinding($value);
             $sets[] = sprintf('%s = %s', $column, $placeholder);
         }
+
+        // Combine SET bindings first, then WHERE bindings
+        $this->bindings = array_merge($this->bindings, $whereBindings);
 
         $sql = sprintf('UPDATE %s SET ', $this->table) . implode(', ', $sets);
 
