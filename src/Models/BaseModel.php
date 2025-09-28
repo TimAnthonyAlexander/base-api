@@ -17,7 +17,7 @@ abstract class BaseModel implements \JsonSerializable
     public ?string $updated_at = null;
 
     protected static ?string $table = null;
-    
+
     /** @var array<string, callable(ModelQuery<static>): void> Global scopes applied to all queries */
     protected static array $globalScopes = [];
 
@@ -26,7 +26,7 @@ abstract class BaseModel implements \JsonSerializable
 
     /** @var array Cached loaded relations */
     protected array $__relationCache = [];
-    
+
     /** @var array<string, string> Attribute casting definitions */
     protected array $casts = [];
 
@@ -45,8 +45,6 @@ abstract class BaseModel implements \JsonSerializable
         // Simple pluralization
         if (str_ends_with($tableName, 'y')) {
             $tableName = substr($tableName, 0, -1) . 'ies';
-        } elseif (str_ends_with($tableName, 's') || str_ends_with($tableName, 'sh') || str_ends_with($tableName, 'ch')) {
-            $tableName .= 'es';
         } else {
             $tableName .= 's';
         }
@@ -244,12 +242,12 @@ abstract class BaseModel implements \JsonSerializable
     {
         $qb = App::db()->qb()->table(static::table());
         $modelQuery = new ModelQuery($qb, static::class);
-        
+
         // Apply global scopes
         foreach (static::$globalScopes as $scope) {
             $scope($modelQuery);
         }
-        
+
         return $modelQuery;
     }
 
@@ -275,13 +273,13 @@ abstract class BaseModel implements \JsonSerializable
             $instance = static::createInstance();
             return $instance->$scopeMethod($query, ...$args);
         }
-        
+
         // Delegate to query builder methods
         $query = static::query();
         if (method_exists($query, $method)) {
             return $query->$method(...$args);
         }
-        
+
         throw new \BadMethodCallException("Method {$method} does not exist on " . static::class);
     }
 
