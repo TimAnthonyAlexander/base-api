@@ -322,12 +322,23 @@ class SqliteDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
         
+        $warning = null;
+        
+        // Handle the case where we're adding a NOT NULL column without a default value
+        // This would fail on existing tables, so we need to provide a sensible default
+        if (!$column->nullable && $column->default === null && !$column->is_pk) {
+            $autoDefault = $this->getDefaultValueForType($column->type);
+            $column->default = $autoDefault;
+            $warning = sprintf("Auto-generated default value '%s' for NOT NULL column without explicit default", $autoDefault);
+        }
+        
         $sql = sprintf('ALTER TABLE "%s" ADD COLUMN ', $tableName) . $this->generateColumnDefinition($column, true);
         
         return [
             'sql' => $sql,
             'description' => sprintf('Add column %s to %s', $column->name, $tableName),
-            'destructive' => false
+            'destructive' => false,
+            'warning' => $warning
         ];
     }
     
@@ -402,6 +413,38 @@ class SqliteDriver implements DatabaseDriverInterface
     private function getSqliteVersion(): string
     {
         return SQLite3::version()['versionString'] ?? '3.0.0';
+    }
+
+    /**
+     * Get a sensible default value for a given SQLite column type
+     */
+    private function getDefaultValueForType(string $type): string
+    {
+        $type = strtoupper($type);
+        
+        // Handle common SQLite types and provide appropriate defaults
+        if (str_contains($type, 'INT') || str_contains($type, 'BOOL')) {
+            return '0';
+        }
+        
+        if (str_contains($type, 'REAL') || str_contains($type, 'FLOAT') || str_contains($type, 'DOUBLE')) {
+            return '0.0';
+        }
+        
+        if (str_contains($type, 'TEXT') || str_contains($type, 'CHAR') || str_contains($type, 'VARCHAR')) {
+            return '';
+        }
+        
+        if (str_contains($type, 'BLOB')) {
+            return '';
+        }
+        
+        if (str_contains($type, 'DATE') || str_contains($type, 'TIME')) {
+            return 'CURRENT_TIMESTAMP';
+        }
+        
+        // Default fallback for unknown types
+        return '';
     }
     
     private function generateDropTable(array $op): array
