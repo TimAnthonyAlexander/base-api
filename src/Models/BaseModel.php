@@ -4,7 +4,6 @@ namespace BaseApi\Models;
 
 use BaseApi\App;
 use BaseApi\Support\Uuid;
-use BaseApi\Database\QueryBuilder;
 use BaseApi\Database\ModelQuery;
 use BaseApi\Database\Relations\BelongsTo;
 use BaseApi\Database\Relations\HasMany;
@@ -762,21 +761,6 @@ abstract class BaseModel implements \JsonSerializable
             if ($v !== null) $data[$k] = $v;
         }
 
-        // Map relation objects -> *_id if not already present
-        $ref = new \ReflectionClass($this);
-        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-            if ($prop->isStatic()) continue;
-            if ($prop->hasType() && !$prop->isInitialized($this)) continue;
-
-            $val = $prop->getValue($this);
-            if ($val instanceof self) {
-                $fk = $prop->getName() . '_id';
-                if (!array_key_exists($fk, $data) && $val->id !== null) {
-                    $data[$fk] = $val->id;
-                }
-            }
-        }
-
         return $data;
     }
 
@@ -791,21 +775,6 @@ abstract class BaseModel implements \JsonSerializable
             if ($k === 'id' || $k === 'created_at') continue;
             if ($v instanceof self) continue;
             if ($v !== null) $data[$k] = $v;
-        }
-
-        // Map relation objects -> *_id if not already present
-        $ref = new \ReflectionClass($this);
-        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-            if ($prop->isStatic()) continue;
-            if ($prop->hasType() && !$prop->isInitialized($this)) continue;
-
-            $val = $prop->getValue($this);
-            if ($val instanceof self) {
-                $fk = $prop->getName() . '_id';
-                if (!array_key_exists($fk, $data) && $val->id !== null) {
-                    $data[$fk] = $val->id;
-                }
-            }
         }
 
         return $data;

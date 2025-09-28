@@ -65,6 +65,25 @@ class TestCompanyModel extends BaseModel
     protected static ?string $table = 'companies';
 }
 
+class TestOrderModel extends BaseModel
+{
+    public string $id = '';
+
+    public string $status = 'pending';
+
+    public string $user_id = '';
+
+    public string $product_id = '';
+
+    public float $total = 0.0;
+
+    public ?string $created_at = null;
+
+    public ?string $updated_at = null;
+
+    protected static ?string $table = 'orders';
+}
+
 class BaseModelTest extends TestCase
 {
     private MockObject $dbMock;
@@ -417,5 +436,141 @@ class BaseModelTest extends TestCase
         $relation = $parentModel->hasMany(TestPostModel::class, 'custom_fk', 'custom_local_key');
 
         $this->assertInstanceOf(HasMany::class, $relation);
+    }
+
+    public function testStringBasedForeignKeyHandling(): void
+    {
+        $model = new TestOrderModel();
+        $model->id = '123';
+        $model->status = 'completed';
+        $model->user_id = 'user-456';
+        $model->product_id = 'prod-789';
+        $model->total = 99.99;
+
+        // Use reflection to access the private getInsertData method
+        $reflection = new ReflectionClass($model);
+        $method = $reflection->getMethod('getInsertData');
+        $method->setAccessible(true);
+
+        $data = $method->invoke($model);
+
+        // Should include all string foreign key properties directly
+        $this->assertEquals('123', $data['id']);
+        $this->assertEquals('completed', $data['status']);
+        $this->assertEquals('user-456', $data['user_id']);
+        $this->assertEquals('prod-789', $data['product_id']);
+        $this->assertEquals(99.99, $data['total']);
+
+        // Should exclude timestamp fields for insert
+        $this->assertArrayNotHasKey('created_at', $data);
+        $this->assertArrayNotHasKey('updated_at', $data);
+    }
+
+    public function testStringBasedForeignKeyUpdate(): void
+    {
+        $model = new TestOrderModel();
+        $model->id = '123';
+        $model->status = 'shipped';
+        $model->user_id = 'user-456';
+        $model->product_id = 'prod-789';
+        $model->total = 149.99;
+        $model->created_at = '2023-01-01 10:00:00';
+
+        // Use reflection to access the private getUpdateData method
+        $reflection = new ReflectionClass($model);
+        $method = $reflection->getMethod('getUpdateData');
+        $method->setAccessible(true);
+
+        $data = $method->invoke($model);
+
+        // Should include all updatable string foreign key properties
+        $this->assertEquals('shipped', $data['status']);
+        $this->assertEquals('user-456', $data['user_id']);
+        $this->assertEquals('prod-789', $data['product_id']);
+        $this->assertEquals(149.99, $data['total']);
+
+        // Should exclude id and created_at for updates (created_at is not updatable)
+        $this->assertArrayNotHasKey('id', $data);
+        $this->assertArrayNotHasKey('created_at', $data);
+        $this->assertArrayNotHasKey('updated_at', $data);
+    }
+
+    public function testStringBasedForeignKeyFromRow(): void
+    {
+        $rowData = [
+            'id' => '123',
+            'status' => 'pending',
+            'user_id' => 'user-456',
+            'product_id' => 'prod-789',
+            'total' => '99.99',
+            'created_at' => '2023-01-01 10:00:00',
+            'updated_at' => '2023-01-01 11:00:00'
+        ];
+
+        $model = TestOrderModel::fromRow($rowData);
+
+        $this->assertEquals('123', $model->id);
+        $this->assertEquals('pending', $model->status);
+        $this->assertEquals('user-456', $model->user_id);
+        $this->assertEquals('prod-789', $model->product_id);
+        $this->assertEquals(99.99, $model->total); // Should be cast to float
+        $this->assertEquals('2023-01-01 10:00:00', $model->created_at);
+        $this->assertEquals('2023-01-01 11:00:00', $model->updated_at);
+    }
+
+    public function testStringBasedForeignKeyToArray(): void
+    {
+        $model = new TestOrderModel();
+        $model->id = '123';
+        $model->status = 'completed';
+        $model->user_id = 'user-456';
+        $model->product_id = 'prod-789';
+        $model->total = 99.99;
+
+        $array = $model->toArray();
+
+        $this->assertEquals('123', $array['id']);
+        $this->assertEquals('completed', $array['status']);
+        $this->assertEquals('user-456', $array['user_id']);
+        $this->assertEquals('prod-789', $array['product_id']);
+        $this->assertEquals(99.99, $array['total']);
+
+        // Nulls are omitted for cleanliness
+        $this->assertArrayNotHasKey('created_at', $array);
+        $this->assertArrayNotHasKey('updated_at', $array);
+    }
+
+    public function testNoObjectPropertyMappingAnymore(): void
+    {
+        $model = new TestOrderModel();
+        $model->id = '123';
+        $model->status = 'pending';
+        $model->user_id = 'user-456';
+        $model->product_id = 'prod-789';
+        
+        // Set some object properties that used to be mapped to *_id fields
+        $userModel = new TestUserModel();
+        $userModel->id = 'different-user-123';
+        $model->user = $userModel; // This should NOT affect user_id anymore
+        
+        $productModel = new TestPostModel(); // Using TestPostModel as a product placeholder
+        $productModel->id = 'different-prod-456';
+        $model->product = $productModel; // This should NOT affect product_id anymore
+
+        // Use reflection to access the private getInsertData method
+        $reflection = new ReflectionClass($model);
+        $method = $reflection->getMethod('getInsertData');
+        $method->setAccessible(true);
+
+        $data = $method->invoke($model);
+
+        // The string foreign key properties should maintain their original values
+        // and NOT be overridden by object properties
+        $this->assertEquals('user-456', $data['user_id']);
+        $this->assertEquals('prod-789', $data['product_id']);
+        
+        // Object properties should be excluded from the data
+        $this->assertArrayNotHasKey('user', $data);
+        $this->assertArrayNotHasKey('product', $data);
     }
 }
