@@ -118,6 +118,13 @@ $offers = $room->offers()->get();  // Load related offers
 $json = $room->toArray();  // Contains: hotel_id and all other properties
 $jsonWithRelations = $room->toArray(true);  // Contains: hotel_id + loaded hotel object`} />
 
+            <Alert severity="info" sx={{ mt: 3 }}>
+                <strong>Foreign Key Cascading:</strong> By default, foreign keys use <code>CASCADE</code> behavior.
+                When a parent record is deleted, all related child records are automatically deleted. You can
+                customize this behavior per foreign key using a static <code>$foreignKeys</code> property.
+                See the <strong>Migrations</strong> page for detailed cascade configuration options.
+            </Alert>
+
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Eager Loading
             </Typography>

@@ -102,6 +102,155 @@ class Order extends BaseModel
 }`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Foreign Key Cascade Configuration
+            </Typography>
+
+            <Typography>
+                By default, all foreign key relationships use <code>ON DELETE CASCADE</code> and <code>ON UPDATE CASCADE</code>.
+                This means when you delete a parent record, all related child records are automatically deleted.
+            </Typography>
+
+            <Alert severity="info" sx={{ my: 3 }}>
+                <strong>Default Behavior:</strong> Foreign keys will CASCADE on delete by default. This is the most
+                intuitive behavior for modern applications where deleting a parent should clean up all related data.
+            </Alert>
+
+            <Typography sx={{ mb: 2 }}>
+                You can customize this behavior per foreign key using a static <code>$foreignKeys</code> property:
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+class Comment extends BaseModel
+{
+    public string $id;
+    public ?string $user_id = null;  // Nullable
+    public string $post_id;
+    public string $content;
+    public ?\\DateTime $created_at = null;
+    
+    // Customize foreign key cascade behavior
+    public static array $foreignKeys = [
+        'user_id' => [
+            'on_delete' => 'SET NULL',  // Keep comments when user deleted
+            'on_update' => 'CASCADE'
+        ],
+        'post_id' => [
+            'on_delete' => 'CASCADE',   // Delete comments when post deleted
+            'on_update' => 'CASCADE'
+        ]
+    ];
+}`} />
+
+            <Typography sx={{ mt: 2 }}>
+                <strong>Supported cascade options:</strong>
+            </Typography>
+
+            <List sx={{ mb: 2 }}>
+                <ListItem>
+                    <ListItemText
+                        primary="CASCADE (default)"
+                        secondary="Automatically delete/update child records when parent is deleted/updated"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="RESTRICT"
+                        secondary="Prevent deletion/update if child records exist"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="SET NULL"
+                        secondary="Set foreign key to NULL when parent is deleted/updated (column must be nullable)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="NO ACTION"
+                        secondary="Similar to RESTRICT (database-specific behavior)"
+                    />
+                </ListItem>
+            </List>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Example: Blog System with Cascading
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+class User extends BaseModel
+{
+    public string $id;
+    public string $email;
+    public string $name;
+}
+
+class Post extends BaseModel
+{
+    public string $id;
+    public string $user_id;  // CASCADE by default
+    public string $title;
+    public string $content;
+    public ?\\DateTime $created_at = null;
+}
+
+class Comment extends BaseModel
+{
+    public string $id;
+    public ?string $user_id = null;  // Nullable for SET NULL
+    public string $post_id;
+    public string $content;
+    public ?\\DateTime $created_at = null;
+    
+    public static array $foreignKeys = [
+        'user_id' => [
+            'on_delete' => 'SET NULL',  // Preserve comments, remove user link
+            'on_update' => 'CASCADE'
+        ],
+        'post_id' => [
+            'on_delete' => 'CASCADE',   // Delete comments with post
+            'on_update' => 'CASCADE'
+        ]
+    ];
+}`} />
+
+            <Typography sx={{ mt: 2 }}>
+                In this example:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="User Deletion"
+                        secondary="Posts are deleted (CASCADE), Comments remain but user_id is set to NULL"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Post Deletion"
+                        secondary="All Comments for that post are automatically deleted (CASCADE)"
+                    />
+                </ListItem>
+            </List>
+
+            <Alert severity="warning" sx={{ mt: 3 }}>
+                <strong>Important:</strong> When using <code>SET NULL</code>, the foreign key column must be
+                nullable (e.g., <code>public ?string $user_id = null</code>). Otherwise, the database will
+                reject the constraint.
+            </Alert>
+
+            <Alert severity="success" sx={{ mt: 2, mb: 3 }}>
+                <strong>Best Practices:</strong>
+                <br />• Use CASCADE for child records that should always be deleted with parent
+                <br />• Use SET NULL for soft references where data should be preserved
+                <br />• Use RESTRICT for critical relationships that require manual cleanup
+                <br />• Always test cascade behavior in development first
+                <br />• Document cascade decisions in your model classes
+                <br />• Consider soft deletes for important data instead of hard deletes
+            </Alert>
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Migration State Management
             </Typography>
 
