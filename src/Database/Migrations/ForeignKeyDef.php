@@ -9,7 +9,7 @@ class ForeignKeyDef
         public string $column,
         public string $ref_table,
         public string $ref_column,
-        public string $on_delete = 'RESTRICT',
+        public string $on_delete = 'CASCADE',
         public string $on_update = 'CASCADE'
     ) {}
 
@@ -32,7 +32,7 @@ class ForeignKeyDef
             $data['column'],
             $data['ref_table'],
             $data['ref_column'],
-            $data['on_delete'] ?? 'RESTRICT',
+            $data['on_delete'] ?? 'CASCADE',
             $data['on_update'] ?? 'CASCADE'
         );
     }

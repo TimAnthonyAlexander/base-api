@@ -278,7 +278,17 @@ class ModelScanner
         // Add the FK column to the table
         new ColumnDef($fkColumnName, 'CHAR(36)', $type->allowsNull());
 
-        return new ForeignKeyDef($fkName, $fkColumnName, $refTableName, 'id');
+        // Get custom cascade behavior if defined
+        $cascadeConfig = $this->getForeignKeyConfig($reflection, $fkColumnName);
+
+        return new ForeignKeyDef(
+            $fkName, 
+            $fkColumnName, 
+            $refTableName, 
+            'id',
+            $cascadeConfig['on_delete'] ?? 'CASCADE',
+            $cascadeConfig['on_update'] ?? 'CASCADE'
+        );
     }
 
     /**
@@ -328,7 +338,17 @@ class ModelScanner
         // Create FK constraint name
         $fkName = 'fk_' . $this->getTableName($reflection) . '_' . $propertyName;
 
-        return new ForeignKeyDef($fkName, $propertyName, $refTableName, 'id');
+        // Get custom cascade behavior if defined
+        $cascadeConfig = $this->getForeignKeyConfig($reflection, $propertyName);
+
+        return new ForeignKeyDef(
+            $fkName, 
+            $propertyName, 
+            $refTableName, 
+            'id',
+            $cascadeConfig['on_delete'] ?? 'CASCADE',
+            $cascadeConfig['on_update'] ?? 'CASCADE'
+        );
     }
 
     private function isModelType(ReflectionType $type): bool
@@ -430,5 +450,37 @@ class ModelScanner
                 $column->default = $override['default'];
             }
         }
+    }
+
+    /**
+     * Get foreign key cascade configuration from model
+     * 
+     * Models can define a static $foreignKeys property like:
+     * static array $foreignKeys = [
+     *     'user_id' => ['on_delete' => 'CASCADE', 'on_update' => 'CASCADE'],
+     *     'project_id' => ['on_delete' => 'SET NULL', 'on_update' => 'CASCADE'],
+     * ];
+     * 
+     * @param ReflectionClass<object> $reflection
+     */
+    private function getForeignKeyConfig(ReflectionClass $reflection, string $columnName): array
+    {
+        if (!$reflection->hasProperty('foreignKeys')) {
+            return [];
+        }
+
+        $fkProperty = $reflection->getProperty('foreignKeys');
+        if (!$fkProperty->isStatic()) {
+            return [];
+        }
+
+        $fkProperty->setAccessible(true);
+        $foreignKeys = $fkProperty->getValue();
+
+        if (!is_array($foreignKeys)) {
+            return [];
+        }
+
+        return $foreignKeys[$columnName] ?? [];
     }
 }
