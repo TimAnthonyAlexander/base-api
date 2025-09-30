@@ -6,6 +6,7 @@ use Override;
 use PDOException;
 use SQLite3;
 use PDO;
+use BaseApi\App;
 use BaseApi\Database\DbException;
 use BaseApi\Database\Migrations\MigrationPlan;
 use BaseApi\Database\Migrations\ColumnDef;
@@ -27,7 +28,7 @@ class SqliteDriver implements DatabaseDriverInterface
         
         // If database is not :memory: and doesn't start with /, make it relative to storage
         if ($database !== ':memory:' && !str_starts_with((string) $database, '/')) {
-            $database = getcwd() . '/storage/' . $database;
+            $database = App::storagePath($database);
             
             // Create directory if it doesn't exist
             $dir = dirname($database);
