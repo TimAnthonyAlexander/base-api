@@ -208,11 +208,11 @@ class MigrateGenerateCommand implements Command
                 return 'modify_column';
             }
 
-            if (str_contains($sql, 'ADD INDEX') || str_contains($sql, 'CREATE INDEX')) {
+            if (str_contains($sql, 'ADD INDEX') || str_contains($sql, 'ADD UNIQUE KEY') || str_contains($sql, 'ADD KEY') || str_contains($sql, 'CREATE INDEX')) {
                 return 'add_index';
             }
 
-            if (str_contains($sql, 'DROP INDEX')) {
+            if (str_contains($sql, 'DROP INDEX') || str_contains($sql, 'DROP KEY')) {
                 return 'drop_index';
             }
 

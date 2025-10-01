@@ -399,7 +399,22 @@ class MySqlDriver implements DatabaseDriverInterface
             $sql .= ' NOT NULL';
         }
         
-        if ($column->default !== null) {
+        // MySQL doesn't allow default values for TEXT, BLOB, GEOMETRY, or JSON columns
+        // (except NULL which is handled by the nullable flag)
+        $typeUpper = strtoupper($column->type);
+        $noDefaultTypes = ['TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 
+                          'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB',
+                          'GEOMETRY', 'JSON'];
+        
+        $isNoDefaultType = false;
+        foreach ($noDefaultTypes as $noDefaultType) {
+            if (str_starts_with($typeUpper, $noDefaultType)) {
+                $isNoDefaultType = true;
+                break;
+            }
+        }
+        
+        if ($column->default !== null && !$isNoDefaultType) {
             if ($column->default === 'CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } elseif ($column->default === 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
