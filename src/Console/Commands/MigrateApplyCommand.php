@@ -140,28 +140,60 @@ class MigrateApplyCommand implements Command
 
         echo ColorHelper::header("🔄 Executing migrations...") . "\n";
 
-        // Group migrations by table for better organization
-        $tableGroups = $this->groupMigrationsByTable($migrations);
+        // Group migrations by operation type to ensure proper execution order
+        // This prevents foreign key errors by creating all tables first
+        $operationGroups = $this->groupMigrationsByOperation($migrations);
 
-        foreach ($tableGroups as $table => $tableMigrations) {
-            echo ColorHelper::info(sprintf('📋 Processing table: %s', $table)) . "\n";
+        // Define execution order: creates first, then alters, then drops
+        $executionOrder = [
+            'create_table',
+            'add_column',
+            'modify_column',
+            'add_index',
+            'add_fk',
+            'drop_fk',
+            'drop_index',
+            'drop_column',
+            'drop_table',
+            'unknown'
+        ];
+
+        foreach ($executionOrder as $operation) {
+            if (!isset($operationGroups[$operation])) {
+                continue;
+            }
+
+            if ($operationGroups[$operation] === []) {
+                continue;
+            }
+
+            $operationMigrations = $operationGroups[$operation];
+            $operationDisplay = ucwords(str_replace('_', ' ', $operation));
+
+            echo ColorHelper::info(sprintf('📋 Processing: %s (%d migration%s)', 
+                $operationDisplay, 
+                count($operationMigrations),
+                count($operationMigrations) === 1 ? '' : 's'
+            )) . "\n";
 
             try {
-                foreach ($tableMigrations as $i => $migration) {
+                foreach ($operationMigrations as $i => $migration) {
                     $num = $i + 1;
-                    echo ColorHelper::comment(sprintf('  %s. Executing [%s]: ', $num, $migration['operation'])) .
-                        ColorHelper::colorize(substr((string) $migration['sql'], 0, 50) . "...", ColorHelper::BRIGHT_BLACK) . "\n";
+                    $table = $migration['table'] ?? 'general';
+                    echo ColorHelper::comment(sprintf('  %s. [%s] ', $num, $table)) .
+                        ColorHelper::colorize(substr((string) $migration['sql'], 0, 60) . "...", ColorHelper::BRIGHT_BLACK) . "\n";
 
                     // Execute DDL statements individually (they cause implicit commits in MySQL)
                     $pdo->exec($migration['sql']);
                     $executedIds[] = $migration['id'];
                 }
 
-                echo ColorHelper::success(sprintf('  ✓ Table %s completed successfully', $table)) . "\n";
+                echo ColorHelper::success(sprintf('  ✓ %s completed successfully', $operationDisplay)) . "\n";
             } catch (Exception $e) {
                 // Convert PDO error code to int since Exception constructor expects int
                 $code = is_numeric($e->getCode()) ? (int)$e->getCode() : 0;
-                throw new Exception(ColorHelper::error(sprintf('Failed to execute migration for table %s: ', $table)) . $e->getMessage(), $code, $e);
+                $table = $migration['table'] ?? 'unknown';
+                throw new Exception(ColorHelper::error(sprintf('Failed to execute %s for table %s: ', $operation, $table)) . $e->getMessage(), $code, $e);
             }
         }
 
@@ -169,18 +201,18 @@ class MigrateApplyCommand implements Command
         return $executedIds;
     }
 
-    private function groupMigrationsByTable(array $migrations): array
+    private function groupMigrationsByOperation(array $migrations): array
     {
         $groups = [];
 
         foreach ($migrations as $migration) {
-            $table = $migration['table'] ?? 'general';
+            $operation = $migration['operation'] ?? 'unknown';
 
-            if (!isset($groups[$table])) {
-                $groups[$table] = [];
+            if (!isset($groups[$operation])) {
+                $groups[$operation] = [];
             }
 
-            $groups[$table][] = $migration;
+            $groups[$operation][] = $migration;
         }
 
         return $groups;
