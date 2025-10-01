@@ -2,82 +2,216 @@
 
 <img src="baseapi.png" alt="BaseAPI Logo" width="200"/>
 
-A tiny, KISS-first PHP 8.4+ framework for building REST APIs.
+A tiny, KISS-first PHP 8.4+ framework for building production-ready REST APIs.
 
-BaseAPI is designed to get out of your way and let you build APIs quickly and efficiently.
-It provides all the essential tools you need while maintaining simplicity and performance.
+BaseAPI gets out of your way and lets you build APIs in minutes, not hours. Define your models with typed properties, write minimal controllers, and let the framework handle migrations, validation, caching, and documentation automatically.
 
-[Documentation Here](https://baseapi.timanthonyalexander.de)
+**[Read the Documentation](https://baseapi.timanthonyalexander.de)**
 
-## ✨ Features
-
-- **Low Configuration** - Works out of the box with sensible defaults
-- **High Performance** - Minimal overhead, maximum speed (<1ms overhead per request)
-- **Built-in Security** - CORS, rate limiting, and authentication middlewares included
-- **Database Agnostic** - Automatic migrations from model definitions, supports MySQL, SQLite, PostgreSQL
-- **Unified Caching** - Multi-driver caching system with Redis, File, and Array stores plus tagged cache invalidation
-- **Internationalization** - Full i18n support with multiple automatic translation providers (OpenAI, DeepL)
-- **Auto Documentation** - Generate OpenAPI specs and TypeScript types with one command
-- **Dependency Injection** - Built-in DI container with auto-wiring and service providers
+---
 
 ## Quick Start
-
-### Create a New Project
-
-In order to set up a new BaseAPI project, run:
 
 ```bash
 composer create-project baseapi/baseapi-template my-api
 cd my-api
+php mason serve
 ```
 
-This will create a new project in the `my-api` directory.
-It will contain a User model, and some basic controllers and configs.
+Your API is now running at `http://localhost:7879`.
 
-From there, you can easily create new models and controllers and immediately start building your API.
+---
 
-Project ideas are available in the [PROJECT_IDEAS](PROJECT_IDEAS.md) file.
+## How Fast Is It to Code?
 
-## 📖 Usage
+### Define a Model
 
-Check out the [Documentation](https://baseapi.timanthonyalexander.de) for detailed usage instructions.
+Typed properties become your database schema. Migrations are generated automatically.
 
-## Security
+```php
+<?php
 
-BaseAPI includes security features out of the box:
+namespace App\Models;
 
-- **CORS handling** - Configurable cross-origin resource sharing
-- **Rate limiting** - Prevent API abuse with customizable limits
-- **Input validation** - Automatic request validation based on model types
-- **SQL injection protection** - Parameterized queries and ORM
-- **Session management** - Secure session handling
+use BaseApi\Models\BaseModel;
 
-## Performance
+class Product extends BaseModel
+{
+    public string $name = '';
+    public float $price = 0.0;
+    public int $stock = 0;
+    public bool $available = true;
+    
+    public static array $indexes = [
+        'name' => 'index',
+    ];
+}
+```
 
-- **Minimal overhead** - Framework adds < 1ms to request time (measured on MacBook Pro M3 Pro)
-- **Unified caching** - Multi-driver cache system with Redis support for 10x+ query performance
-- **Efficient routing** - Fast route matching and caching
-- **Database optimization** - Query builder with automatic optimization and query result caching
-- **Memory efficient** - Low memory footprint even with large datasets
+Run `./mason migrate:generate` and `./mason migrate:apply`. Done.
 
-## Compatibility; should I use BaseAPI?
+### Write a Controller
 
-BaseAPI works great with:
+```php
+<?php
 
-- **Frontend frameworks** - React, Vue, Angular (with generated TypeScript types)
-- **Mobile apps** - iOS, Android (with generated OpenAPI spec)
-- **Testing tools** - PHPUnit integration ready
-- **Deployment** - Docker, traditional hosting, serverless
-- **Databases** - MySQL, SQLite, PostgreSQL
+namespace App\Controllers;
+
+use BaseApi\Controllers\Controller;
+use BaseApi\Http\JsonResponse;
+use App\Models\Product;
+
+class ProductController extends Controller
+{
+    public string $name = '';
+    public float $price = 0.0;
+    
+    public function get(): JsonResponse
+    {
+        return JsonResponse::ok(Product::all());
+    }
+    
+    public function post(): JsonResponse
+    {
+        $this->validate([
+            'name' => 'required|string|min:3',
+            'price' => 'required|numeric|min:0',
+        ]);
+        
+        $product = new Product();
+        $product->name = $this->name;
+        $product->price = $this->price;
+        $product->save();
+        
+        return JsonResponse::created($product->jsonSerialize());
+    }
+}
+```
+
+### Add Routes
+
+```php
+<?php
+
+use BaseApi\App;
+use App\Controllers\ProductController;
+use BaseApi\Http\Middleware\RateLimitMiddleware;
+
+$router = App::router();
+
+$router->get('/products', [ProductController::class]);
+$router->post('/products', [
+    RateLimitMiddleware::class => ['limit' => '10/1m'],
+    ProductController::class,
+]);
+```
+
+That's it. Your API is ready.
+
+---
+
+## Production-Ready from Day One
+
+BaseAPI v1.0.0 is built for production with everything you need:
+
+**Database & Migrations**
+- MySQL, PostgreSQL, and SQLite support
+- Automatic migration generation from model definitions
+- Safe migration mode for production deployments
+- Relationship support (belongsTo, hasMany)
+
+**Performance & Caching**
+- Sub-millisecond framework overhead
+- File and Redis-based caching with tagged invalidation
+- Query result caching
+- Connection pooling
+
+**Security**
+- CORS middleware with configurable allowlists
+- Rate limiting with multiple storage backends
+- Input validation with 20+ built-in rules
+- SQL injection protection via parameterized queries
+- Session and API token authentication
+
+**Developer Experience**
+- Automatic OpenAPI specification generation
+- TypeScript type generation for frontend integration
+- Mason CLI for migrations, code generation, and queue management
+- Comprehensive validation with custom rules
+- Built-in file upload handling with security checks
+
+**Async Processing**
+- Queue system with database and sync drivers
+- Job retry logic with exponential backoff
+- Worker management with memory and time limits
+
+**Internationalization**
+- Full i18n support with namespace organization
+- Automatic translation via OpenAI or DeepL
+- Token scanning and management CLI
+
+**Deployment**
+- Environment-based configuration
+- Health check endpoints
+- Docker-ready
+- Supports traditional hosting, VPS, and cloud platforms
+
+---
+
+## Code Quality
+
+BaseAPI maintains high standards with:
+- PHPStan level 7 static analysis
+- Comprehensive test suite across all database drivers
+- Rector for PHP 8.4+ code modernization
+- Pre-commit hooks for syntax, tests, and security
+- Performance benchmarks: 1,350+ req/s, <1ms overhead, 0.8MB/request
+
+---
+
+## Documentation
+
+Everything you need to know:
+
+**[Full Documentation](https://baseapi.timanthonyalexander.de)**
+
+Topics covered:
+- Getting started guide
+- Models, migrations, and relationships
+- Controllers, routing, and validation
+- Caching strategies and configuration
+- Queue system and background jobs
+- Authentication and authorization
+- File storage and uploads
+- Internationalization
+- Deployment guides
+- API reference
+
+---
+
+## Requirements
+
+- PHP 8.4+
+- Composer
+- MySQL 8.0+, PostgreSQL 13+, or SQLite 3.35+
+- Redis 6.0+ (optional, for caching and queues)
+
+---
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
 
 ## License
 
-BaseAPI is open-sourced software licensed under the [MIT license](LICENSE).
+BaseAPI is open-source software licensed under the [MIT license](LICENSE).
 
-## Found a bug?
+---
 
-- [Issue Tracker](https://github.com/timanthonyalexander/base-api/issues)
+## Links
+
+- **[Documentation](https://baseapi.timanthonyalexander.de)**
+- **[Issue Tracker](https://github.com/timanthonyalexander/base-api/issues)**
+- **[Template Repository](https://github.com/timanthonyalexander/base-api-template)**
