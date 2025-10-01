@@ -304,11 +304,15 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         $tableName = $op['table'];
         $index = IndexDef::fromArray($op['index']);
+        $columnType = $op['column_type'] ?? null;
+        
+        // MySQL requires a key length for TEXT/BLOB columns
+        $columnSpec = $this->getIndexColumnSpec($index->column, $columnType);
         
         if ($index->type === 'unique') {
-            $sql = sprintf('ALTER TABLE `%s` ADD UNIQUE KEY `%s` (`%s`)', $tableName, $index->name, $index->column);
+            $sql = sprintf('ALTER TABLE `%s` ADD UNIQUE KEY `%s` (%s)', $tableName, $index->name, $columnSpec);
         } else {
-            $sql = sprintf('ALTER TABLE `%s` ADD INDEX `%s` (`%s`)', $tableName, $index->name, $index->column);
+            $sql = sprintf('ALTER TABLE `%s` ADD INDEX `%s` (%s)', $tableName, $index->name, $columnSpec);
         }
         
         return [
@@ -389,6 +393,32 @@ class MySqlDriver implements DatabaseDriverInterface
             'destructive' => true,
             'table' => $tableName
         ];
+    }
+    
+    /**
+     * Get the column specification for index creation, including key length for TEXT/BLOB columns
+     */
+    private function getIndexColumnSpec(string $columnName, ?string $columnType): string
+    {
+        if ($columnType === null) {
+            return sprintf('`%s`', $columnName);
+        }
+        
+        $typeUpper = strtoupper($columnType);
+        
+        // MySQL requires a key length for TEXT and BLOB columns
+        // Use 255 for most cases (191 for utf8mb4 to stay under 767 byte limit for older MySQL)
+        $textBlobTypes = ['TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 
+                         'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB'];
+        
+        foreach ($textBlobTypes as $type) {
+            if (str_starts_with($typeUpper, $type)) {
+                // Use 191 to be safe with utf8mb4 (191 * 4 bytes = 764 bytes < 767)
+                return sprintf('`%s`(191)', $columnName);
+            }
+        }
+        
+        return sprintf('`%s`', $columnName);
     }
     
     private function generateColumnDefinition(ColumnDef $column): string

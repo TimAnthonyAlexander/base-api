@@ -78,9 +78,12 @@ class DiffEngine
         
         // Add indexes for the new table
         foreach ($table->indexes as $index) {
+            // Include column type information for proper index generation
+            $columnDef = $table->columns[$index->column] ?? null;
             $plan->addOperation('add_index', [
                 'table' => $table->name,
                 'index' => $index->toArray(),
+                'column_type' => $columnDef?->type,
                 'destructive' => false
             ]);
         }
@@ -171,9 +174,13 @@ class DiffEngine
         
         // Add new indexes
         foreach ($indexesToAdd as $indexName) {
+            $index = $modelTable->indexes[$indexName];
+            // Include column type information for proper index generation
+            $columnDef = $modelTable->columns[$index->column] ?? null;
             $plan->addOperation('add_index', [
                 'table' => $modelTable->name,
-                'index' => $modelTable->indexes[$indexName]->toArray(),
+                'index' => $index->toArray(),
+                'column_type' => $columnDef?->type,
                 'destructive' => false
             ]);
         }
@@ -191,9 +198,12 @@ class DiffEngine
                     'destructive' => false
                 ]);
                 
+                // Include column type information for proper index generation
+                $columnDef = $modelTable->columns[$modelIndex->column] ?? null;
                 $plan->addOperation('add_index', [
                     'table' => $modelTable->name,
                     'index' => $modelIndex->toArray(),
+                    'column_type' => $columnDef?->type,
                     'destructive' => false
                 ]);
             }
