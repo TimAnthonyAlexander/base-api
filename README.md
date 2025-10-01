@@ -212,6 +212,7 @@ BaseAPI is open-source software licensed under the [MIT license](LICENSE).
 
 ## Links
 
-- **[Documentation](https://baseapi.timanthonyalexander.de)**
-- **[Issue Tracker](https://github.com/timanthonyalexander/base-api/issues)**
-- **[Template Repository](https://github.com/timanthonyalexander/base-api-template)**
+- **[Documentation](https://baseapi.timanthonyalexander.de)** The full documentation for BaseAPI
+- **[Template Repository](https://github.com/timanthonyalexander/base-api-template)** This is the project you start with when building your own API
+- **[Example Project](https://hotel.timanthonyalexander.de)** This is a Hotel Comparison API + Frontend UI ontop of BaseAPI
+
