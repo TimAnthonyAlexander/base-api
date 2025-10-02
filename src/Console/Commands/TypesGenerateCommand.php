@@ -351,7 +351,8 @@ HELP;
         // Look for successful response (200, 201, etc.)
         foreach ($operation['responses'] as $status => $response) {
             // 2xx status codes
-            if ($status[0] === '2' && isset($response['content']['application/json']['schema']['properties']['data'])) { return $this->openApiTypeToTypeScript($response['content']['application/json']['schema']['properties']['data']);
+            $statusStr = (string)$status;
+            if ($statusStr[0] === '2' && isset($response['content']['application/json']['schema']['properties']['data'])) { return $this->openApiTypeToTypeScript($response['content']['application/json']['schema']['properties']['data']);
             }
         }
 
