@@ -514,7 +514,7 @@ abstract class BaseModel implements \JsonSerializable
         $vars = get_object_vars($this);
         $out = [];
 
-        // If the ORM keeps raw DB row in __row, seed from it
+        // Seed from raw DB row snapshot if present
         if (isset($vars['__row']) && is_array($vars['__row'])) {
             $out = $vars['__row'];
         }
@@ -530,29 +530,28 @@ abstract class BaseModel implements \JsonSerializable
                 if ($includeRelations) {
                     $out[$k] = $v->toArray(true);
                 }
-                continue; // don't expose relation object when not requested
+                continue;
             }
 
-            // Check if this is a relation property (array type with BaseModel[] docblock)
             if (is_array($v) && $this->isRelationProperty($k)) {
                 if ($includeRelations) {
-                    $relatedData = [];
+                    $related = [];
                     foreach ($v as $item) {
                         if ($item instanceof self) {
-                            $relatedData[] = $item->toArray(true);
+                            $related[] = $item->toArray(true);
                         }
                     }
-                    $out[$k] = $relatedData;
+                    $out[$k] = $related;
                 }
-                continue; // don't expose relation arrays when not requested
+                continue;
             }
 
-            // Skip if this value already exists in output from __row (prioritize DB data)
-            if (array_key_exists($k, $out)) continue;
-
-            // Omit nulls for cleanliness
             if ($v === null) continue;
 
+            // Keep seeded DB value when the current property is just an empty-string default
+            if ($v === '' && array_key_exists($k, $out)) continue;
+
+            // Live object state wins otherwise
             $out[$k] = $v;
         }
 
