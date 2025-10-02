@@ -30,9 +30,20 @@ class ControllerBinder
             // Get value with precedence: route params → query → body → files
             $value = $this->getValueWithPrecedence($propertyName, $routeParams, $req);
             
-            // Check if property has a default value, if so keep it
-            if ($value === null && $property->hasDefaultValue()) {
-                continue;
+            // Only set the property if a value was provided in the request
+            // Skip if no value provided AND (property has default OR property is not nullable)
+            if ($value === null) {
+                // If property has a default value, keep it
+                if ($property->hasDefaultValue()) {
+                    continue;
+                }
+                
+                // If property is not nullable and has no default, skip setting it
+                // (leave it uninitialized - validation will catch it if required)
+                $type = $property->getType();
+                if ($type && !$type->allowsNull()) {
+                    continue;
+                }
             }
 
             // Coerce the value to the property type

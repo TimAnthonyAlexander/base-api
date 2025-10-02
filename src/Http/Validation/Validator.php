@@ -40,7 +40,9 @@ class Validator
                 continue; // Skip non-public properties
             }
 
-            $value = $property->getValue($controller);
+            // Check if property is initialized
+            $value = $property->isInitialized($controller) ? $property->getValue($controller) : null;
+            
             $fieldRules = $this->parseRules($ruleString);
             
             $error = $this->validateField($field, $value, $fieldRules, $controller, $messages);
@@ -335,6 +337,11 @@ class Validator
             return null;
         }
 
+        // Check if property is initialized
+        if (!$property->isInitialized($controller)) {
+            return null;
+        }
+
         return $property->getValue($controller);
     }
 
@@ -394,7 +401,10 @@ class Validator
 
         foreach ($reflection->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             $field = $property->getName();
-            $value = $property->getValue($controller);
+            
+            // Check if property is initialized
+            $value = $property->isInitialized($controller) ? $property->getValue($controller) : null;
+            
             $attributes = $property->getAttributes();
             
             $rules = [];

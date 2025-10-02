@@ -2,6 +2,7 @@
 
 namespace BaseApi\Tests;
 
+use ReflectionClass;
 use Override;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Http\Binding\ControllerBinder;
@@ -282,6 +283,60 @@ class ControllerBinderTest extends TestCase
         $this->assertEquals($files['invalid_file'], $controller->invalidFile);
     }
 
+    public function testBindLeavesUninitializedPropertiesWhenNoValueProvided(): void
+    {
+        // Test that non-nullable properties without defaults are left uninitialized
+        // when no value is provided (instead of trying to set them to null which would fail)
+        $request = $this->createRequest();
+        $controller = new TestControllerWithRequiredFields();
+        
+        $this->binder->bind($controller, $request, []);
+        
+        // These properties should remain uninitialized
+        $reflection = new ReflectionClass($controller);
+        
+        $titleProp = $reflection->getProperty('title');
+        $this->assertFalse($titleProp->isInitialized($controller));
+        
+        $priceProp = $reflection->getProperty('price');
+        $this->assertFalse($priceProp->isInitialized($controller));
+        
+        $stockProp = $reflection->getProperty('stock');
+        $this->assertFalse($stockProp->isInitialized($controller));
+        
+        // But nullable property with default should be set
+        $this->assertNull($controller->description);
+    }
+
+    public function testBindSetsRequiredFieldsWhenProvided(): void
+    {
+        // Test that required fields are properly set when values are provided
+        $body = [
+            'title' => 'Test Product',
+            'description' => 'A test product',
+            'price' => '29.99',
+            'stock' => '10'
+        ];
+        $request = $this->createRequest(body: $body);
+        $controller = new TestControllerWithRequiredFields();
+        
+        $this->binder->bind($controller, $request, []);
+        
+        // All properties should now be initialized
+        $reflection = new ReflectionClass($controller);
+        
+        $this->assertTrue($reflection->getProperty('title')->isInitialized($controller));
+        $this->assertEquals('Test Product', $controller->title);
+        
+        $this->assertEquals('A test product', $controller->description);
+        
+        $this->assertTrue($reflection->getProperty('price')->isInitialized($controller));
+        $this->assertEquals(29.99, $controller->price);
+        
+        $this->assertTrue($reflection->getProperty('stock')->isInitialized($controller));
+        $this->assertSame(10, $controller->stock);
+    }
+
     private function createRequest(
         array $query = [],
         array $body = [],
@@ -383,4 +438,15 @@ class TestControllerWithPrivateProperties
     {
         return $this->protectedField;
     }
+}
+
+class TestControllerWithRequiredFields
+{
+    public string $title;
+    
+    public ?string $description = null;
+    
+    public float $price;
+    
+    public int $stock;
 }
