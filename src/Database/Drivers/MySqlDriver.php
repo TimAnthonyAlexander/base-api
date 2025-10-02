@@ -108,6 +108,19 @@ class MySqlDriver implements DatabaseDriverInterface
     #[Override]
     public function getIndexes(PDO $pdo, string $dbName, string $tableName): array
     {
+        // First, get all foreign key constraint names for this table
+        // We need to exclude indexes that were auto-created for foreign keys
+        $fkStmt = $pdo->prepare("
+            SELECT DISTINCT CONSTRAINT_NAME
+            FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = ? 
+            AND TABLE_NAME = ?
+            AND REFERENCED_TABLE_NAME IS NOT NULL
+        ");
+        $fkStmt->execute([$dbName, $tableName]);
+
+        $fkConstraintNames = $fkStmt->fetchAll(PDO::FETCH_COLUMN);
+
         $stmt = $pdo->prepare("
             SELECT 
                 INDEX_NAME,
@@ -119,16 +132,22 @@ class MySqlDriver implements DatabaseDriverInterface
             ORDER BY INDEX_NAME, SEQ_IN_INDEX
         ");
         $stmt->execute([$dbName, $tableName]);
-        
+
         $indexes = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            // Skip indexes that are auto-created for foreign keys
+            // MySQL creates an index with the same name as the FK constraint
+            if (in_array($row['INDEX_NAME'], $fkConstraintNames, true)) {
+                continue;
+            }
+
             $indexes[$row['INDEX_NAME']] = new IndexDef(
                 name: $row['INDEX_NAME'],
                 column: $row['COLUMN_NAME'],
                 type: $row['NON_UNIQUE'] ? 'index' : 'unique'
             );
         }
-        
+
         return $indexes;
     }
     
