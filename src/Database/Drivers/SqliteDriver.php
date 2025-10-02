@@ -92,7 +92,7 @@ class SqliteDriver implements DatabaseDriverInterface
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $columns[$row['name']] = new ColumnDef(
                 name: $row['name'],
-                type: $this->normalizeColumnType($row['type']),
+                type: $this->normalizeFullColumnType($row['type']),
                 nullable: !$row['notnull'],
                 default: $this->normalizeDefault($row['dflt_value'], ''),
                 is_pk: (bool)$row['pk']
@@ -487,6 +487,17 @@ class SqliteDriver implements DatabaseDriverInterface
         }
         
         return $sql;
+    }
+    
+    /**
+     * Normalize full column type from SQLite PRAGMA table_info (e.g., "VARCHAR(255)", "INTEGER")
+     * This preserves the length/precision information needed for accurate comparisons
+     */
+    private function normalizeFullColumnType(string $columnType): string
+    {
+        // SQLite stores the full type definition (e.g., "VARCHAR(255)", "INTEGER")
+        // Just normalize to uppercase for consistency
+        return strtoupper(trim($columnType));
     }
     
     #[Override]

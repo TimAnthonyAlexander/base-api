@@ -123,7 +123,12 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $columns[$row['column_name']] = new ColumnDef(
                 name: $row['column_name'],
-                type: $this->normalizeColumnType($row['data_type'], $row['udt_name']),
+                type: $this->normalizeFullColumnType(
+                    $row['data_type'],
+                    $row['character_maximum_length'],
+                    $row['numeric_precision'],
+                    $row['numeric_scale']
+                ),
                 nullable: $row['is_nullable'] === 'YES',
                 default: $this->normalizeDefault($row['column_default']),
                 is_pk: (bool)$row['is_primary_key']
@@ -481,6 +486,55 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         }
         
         return $sql;
+    }
+    
+    /**
+     * Normalize full column type from PostgreSQL information_schema
+     * Reconstructs the full type specification including length/precision
+     */
+    private function normalizeFullColumnType(
+        string $dataType,
+        ?int $charMaxLength,
+        ?int $numericPrecision,
+        ?int $numericScale
+    ): string {
+        $type = strtolower(trim($dataType));
+        
+        // Map PostgreSQL types to our SQL types with proper specifications
+        $mappedType = match ($type) {
+            'character varying' => 'VARCHAR',
+            'character' => 'CHAR',
+            'text' => 'TEXT',
+            'smallint' => 'SMALLINT',
+            'integer' => 'INT',
+            'bigint' => 'BIGINT',
+            'boolean' => 'BOOLEAN',
+            'real' => 'REAL',
+            'double precision' => 'DOUBLE PRECISION',
+            'numeric', 'decimal' => 'DECIMAL',
+            'timestamp without time zone' => 'TIMESTAMP',
+            'timestamp with time zone' => 'TIMESTAMPTZ',
+            'date' => 'DATE',
+            'time without time zone' => 'TIME',
+            'json' => 'JSON',
+            'jsonb' => 'JSONB',
+            default => strtoupper($type)
+        };
+        
+        // Add length/precision specifications
+        if (($mappedType === 'VARCHAR' || $mappedType === 'CHAR') && $charMaxLength !== null) {
+            return sprintf('%s(%d)', $mappedType, $charMaxLength);
+        }
+        
+        if ($mappedType === 'DECIMAL' && $numericPrecision !== null) {
+            if ($numericScale !== null && $numericScale > 0) {
+                return sprintf('%s(%d,%d)', $mappedType, $numericPrecision, $numericScale);
+            }
+
+            return sprintf('%s(%d)', $mappedType, $numericPrecision);
+        }
+        
+        return $mappedType;
     }
     
     #[Override]

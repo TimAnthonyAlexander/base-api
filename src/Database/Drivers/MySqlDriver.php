@@ -80,7 +80,7 @@ class MySqlDriver implements DatabaseDriverInterface
         $stmt = $pdo->prepare("
             SELECT 
                 COLUMN_NAME,
-                DATA_TYPE,
+                COLUMN_TYPE,
                 IS_NULLABLE,
                 COLUMN_DEFAULT,
                 EXTRA,
@@ -95,7 +95,7 @@ class MySqlDriver implements DatabaseDriverInterface
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $columns[$row['COLUMN_NAME']] = new ColumnDef(
                 name: $row['COLUMN_NAME'],
-                type: $this->normalizeColumnType($row['DATA_TYPE']),
+                type: $this->normalizeFullColumnType($row['COLUMN_TYPE']),
                 nullable: $row['IS_NULLABLE'] === 'YES',
                 default: $this->normalizeDefault($row['COLUMN_DEFAULT'], $row['EXTRA']),
                 is_pk: $row['COLUMN_KEY'] === 'PRI'
@@ -457,6 +457,39 @@ class MySqlDriver implements DatabaseDriverInterface
         return $sql;
     }
     
+    /**
+     * Normalize full column type from MySQL COLUMN_TYPE field (e.g., "varchar(255)", "int(11)", "tinyint(1)")
+     * This preserves the length/precision information needed for accurate comparisons
+     */
+    private function normalizeFullColumnType(string $columnType): string
+    {
+        // Convert to uppercase for consistency with our generated SQL
+        $normalized = strtoupper($columnType);
+        
+        // MySQL returns "int(11)" but we generate "INT" - normalize by removing display width for integers
+        // except for TINYINT(1) which represents boolean
+        if (preg_match('/^(SMALLINT|MEDIUMINT|BIGINT)\(\d+\)$/i', $normalized)) {
+            return strtoupper((string) preg_replace('/\(\d+\)$/', '', $normalized));
+        }
+        
+        // INT(11) -> INT, but preserve other INT widths that are explicitly set
+        if (preg_match('/^INT\(11\)$/i', $normalized)) {
+            return 'INT';
+        }
+        
+        // Special handling for TEXT types without length
+        if (preg_match('/^(TINY|MEDIUM|LONG)?TEXT$/i', $normalized)) {
+            return 'TEXT';
+        }
+        
+        // Special handling for BLOB types without length
+        if (preg_match('/^(TINY|MEDIUM|LONG)?BLOB$/i', $normalized)) {
+            return 'BLOB';
+        }
+        
+        return $normalized;
+    }
+    
     #[Override]
     public function normalizeColumnType(string $columnType): string
     {
@@ -494,6 +527,11 @@ class MySqlDriver implements DatabaseDriverInterface
         
         // Handle special MySQL defaults
         if ($default === 'CURRENT_TIMESTAMP' || str_contains($extra, 'DEFAULT_GENERATED')) {
+            // Check if there's also an ON UPDATE clause in the EXTRA column
+            if (preg_match('/on update CURRENT_TIMESTAMP/i', $extra)) {
+                return 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
+            }
+
             return 'CURRENT_TIMESTAMP';
         }
         

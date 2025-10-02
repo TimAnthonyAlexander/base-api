@@ -440,6 +440,20 @@ class ModelScanner
 
             if (isset($override['type'])) {
                 $column->type = $override['type'];
+                
+                // MySQL doesn't allow default values for TEXT, BLOB, GEOMETRY, or JSON columns
+                // Clear any existing default if the type is one of these
+                $typeUpper = strtoupper($column->type);
+                $noDefaultTypes = ['TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 
+                                  'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB',
+                                  'GEOMETRY', 'JSON'];
+                
+                foreach ($noDefaultTypes as $noDefaultType) {
+                    if (str_starts_with($typeUpper, $noDefaultType)) {
+                        $column->default = null;
+                        break;
+                    }
+                }
             }
 
             if (isset($override['null'])) {
