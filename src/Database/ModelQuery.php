@@ -21,7 +21,7 @@ class ModelQuery
 
     private array $cacheTags = [];
 
-    private bool $cacheEnabled = true;
+    private bool $cacheEnabled = false;
 
     /**
      * @param class-string<T> $modelClass
