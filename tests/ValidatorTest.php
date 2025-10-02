@@ -728,4 +728,78 @@ class ValidatorTest extends TestCase
             $this->assertStringContainsString('failed custom_rule validation', $errors['field']);
         }
     }
+
+    public function testValidateUninitializedPropertyAsRequired(): void
+    {
+        // Test that uninitialized properties fail required validation
+        $controller = new class {
+            public string $title;
+
+            public float $price;
+
+            public int $stock;
+        };
+
+        $rules = [
+            'title' => 'required',
+            'price' => 'required',
+            'stock' => 'required'
+        ];
+
+        try {
+            $this->validator->validate($controller, $rules);
+            $this->fail('Expected ValidationException');
+        } catch (ValidationException $validationException) {
+            $errors = $validationException->errors();
+            $this->assertArrayHasKey('title', $errors);
+            $this->assertArrayHasKey('price', $errors);
+            $this->assertArrayHasKey('stock', $errors);
+            $this->assertStringContainsString('required', $errors['title']);
+            $this->assertStringContainsString('required', $errors['price']);
+            $this->assertStringContainsString('required', $errors['stock']);
+        }
+    }
+
+    public function testValidateUninitializedPropertyWithoutRequiredPasses(): void
+    {
+        // Test that uninitialized properties pass validation if not required
+        $controller = new class {
+            public string $optionalField;
+        };
+
+        $rules = [
+            'optionalField' => 'string|max:100'
+        ];
+
+        // Should not throw - uninitialized is treated as null, which is allowed for non-required fields
+        $this->validator->validate($controller, $rules);
+        $this->assertTrue(true);
+    }
+
+    public function testValidateInitializedRequiredFieldPasses(): void
+    {
+        // Test that initialized required fields pass validation
+        $controller = new class {
+            public string $title;
+
+            public float $price;
+
+            public int $stock;
+        };
+
+        // Initialize the properties
+        $controller->title = 'Test Product';
+        $controller->price = 29.99;
+        $controller->stock = 10;
+
+        $rules = [
+            'title' => 'required',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0'
+        ];
+
+        // Should not throw
+        $this->validator->validate($controller, $rules);
+        $this->assertTrue(true);
+    }
 }
