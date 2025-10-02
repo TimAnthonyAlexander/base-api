@@ -327,8 +327,10 @@ abstract class BaseModel implements \JsonSerializable
 
         $result = $affected > 0;
 
-        // Invalidate cache after successful delete
+        // Clear snapshot and invalidate cache after successful delete
         if ($result) {
+            $this->__row = [];
+            $this->__relationCache = [];
             $this->invalidateCache();
         }
 
@@ -367,8 +369,8 @@ abstract class BaseModel implements \JsonSerializable
             $fkColumn = $fk;
         }
 
-        // Get FK value from current instance
-        $fkValue = $this->__row[$fkColumn] ?? $this->$fkColumn ?? null;
+        // Get FK value from current instance - prefer live property over snapshot
+        $fkValue = $this->$fkColumn ?? $this->__row[$fkColumn] ?? null;
 
         if (!$fkValue) {
             $this->__relationCache[$related] = null;
@@ -548,11 +550,21 @@ abstract class BaseModel implements \JsonSerializable
 
             if ($v === null) continue;
 
-            // Keep seeded DB value when the current property is just an empty-string default
-            if ($v === '' && array_key_exists($k, $out)) continue;
+            // If property value differs from snapshot, it was modified - use live value
+            $hasSnapshotValue = array_key_exists($k, $out);
+            if ($hasSnapshotValue && $v !== $out[$k]) {
+                $out[$k] = $v;
+                continue;
+            }
 
-            // Live object state wins otherwise
-            $out[$k] = $v;
+            // For properties without snapshot (new models), use live value if non-empty
+            if (!$hasSnapshotValue) {
+                $out[$k] = $v;
+                continue;
+            }
+
+            // Property matches snapshot, keep snapshot value (handles unmodified properties)
+            // This is already in $out, so no action needed
         }
 
         return $out;
@@ -715,6 +727,80 @@ abstract class BaseModel implements \JsonSerializable
         };
     }
 
+    /**
+     * Sync the snapshot with current model state after persistence operations
+     */
+    private function syncSnapshot(): void
+    {
+        $vars = get_object_vars($this);
+        $snapshot = [];
+
+        foreach ($vars as $k => $v) {
+            // Skip internals
+            if ($this->isInternalKey($k)) continue;
+            
+            // Skip relation objects
+            if ($v instanceof self) continue;
+            
+            // Skip relation arrays
+            if (is_array($v) && $this->isRelationProperty($k)) continue;
+            
+            // Include non-null values
+            if ($v !== null) {
+                $snapshot[$k] = $v;
+            }
+        }
+
+        $this->__row = $snapshot;
+    }
+
+    /**
+     * Check if a property has been modified from its snapshot value
+     */
+    public function isDirty(?string $property = null): bool
+    {
+        if ($property === null) {
+            // Check if any property is dirty
+            $vars = get_object_vars($this);
+            foreach ($vars as $k => $v) {
+                if ($this->isInternalKey($k)) continue;
+                if ($v instanceof self) continue;
+                if (is_array($v) && $this->isRelationProperty($k)) continue;
+                
+                if (array_key_exists($k, $this->__row) && $v !== $this->__row[$k]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Check specific property
+        return array_key_exists($property, $this->__row) && 
+               isset($this->$property) && 
+               $this->$property !== $this->__row[$property];
+    }
+
+    /**
+     * Get array of dirty property names
+     */
+    public function getDirty(): array
+    {
+        $dirty = [];
+        $vars = get_object_vars($this);
+        
+        foreach ($vars as $k => $v) {
+            if ($this->isInternalKey($k)) continue;
+            if ($v instanceof self) continue;
+            if (is_array($v) && $this->isRelationProperty($k)) continue;
+            
+            if (array_key_exists($k, $this->__row) && $v !== $this->__row[$k]) {
+                $dirty[] = $k;
+            }
+        }
+        
+        return $dirty;
+    }
+
     private function insert(): bool
     {
         // Generate UUID if not set
@@ -727,6 +813,9 @@ abstract class BaseModel implements \JsonSerializable
         App::db()->qb()
             ->table(static::table())
             ->insert($data);
+
+        // Sync snapshot with current state after successful insert
+        $this->syncSnapshot();
 
         return true;
     }
@@ -744,7 +833,14 @@ abstract class BaseModel implements \JsonSerializable
             ->where('id', '=', $this->id)
             ->update($data);
 
-        return $affected > 0;
+        $result = $affected > 0;
+
+        // Sync snapshot with current state after successful update
+        if ($result) {
+            $this->syncSnapshot();
+        }
+
+        return $result;
     }
 
     private function getInsertData(): array

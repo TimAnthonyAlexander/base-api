@@ -220,29 +220,32 @@ class BaseModelTest extends TestCase
 
     public function testToArraySeedsFromRowData(): void
     {
-        $model = new TestUserModel();
-        
-        // Use reflection to set __row data (what would come from DB)
-        $reflection = new ReflectionClass($model);
-        $rowProperty = $reflection->getProperty('__row');
-        $rowProperty->setAccessible(true);
-        $rowProperty->setValue($model, [
+        // Use fromRow to realistically hydrate model (sets both __row and properties)
+        $model = TestUserModel::fromRow([
             'id' => '123',
             'name' => 'John Doe',
-            'user_id' => 'user-456',
-            'location_id' => 'loc-789',
             'created_at' => '2023-01-01 10:00:00'
         ]);
 
+        // Manually set additional dynamic properties through reflection to simulate DB extras
+        $reflection = new ReflectionClass($model);
+        $rowProperty = $reflection->getProperty('__row');
+        $rowProperty->setAccessible(true);
+
+        $currentRow = $rowProperty->getValue($model);
+        $currentRow['user_id'] = 'user-456';
+        $currentRow['location_id'] = 'loc-789';
+        $rowProperty->setValue($model, $currentRow);
+
         $array = $model->toArray();
 
-        // Should include data from __row
+        // Should include data from __row including dynamic properties
         $this->assertEquals('123', $array['id']);
         $this->assertEquals('John Doe', $array['name']);
         $this->assertEquals('user-456', $array['user_id']);
         $this->assertEquals('loc-789', $array['location_id']);
         $this->assertEquals('2023-01-01 10:00:00', $array['created_at']);
-        
+
         // Should still exclude __row itself
         $this->assertArrayNotHasKey('__row', $array);
     }

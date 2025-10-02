@@ -5,12 +5,16 @@ namespace BaseApi;
 class Logger
 {
     private static ?string $requestId = null;
+
     private ?string $logPath = null;
+
     private ?string $channel = null;
+
     private ?string $minLevel = null;
+
     private bool $initialized = false;
 
-    private const LEVELS = [
+    private const array LEVELS = [
         'debug' => 0,
         'info' => 1,
         'warn' => 2,
@@ -36,24 +40,25 @@ class Logger
         if (!isset($_ENV['LOG_CHANNEL']) && class_exists('\BaseApi\App')) {
             $this->channel = App::config('logging.default', 'file');
         }
+
         if (!isset($_ENV['LOG_LEVEL']) && class_exists('\BaseApi\App')) {
-            $this->minLevel = strtolower(App::config('logging.level', 'debug'));
+            $this->minLevel = strtolower((string) App::config('logging.level', 'debug'));
         }
 
         // For file driver, set up the log path in application's storage directory
         if ($this->channel === 'file') {
             $relativePath = $_ENV['LOG_FILE'] ?? 'storage/logs/baseapi.log';
-            
+
             // Try config if env not set
             if (!isset($_ENV['LOG_FILE']) && class_exists('\BaseApi\App')) {
                 $relativePath = App::config('logging.path', 'storage/logs/baseapi.log');
             }
-            
+
             // Resolve the absolute path
-            if (str_starts_with($relativePath, 'storage/')) {
-                $pathWithoutStorage = substr($relativePath, strlen('storage/'));
+            if (str_starts_with((string) $relativePath, 'storage/')) {
+                $pathWithoutStorage = substr((string) $relativePath, strlen('storage/'));
                 $this->logPath = App::storagePath($pathWithoutStorage);
-            } elseif (str_starts_with($relativePath, '/')) {
+            } elseif (str_starts_with((string) $relativePath, '/')) {
                 // Absolute path
                 $this->logPath = $relativePath;
             } else {
@@ -61,7 +66,7 @@ class Logger
             }
 
             // Ensure log directory exists
-            $logDir = dirname($this->logPath);
+            $logDir = dirname((string) $this->logPath);
             if (!is_dir($logDir)) {
                 @mkdir($logDir, 0755, true);
             }
@@ -115,7 +120,7 @@ class Logger
         $timestamp = date('Y-m-d H:i:s');
         $requestIdPart = self::$requestId ? '[' . self::$requestId . '] ' : '';
         $contextPart = $ctx === [] ? '' : ' ' . json_encode($ctx, JSON_UNESCAPED_SLASHES);
-        
+
         $logMessage = sprintf('[%s] [%s] %s%s%s', $timestamp, strtoupper($level), $requestIdPart, $msg, $contextPart);
 
         // Write based on channel
