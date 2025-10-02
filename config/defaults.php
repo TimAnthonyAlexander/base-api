@@ -51,6 +51,12 @@ return [
         'file' => 'storage/migrations.json',
     ],
 
+    'logging' => [
+        'default' => 'file',
+        'path' => 'storage/logs/baseapi.log',
+        'level' => 'debug',
+    ],
+
     'i18n' => [
         'default_lang' => 'en',
         'translations_dir' => 'translations',
