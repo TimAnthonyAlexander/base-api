@@ -58,15 +58,44 @@ class ClientEmitter
         $lines[] = "    signal: options?.signal,";
         $lines[] = "  });";
         $lines[] = "";
-        $lines[] = "  const data = await response.json();";
+        $lines[] = "  // Handle 204 No Content and HEAD requests";
+        $lines[] = "  if (response.status === 204 || method === 'HEAD') {";
+        $lines[] = "    if (!response.ok) {";
+        $lines[] = "      throw new ApiError('Request failed', response.status);";
+        $lines[] = "    }";
+        $lines[] = "    return undefined as T;";
+        $lines[] = "  }";
+        $lines[] = "";
+        $lines[] = "  // Parse response based on content type";
+        $lines[] = "  const contentType = response.headers.get('content-type');";
+        $lines[] = "  const isJson = contentType?.includes('application/json');";
+        $lines[] = "  ";
+        $lines[] = "  let data: any;";
+        $lines[] = "  try {";
+        $lines[] = "    data = isJson ? await response.json() : await response.text();";
+        $lines[] = "  } catch (err) {";
+        $lines[] = "    // Failed to parse response";
+        $lines[] = "    if (!response.ok) {";
+        $lines[] = "      throw new ApiError('Request failed', response.status);";
+        $lines[] = "    }";
+        $lines[] = "    throw new ApiError('Failed to parse response', response.status);";
+        $lines[] = "  }";
         $lines[] = "";
         $lines[] = "  if (!response.ok) {";
-        $lines[] = "    throw new ApiError(";
-        $lines[] = "      data.error || 'Request failed',";
-        $lines[] = "      response.status,";
-        $lines[] = "      data.requestId,";
-        $lines[] = "      data.errors";
-        $lines[] = "    );";
+        $lines[] = "    // Handle error responses";
+        $lines[] = "    if (typeof data === 'object' && data !== null) {";
+        $lines[] = "      throw new ApiError(";
+        $lines[] = "        data.error || 'Request failed',";
+        $lines[] = "        response.status,";
+        $lines[] = "        data.requestId,";
+        $lines[] = "        data.errors";
+        $lines[] = "      );";
+        $lines[] = "    } else {";
+        $lines[] = "      throw new ApiError(";
+        $lines[] = "        typeof data === 'string' ? data : 'Request failed',";
+        $lines[] = "        response.status";
+        $lines[] = "      );";
+        $lines[] = "    }";
         $lines[] = "  }";
         $lines[] = "";
         $lines[] = "  return data;";
@@ -88,6 +117,12 @@ class ClientEmitter
         $lines[] = "  ";
         $lines[] = "  delete: <T>(path: string, options?: HttpOptions) => ";
         $lines[] = "    fetchApi<T>(path, 'DELETE', options),";
+        $lines[] = "  ";
+        $lines[] = "  head: <T>(path: string, options?: HttpOptions) => ";
+        $lines[] = "    fetchApi<T>(path, 'HEAD', options),";
+        $lines[] = "  ";
+        $lines[] = "  options: <T>(path: string, options?: HttpOptions) => ";
+        $lines[] = "    fetchApi<T>(path, 'OPTIONS', options),";
         $lines[] = "};";
 
         return implode("\n", $lines);
@@ -173,8 +208,8 @@ class ClientEmitter
             $params[] = sprintf('path: Types.%sPathParams', $opNamePascal);
         }
 
-        // Add query params for GET
-        if ($operation->method === 'GET' && $operation->queryParams !== []) {
+        // Add query params for all methods that have them
+        if ($operation->queryParams !== []) {
             $params[] = sprintf('query?: Types.%sQueryParams', $opNamePascal);
         }
 
@@ -204,8 +239,8 @@ class ClientEmitter
             $lines[] = sprintf("  const url = '%s';", $operation->path);
         }
 
-        // Add query string for GET
-        if ($operation->method === 'GET' && $operation->queryParams !== []) {
+        // Add query string handling for any method with query params
+        if ($operation->queryParams !== []) {
             $lines[] = "  const searchParams = new URLSearchParams();";
             $lines[] = "  if (query) {";
             $lines[] = "    for (const [key, value] of Object.entries(query)) {";
@@ -216,7 +251,14 @@ class ClientEmitter
             $lines[] = "  }";
             $lines[] = "  const fullUrl = searchParams.toString() ? `\${url}?\${searchParams}` : url;";
             $lines[] = "";
-            $lines[] = "  return http.get(fullUrl, options);";
+
+            if (in_array($operation->method, ['POST', 'PUT', 'PATCH'])) {
+                $method = strtolower($operation->method);
+                $lines[] = sprintf('  return http.%s(fullUrl, body, options);', $method);
+            } else {
+                $method = strtolower($operation->method);
+                $lines[] = sprintf('  return http.%s(fullUrl, options);', $method);
+            }
         } elseif (in_array($operation->method, ['POST', 'PUT', 'PATCH'])) {
             $method = strtolower($operation->method);
             $lines[] = "";
@@ -309,7 +351,19 @@ class ClientEmitter
         $lines[] = "    } finally {";
         $lines[] = "      setLoading(false);";
         $lines[] = "    }";
-        $lines[] = "  }, [enabled, ...(deps || [])]);";
+        // Build default dependencies
+        $depArgs = [];
+        if ($operation->pathParams !== []) {
+            $depArgs[] = "path";
+        }
+
+        if ($operation->queryParams !== []) {
+            $depArgs[] = "query";
+        }
+
+        $depArgs[] = "enabled";
+        $defaultDeps = implode(', ', array_map(fn($arg): string => sprintf('JSON.stringify(%s)', $arg), $depArgs));
+        $lines[] = sprintf('  }, [enabled, %s, ...(deps || [])]);', $defaultDeps);
         $lines[] = "";
         $lines[] = "  useEffect(() => {";
         $lines[] = "    fetchData();";
@@ -325,12 +379,16 @@ class ClientEmitter
     {
         $lines = [];
 
-        // Determine variables type
+        // Determine variables type - include query for DELETE operations
         $variablesType = "{";
         $variablesParts = [];
 
         if ($operation->pathParams !== []) {
             $variablesParts[] = sprintf('path: Types.%sPathParams', $opNamePascal);
+        }
+
+        if ($operation->queryParams !== []) {
+            $variablesParts[] = sprintf('query?: Types.%sQueryParams', $opNamePascal);
         }
 
         if ($operation->body) {
@@ -356,10 +414,14 @@ class ClientEmitter
         $lines[] = "    ";
         $lines[] = "    try {";
 
-        // Build API call
+        // Build API call - include query if present
         $callParams = [];
         if ($operation->pathParams !== []) {
             $callParams[] = "variables.path";
+        }
+
+        if ($operation->queryParams !== []) {
+            $callParams[] = "variables.query";
         }
 
         if ($operation->body) {

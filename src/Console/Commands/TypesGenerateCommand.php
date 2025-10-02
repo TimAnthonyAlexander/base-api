@@ -100,6 +100,11 @@ class TypesGenerateCommand implements Command
             }
 
             echo ColorHelper::success("✨ Type generation completed!") . "\n";
+            
+            // Print summary table
+            echo "\n" . ColorHelper::header("Generated Files:") . "\n";
+            $this->printFileSummary($options);
+            
             return 0;
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
@@ -111,10 +116,13 @@ class TypesGenerateCommand implements Command
     private function parseArgs(array $args): array
     {
         $options = [];
+        $bundleDir = null;
 
         foreach ($args as $arg) {
             if ($arg === '--help' || $arg === '-h') {
                 $options['help'] = true;
+            } elseif (str_starts_with((string) $arg, '--bundle-dir=')) {
+                $bundleDir = rtrim(substr((string) $arg, 13), '/') . '/';
             } elseif (str_starts_with((string) $arg, '--out-ts=')) {
                 $options['out-ts'] = substr((string) $arg, 9);
             } elseif (str_starts_with((string) $arg, '--out-openapi=')) {
@@ -128,17 +136,30 @@ class TypesGenerateCommand implements Command
             } elseif (str_starts_with((string) $arg, '--out-hooks=')) {
                 $options['out-hooks'] = substr((string) $arg, 12);
             } elseif ($arg === '--all') {
-                $options['out-ts'] = 'types.ts';
-                $options['out-openapi'] = 'openapi.json';
-                $options['out-routes'] = 'routes.ts';
-                $options['out-http'] = 'http.ts';
-                $options['out-client'] = 'client.ts';
-                $options['out-hooks'] = 'hooks.ts';
+                $options['generate-all'] = true;
             }
         }
 
-        // Set default to generate at least types and openapi
-        if (!isset($options['out-ts']) && !isset($options['out-openapi']) && 
+        // Handle --bundle-dir: co-locate all outputs
+        if ($bundleDir) {
+            $options['out-ts'] = $bundleDir . 'types.ts';
+            $options['out-openapi'] = $bundleDir . 'openapi.json';
+            $options['out-routes'] = $bundleDir . 'routes.ts';
+            $options['out-http'] = $bundleDir . 'http.ts';
+            $options['out-client'] = $bundleDir . 'client.ts';
+            $options['out-hooks'] = $bundleDir . 'hooks.ts';
+        }
+        // Handle --all: generate all with default names
+        elseif (isset($options['generate-all'])) {
+            $options['out-ts'] = 'types.ts';
+            $options['out-openapi'] = 'openapi.json';
+            $options['out-routes'] = 'routes.ts';
+            $options['out-http'] = 'http.ts';
+            $options['out-client'] = 'client.ts';
+            $options['out-hooks'] = 'hooks.ts';
+        }
+        // Default: generate at least types and openapi
+        elseif (!isset($options['out-ts']) && !isset($options['out-openapi']) && 
             !isset($options['out-routes']) && !isset($options['out-http']) && 
             !isset($options['out-client']) && !isset($options['out-hooks'])) {
             $options['out-ts'] = 'types.ts';
@@ -157,28 +178,34 @@ Usage:
   ./mason types:generate [options]
 
 Options:
+  --bundle-dir=DIR       Output directory for all generated files (recommended)
   --out-ts=PATH          Output path for TypeScript type definitions
   --out-openapi=PATH     Output path for OpenAPI specification
   --out-routes=PATH      Output path for route constants and path builder
   --out-http=PATH        Output path for HTTP client
   --out-client=PATH      Output path for API client functions
   --out-hooks=PATH       Output path for React hooks
-  --all                  Generate all outputs with default names
+  --all                  Generate all outputs with default names in current directory
   --help, -h             Show this help message
 
 Examples:
   # Generate types and OpenAPI (default)
   ./mason types:generate
   
-  # Generate all outputs
+  # Generate all outputs in a directory (recommended for SDK)
+  ./mason types:generate --bundle-dir=web/src/api
+  
+  # Generate all outputs in current directory
   ./mason types:generate --all
   
   # Generate specific outputs
-  ./mason types:generate --out-ts=web/types.ts --out-routes=web/routes.ts
+  ./mason types:generate --out-ts=types.ts --out-client=client.ts
   
-  # Generate full client SDK
+  # Custom paths (imports may break if not co-located)
   ./mason types:generate --out-ts=sdk/types.ts --out-routes=sdk/routes.ts \\
     --out-http=sdk/http.ts --out-client=sdk/client.ts --out-hooks=sdk/hooks.ts
+
+Note: Use --bundle-dir to ensure all files are co-located and imports work correctly.
 
 HELP;
     }
@@ -193,6 +220,25 @@ HELP;
 
         if (file_put_contents($path, $content) === false) {
             throw new Exception('Failed to write file to ' . $path);
+        }
+    }
+    
+    private function printFileSummary(array $options): void
+    {
+        $files = [
+            'Types' => $options['out-ts'] ?? null,
+            'Routes' => $options['out-routes'] ?? null,
+            'HTTP' => $options['out-http'] ?? null,
+            'Client' => $options['out-client'] ?? null,
+            'Hooks' => $options['out-hooks'] ?? null,
+            'OpenAPI' => $options['out-openapi'] ?? null,
+        ];
+        
+        foreach ($files as $label => $path) {
+            if ($path) {
+                $absolutePath = realpath($path) ?: $path;
+                echo sprintf("  %-10s %s\n", $label . ':', ColorHelper::success($absolutePath));
+            }
         }
     }
 }

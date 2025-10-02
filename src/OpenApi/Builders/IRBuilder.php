@@ -7,6 +7,10 @@ namespace BaseApi\OpenApi\Builders;
 use BaseApi\App;
 use BaseApi\Http\Attributes\ResponseType;
 use BaseApi\Http\Attributes\Tag;
+use BaseApi\Http\Attributes\Query;
+use BaseApi\Http\Attributes\Body;
+use BaseApi\Http\Attributes\Rules;
+use BaseApi\Http\Attributes\Enveloped;
 use BaseApi\OpenApi\IR\ApiIR;
 use BaseApi\OpenApi\IR\ModelIR;
 use BaseApi\OpenApi\IR\OperationIR;
@@ -76,8 +80,8 @@ class IRBuilder
         $content = file_get_contents($routesFile);
         $routes = [];
 
-        // Match router method calls
-        $pattern = '/\$router->(get|post|delete|put|patch)\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*\[(.*?)\]\s*,?\s*\);/s';
+        // Match all HTTP verbs including OPTIONS and HEAD
+        $pattern = '/\$router->(get|post|delete|put|patch|options|head)\s*\(\s*[\'"]([^\'"]+)[\'"]\s*,\s*\[(.*?)\]\s*,?\s*\);/s';
 
         if (preg_match_all($pattern, $content, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
@@ -85,12 +89,11 @@ class IRBuilder
                 $path = $match[2];
                 $pipelineContent = $match[3];
 
-                // Extract pipeline classes
+                // Extract pipeline classes - support both ShortName::class and Full\Namespace\Class::class
                 $pipeline = [];
-                $classPattern = '/([A-Za-z\\\\]+::class)/';
+                $classPattern = '/([A-Za-z_][A-Za-z0-9_\\\\]*)\s*::\s*class/';
                 if (preg_match_all($classPattern, $pipelineContent, $classMatches)) {
-                    foreach ($classMatches[1] as $classRef) {
-                        $className = str_replace('::class', '', $classRef);
+                    foreach ($classMatches[1] as $className) {
                         $pipeline[] = $this->resolveClassName($className, $content);
                     }
                 }
@@ -151,29 +154,48 @@ class IRBuilder
         // Get all parameters from controller properties
         $allParams = $this->getControllerParameters($reflection);
 
-        // Separate into path, query, and body
+        // Separate into path, query, and body using attributes and conventions
         $pathParams = [];
         $queryParams = [];
         $bodyParams = [];
 
         foreach ($allParams as $param) {
+            $property = $param['property'] ?? null;
+
             if (in_array($param['name'], $pathParamNames)) {
+                // Path parameters
                 $pathParams[] = new ParamIR(
                     $param['name'],
                     $this->phpTypeToSchemaIR($param['type'], $param['nullable']),
                     true
                 );
-            } elseif ($route['method'] === 'GET') {
+            } elseif ($param['isQuery'] ?? false) {
+                // Explicitly marked as Query
                 $queryParams[] = new ParamIR(
                     $param['name'],
                     $this->phpTypeToSchemaIR($param['type'], $param['nullable']),
-                    !$param['nullable'] && !$param['hasDefault']
+                    $param['required']
                 );
-            } else {
+            } elseif ($param['isBody'] ?? false) {
+                // Explicitly marked as Body
                 $bodyParams[] = [
                     'name' => $param['name'],
                     'schema' => $this->phpTypeToSchemaIR($param['type'], $param['nullable']),
-                    'required' => !$param['nullable'] && !$param['hasDefault']
+                    'required' => $param['required']
+                ];
+            } elseif (in_array($route['method'], ['GET', 'HEAD', 'DELETE'])) {
+                // Default: GET/HEAD/DELETE use query
+                $queryParams[] = new ParamIR(
+                    $param['name'],
+                    $this->phpTypeToSchemaIR($param['type'], $param['nullable']),
+                    $param['required']
+                );
+            } else {
+                // Default: POST/PUT/PATCH use body
+                $bodyParams[] = [
+                    'name' => $param['name'],
+                    'schema' => $this->phpTypeToSchemaIR($param['type'], $param['nullable']),
+                    'required' => $param['required']
                 ];
             }
         }
@@ -207,8 +229,10 @@ class IRBuilder
         // Generate operation ID
         $operationId = $this->generateOperationId($controllerClass, $route['method'], $route['path']);
 
-        // Detect envelope pattern
-        $envelope = ['type' => 'Envelope', 'dataRef' => 'T'];
+        // Detect envelope from attributes or default to true
+        $envelope = $this->shouldEnvelope($reflection, $methodReflection)
+            ? ['type' => 'Envelope', 'dataRef' => 'T']
+            : null;
 
         return new OperationIR(
             operationId: $operationId,
@@ -232,6 +256,8 @@ class IRBuilder
             'PUT' => 'put',
             'PATCH' => 'patch',
             'DELETE' => 'delete',
+            'OPTIONS' => 'options',
+            'HEAD' => 'head',
             default => 'action'
         };
     }
@@ -253,12 +279,37 @@ class IRBuilder
 
             // Only include scalar types and arrays as parameters
             if ($this->isScalarOrArrayType($typeName)) {
+                // Check for explicit Query/Body attributes
+                $queryAttr = $prop->getAttributes(Query::class);
+                $bodyAttr = $prop->getAttributes(Body::class);
+                $rulesAttr = $prop->getAttributes(Rules::class);
+
+                $isQuery = !empty($queryAttr);
+                $isBody = !empty($bodyAttr);
+
+                // Determine required status
+                $required = false;
+                if ($rulesAttr) {
+                    $rules = $rulesAttr[0]->newInstance();
+                    $required = $rules->isRequired();
+                } elseif ($queryAttr) {
+                    $required = $queryAttr[0]->newInstance()->required;
+                } elseif ($bodyAttr) {
+                    $required = $bodyAttr[0]->newInstance()->required;
+                } else {
+                    $required = !($type && $type->allowsNull()) && !$prop->hasDefaultValue();
+                }
+
                 $parameters[] = [
                     'name' => $prop->getName(),
                     'type' => $typeName,
                     'nullable' => $type && $type->allowsNull(),
                     'hasDefault' => $prop->hasDefaultValue(),
                     'default' => $prop->hasDefaultValue() ? $prop->getDefaultValue() : null,
+                    'required' => $required,
+                    'isQuery' => $isQuery,
+                    'isBody' => $isBody,
+                    'property' => $prop,
                 ];
             }
         }
@@ -281,7 +332,15 @@ class IRBuilder
         }
 
         return in_array($typeName, [
-            'string', 'int', 'integer', 'float', 'double', 'bool', 'boolean', 'array', 'mixed'
+            'string',
+            'int',
+            'integer',
+            'float',
+            'double',
+            'bool',
+            'boolean',
+            'array',
+            'mixed'
         ]);
     }
 
@@ -311,7 +370,7 @@ class IRBuilder
             'float', 'double', 'number' => SchemaIR::primitive('number', $nullable),
             'string' => SchemaIR::primitive('string', $nullable),
             'bool', 'boolean' => SchemaIR::primitive('boolean', $nullable),
-            'array' => SchemaIR::array(SchemaIR::primitive('string', false)),
+            'array' => SchemaIR::array(SchemaIR::unknown()), // Fix: array without item type → unknown[]
             default => SchemaIR::unknown()
         };
     }
@@ -347,7 +406,8 @@ class IRBuilder
     {
         switch ($shapeInfo['type']) {
             case 'null':
-                return SchemaIR::primitive('string', true);
+            default:
+                return SchemaIR::unknown(); // Fix: null should be unknown, not nullable string
 
             case 'class':
                 $this->resolveModel($shapeInfo['class']);
@@ -371,9 +431,6 @@ class IRBuilder
                 }
 
                 return SchemaIR::object($properties);
-
-            default:
-                return SchemaIR::unknown();
         }
     }
 
@@ -463,5 +520,25 @@ class IRBuilder
 
         return implode('', $suffixParts);
     }
-}
 
+    /**
+     * @param ReflectionClass<object> $class
+     */
+    private function shouldEnvelope(ReflectionClass $class, ReflectionMethod $method): bool
+    {
+        // Check method-level attribute first
+        $methodAttrs = $method->getAttributes(Enveloped::class);
+        if ($methodAttrs !== []) {
+            return $methodAttrs[0]->newInstance()->enabled;
+        }
+
+        // Check class-level attribute
+        $classAttrs = $class->getAttributes(Enveloped::class);
+        if ($classAttrs !== []) {
+            return $classAttrs[0]->newInstance()->enabled;
+        }
+
+        // Default: envelope enabled
+        return true;
+    }
+}
