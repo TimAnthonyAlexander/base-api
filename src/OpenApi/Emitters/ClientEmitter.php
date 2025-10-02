@@ -13,7 +13,7 @@ class ClientEmitter
     {
         $lines = [];
 
-        $lines[] = '// Generated HTTP client for ' . $ir->title;
+        $lines[] = "// Generated HTTP client for {$ir->title}";
         $lines[] = "// Do not edit manually - regenerate with: ./mason types:generate";
         $lines[] = "";
 
@@ -37,7 +37,7 @@ class ClientEmitter
         $lines[] = "";
 
         $baseUrl = $ir->baseUrl ?? '';
-        $lines[] = sprintf("const BASE_URL = '%s';", $baseUrl);
+        $lines[] = "const BASE_URL = '{$baseUrl}';";
         $lines[] = "";
 
         $lines[] = "async function fetchApi<T>(";
@@ -58,15 +58,44 @@ class ClientEmitter
         $lines[] = "    signal: options?.signal,";
         $lines[] = "  });";
         $lines[] = "";
-        $lines[] = "  const data = await response.json();";
+        $lines[] = "  // Handle 204 No Content and HEAD requests";
+        $lines[] = "  if (response.status === 204 || method === 'HEAD') {";
+        $lines[] = "    if (!response.ok) {";
+        $lines[] = "      throw new ApiError('Request failed', response.status);";
+        $lines[] = "    }";
+        $lines[] = "    return undefined as T;";
+        $lines[] = "  }";
+        $lines[] = "";
+        $lines[] = "  // Parse response based on content type";
+        $lines[] = "  const contentType = response.headers.get('content-type');";
+        $lines[] = "  const isJson = contentType?.includes('application/json');";
+        $lines[] = "  ";
+        $lines[] = "  let data: any;";
+        $lines[] = "  try {";
+        $lines[] = "    data = isJson ? await response.json() : await response.text();";
+        $lines[] = "  } catch (err) {";
+        $lines[] = "    // Failed to parse response";
+        $lines[] = "    if (!response.ok) {";
+        $lines[] = "      throw new ApiError('Request failed', response.status);";
+        $lines[] = "    }";
+        $lines[] = "    throw new ApiError('Failed to parse response', response.status);";
+        $lines[] = "  }";
         $lines[] = "";
         $lines[] = "  if (!response.ok) {";
-        $lines[] = "    throw new ApiError(";
-        $lines[] = "      data.error || 'Request failed',";
-        $lines[] = "      response.status,";
-        $lines[] = "      data.requestId,";
-        $lines[] = "      data.errors";
-        $lines[] = "    );";
+        $lines[] = "    // Handle error responses";
+        $lines[] = "    if (typeof data === 'object' && data !== null) {";
+        $lines[] = "      throw new ApiError(";
+        $lines[] = "        data.error || 'Request failed',";
+        $lines[] = "        response.status,";
+        $lines[] = "        data.requestId,";
+        $lines[] = "        data.errors";
+        $lines[] = "      );";
+        $lines[] = "    } else {";
+        $lines[] = "      throw new ApiError(";
+        $lines[] = "        typeof data === 'string' ? data : 'Request failed',";
+        $lines[] = "        response.status";
+        $lines[] = "      );";
+        $lines[] = "    }";
         $lines[] = "  }";
         $lines[] = "";
         $lines[] = "  return data;";
@@ -88,6 +117,12 @@ class ClientEmitter
         $lines[] = "  ";
         $lines[] = "  delete: <T>(path: string, options?: HttpOptions) => ";
         $lines[] = "    fetchApi<T>(path, 'DELETE', options),";
+        $lines[] = "  ";
+        $lines[] = "  head: <T>(path: string, options?: HttpOptions) => ";
+        $lines[] = "    fetchApi<T>(path, 'HEAD', options),";
+        $lines[] = "  ";
+        $lines[] = "  options: <T>(path: string, options?: HttpOptions) => ";
+        $lines[] = "    fetchApi<T>(path, 'OPTIONS', options),";
         $lines[] = "};";
 
         return implode("\n", $lines);
@@ -97,7 +132,7 @@ class ClientEmitter
     {
         $lines = [];
 
-        $lines[] = '// Generated API client functions for ' . $ir->title;
+        $lines[] = "// Generated API client functions for {$ir->title}";
         $lines[] = "// Do not edit manually - regenerate with: ./mason types:generate";
         $lines[] = "";
         $lines[] = "import { http, HttpOptions } from './http';";
@@ -117,7 +152,7 @@ class ClientEmitter
     {
         $lines = [];
 
-        $lines[] = '// Generated React hooks for ' . $ir->title;
+        $lines[] = "// Generated React hooks for {$ir->title}";
         $lines[] = "// Do not edit manually - regenerate with: ./mason types:generate";
         $lines[] = "";
         $lines[] = "import { useState, useEffect, useCallback, DependencyList } from 'react';";
@@ -170,42 +205,41 @@ class ClientEmitter
 
         // Add path params
         if ($operation->pathParams !== []) {
-            $params[] = sprintf('path: Types.%sPathParams', $opNamePascal);
+            $params[] = "path: Types.{$opNamePascal}PathParams";
         }
 
-        // Add query params for GET
-        if ($operation->method === 'GET' && $operation->queryParams !== []) {
-            $params[] = sprintf('query?: Types.%sQueryParams', $opNamePascal);
+        // Add query params for all methods that have them
+        if ($operation->queryParams !== []) {
+            $params[] = "query?: Types.{$opNamePascal}QueryParams";
         }
 
         // Add body for POST/PUT/PATCH
         if (in_array($operation->method, ['POST', 'PUT', 'PATCH']) && $operation->body) {
-            $params[] = sprintf('body: Types.%sRequestBody', $opNamePascal);
+            $params[] = "body: Types.{$opNamePascal}RequestBody";
         }
 
         $params[] = "options?: HttpOptions";
 
         $paramsStr = implode(', ', $params);
-
+        
         $lines[] = "/**";
-        $lines[] = sprintf(' * %s %s', $operation->method, $operation->path);
+        $lines[] = " * {$operation->method} {$operation->path}";
         if ($operation->tags !== []) {
             $lines[] = " * @tags " . implode(', ', $operation->tags);
         }
-
         $lines[] = " */";
-        $lines[] = sprintf('export async function %s(%s): Promise<Types.%sResponse> {', $opName, $paramsStr, $opNamePascal);
+        $lines[] = "export async function {$opName}({$paramsStr}): Promise<Types.{$opNamePascal}Response> {";
 
         // Build the path
         if ($operation->pathParams !== []) {
             $routeKey = $this->toPascalCase($operation->operationId);
-            $lines[] = sprintf("  const url = buildPath('%s', path);", $routeKey);
+            $lines[] = "  const url = buildPath('{$routeKey}', path);";
         } else {
-            $lines[] = sprintf("  const url = '%s';", $operation->path);
+            $lines[] = "  const url = '{$operation->path}';";
         }
 
-        // Add query string for GET
-        if ($operation->method === 'GET' && $operation->queryParams !== []) {
+        // Add query string handling for any method with query params
+        if ($operation->queryParams !== []) {
             $lines[] = "  const searchParams = new URLSearchParams();";
             $lines[] = "  if (query) {";
             $lines[] = "    for (const [key, value] of Object.entries(query)) {";
@@ -216,15 +250,22 @@ class ClientEmitter
             $lines[] = "  }";
             $lines[] = "  const fullUrl = searchParams.toString() ? `\${url}?\${searchParams}` : url;";
             $lines[] = "";
-            $lines[] = "  return http.get(fullUrl, options);";
-        } elseif (in_array($operation->method, ['POST', 'PUT', 'PATCH'])) {
+            
+            if (in_array($operation->method, ['POST', 'PUT', 'PATCH']) && $operation->body) {
+                $method = strtolower($operation->method);
+                $lines[] = "  return http.{$method}(fullUrl, body, options);";
+            } else {
+                $method = strtolower($operation->method);
+                $lines[] = "  return http.{$method}(fullUrl, options);";
+            }
+        } elseif (in_array($operation->method, ['POST', 'PUT', 'PATCH']) && $operation->body) {
             $method = strtolower($operation->method);
             $lines[] = "";
-            $lines[] = sprintf('  return http.%s(url, body, options);', $method);
+            $lines[] = "  return http.{$method}(url, body, options);";
         } else {
             $method = strtolower($operation->method);
             $lines[] = "";
-            $lines[] = sprintf('  return http.%s(url, options);', $method);
+            $lines[] = "  return http.{$method}(url, options);";
         }
 
         $lines[] = "}";
@@ -241,11 +282,13 @@ class ClientEmitter
 
         if ($operation->method === 'GET') {
             // Query hook (auto-fetch)
-            return array_merge($lines, $this->emitQueryHook($operation, $hookName, $opName, $opNamePascal));
+            $lines = array_merge($lines, $this->emitQueryHook($operation, $hookName, $opName, $opNamePascal));
+        } else {
+            // Mutation hook (manual trigger)
+            $lines = array_merge($lines, $this->emitMutationHook($operation, $hookName, $opName, $opNamePascal));
         }
 
-        // Mutation hook (manual trigger)
-        return array_merge($lines, $this->emitMutationHook($operation, $hookName, $opName, $opNamePascal));
+        return $lines;
     }
 
     private function emitQueryHook(OperationIR $operation, string $hookName, string $opName, string $opNamePascal): array
@@ -255,24 +298,22 @@ class ClientEmitter
         // Build parameters
         $params = [];
         if ($operation->pathParams !== []) {
-            $params[] = sprintf('path: Types.%sPathParams', $opNamePascal);
+            $params[] = "path: Types.{$opNamePascal}PathParams";
         }
-
         if ($operation->queryParams !== []) {
-            $params[] = sprintf('query?: Types.%sQueryParams', $opNamePascal);
+            $params[] = "query?: Types.{$opNamePascal}QueryParams";
         }
-
-        $params[] = sprintf('options?: QueryOptions<Types.%sResponse>', $opNamePascal);
+        $params[] = "options?: QueryOptions<Types.{$opNamePascal}Response>";
         $params[] = "deps?: DependencyList";
 
         $paramsStr = implode(', ', $params);
 
         $lines[] = "/**";
-        $lines[] = sprintf(' * React hook for %s %s', $operation->method, $operation->path);
+        $lines[] = " * React hook for {$operation->method} {$operation->path}";
         $lines[] = " * Auto-fetches on mount and when dependencies change";
         $lines[] = " */";
-        $lines[] = sprintf('export function %s(%s): QueryResult<Types.%sResponse> {', $hookName, $paramsStr, $opNamePascal);
-        $lines[] = sprintf('  const [data, setData] = useState<Types.%sResponse | null>(null);', $opNamePascal);
+        $lines[] = "export function {$hookName}({$paramsStr}): QueryResult<Types.{$opNamePascal}Response> {";
+        $lines[] = "  const [data, setData] = useState<Types.{$opNamePascal}Response | null>(null);";
         $lines[] = "  const [loading, setLoading] = useState(true);";
         $lines[] = "  const [error, setError] = useState<Error | null>(null);";
         $lines[] = "";
@@ -291,15 +332,13 @@ class ClientEmitter
         if ($operation->pathParams !== []) {
             $callParams[] = "path";
         }
-
         if ($operation->queryParams !== []) {
             $callParams[] = "query";
         }
-
         $callParams[] = "options";
         $callParamsStr = implode(', ', $callParams);
 
-        $lines[] = sprintf('      const result = await Api.%s(%s);', $opName, $callParamsStr);
+        $lines[] = "      const result = await Api.{$opName}({$callParamsStr});";
         $lines[] = "      setData(result);";
         $lines[] = "      options?.onSuccess?.(result);";
         $lines[] = "    } catch (err) {";
@@ -309,7 +348,20 @@ class ClientEmitter
         $lines[] = "    } finally {";
         $lines[] = "      setLoading(false);";
         $lines[] = "    }";
-        $lines[] = "  }, [enabled, ...(deps || [])]);";
+        // Build default dependencies
+        $depArgs = [];
+        if ($operation->pathParams !== []) {
+            $depArgs[] = "path";
+        }
+        if ($operation->queryParams !== []) {
+            $depArgs[] = "query";
+        }
+        $defaultDeps = $depArgs ? implode(', ', array_map(fn($arg) => "JSON.stringify({$arg})", $depArgs)) : '';
+        if ($defaultDeps) {
+            $lines[] = "  }, [enabled, {$defaultDeps}, ...(deps || [])]);";
+        } else {
+            $lines[] = "  }, [enabled, ...(deps || [])]);";
+        }
         $lines[] = "";
         $lines[] = "  useEffect(() => {";
         $lines[] = "    fetchData();";
@@ -325,51 +377,54 @@ class ClientEmitter
     {
         $lines = [];
 
-        // Determine variables type
+        // Determine variables type - include query for DELETE operations
         $variablesType = "{";
         $variablesParts = [];
-
+        
         if ($operation->pathParams !== []) {
-            $variablesParts[] = sprintf('path: Types.%sPathParams', $opNamePascal);
+            $variablesParts[] = "path: Types.{$opNamePascal}PathParams";
         }
-
+        if ($operation->queryParams !== []) {
+            $variablesParts[] = "query?: Types.{$opNamePascal}QueryParams";
+        }
         if ($operation->body) {
-            $variablesParts[] = sprintf('body: Types.%sRequestBody', $opNamePascal);
+            $variablesParts[] = "body: Types.{$opNamePascal}RequestBody";
         }
-
+        
         $variablesType .= implode('; ', $variablesParts) . "}";
 
         $lines[] = "/**";
-        $lines[] = sprintf(' * React hook for %s %s', $operation->method, $operation->path);
+        $lines[] = " * React hook for {$operation->method} {$operation->path}";
         $lines[] = " * Returns a mutate function that must be called manually";
         $lines[] = " */";
-        $lines[] = sprintf('export function %s(', $hookName);
-        $lines[] = sprintf('  options?: QueryOptions<Types.%sResponse>', $opNamePascal);
-        $lines[] = sprintf('): MutationResult<Types.%sResponse, %s> {', $opNamePascal, $variablesType);
-        $lines[] = sprintf('  const [data, setData] = useState<Types.%sResponse | null>(null);', $opNamePascal);
+        $lines[] = "export function {$hookName}(";
+        $lines[] = "  options?: QueryOptions<Types.{$opNamePascal}Response>";
+        $lines[] = "): MutationResult<Types.{$opNamePascal}Response, {$variablesType}> {";
+        $lines[] = "  const [data, setData] = useState<Types.{$opNamePascal}Response | null>(null);";
         $lines[] = "  const [loading, setLoading] = useState(false);";
         $lines[] = "  const [error, setError] = useState<Error | null>(null);";
         $lines[] = "";
-        $lines[] = sprintf('  const mutate = useCallback(async (variables: %s) => {', $variablesType);
+        $lines[] = "  const mutate = useCallback(async (variables: {$variablesType}) => {";
         $lines[] = "    setLoading(true);";
         $lines[] = "    setError(null);";
         $lines[] = "    ";
         $lines[] = "    try {";
 
-        // Build API call
+        // Build API call - include query if present
         $callParams = [];
         if ($operation->pathParams !== []) {
             $callParams[] = "variables.path";
         }
-
+        if ($operation->queryParams !== []) {
+            $callParams[] = "variables.query";
+        }
         if ($operation->body) {
             $callParams[] = "variables.body";
         }
-
         $callParams[] = "options";
         $callParamsStr = implode(', ', $callParams);
 
-        $lines[] = sprintf('      const result = await Api.%s(%s);', $opName, $callParamsStr);
+        $lines[] = "      const result = await Api.{$opName}({$callParamsStr});";
         $lines[] = "      setData(result);";
         $lines[] = "      options?.onSuccess?.(result);";
         $lines[] = "      return result;";
