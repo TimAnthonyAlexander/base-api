@@ -35,6 +35,7 @@ const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
 const SecurityApiTokenAuth = lazy(() => import('./pages/Security/ApiTokenAuth'));
 const GuidesCrudApi = lazy(() => import('./pages/Guides/CrudApi'));
 const ReferenceOpenApi = lazy(() => import('./pages/Reference/OpenApi'));
+const ReferenceTypeScriptSdk = lazy(() => import('./pages/Reference/TypeScriptSdk'));
 const ReferenceHttpResponses = lazy(() => import('./pages/Reference/HttpResponses'));
 const ReferenceCacheApi = lazy(() => import('./pages/Reference/CacheApi'));
 const TroubleshootingCommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));
@@ -99,6 +100,7 @@ const router = createBrowserRouter([
 
             // Reference
             { path: 'reference/openapi', element: <ReferenceOpenApi /> },
+            { path: 'reference/typescript-sdk', element: <ReferenceTypeScriptSdk /> },
             { path: 'reference/http-responses', element: <ReferenceHttpResponses /> },
             { path: 'reference/cache-api', element: <ReferenceCacheApi /> },
 

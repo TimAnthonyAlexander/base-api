@@ -7,17 +7,14 @@ use BaseApi\Console\Application;
 use Exception;
 use BaseApi\Console\Command;
 use BaseApi\Console\ColorHelper;
-use BaseApi\OpenApi\OpenApiGenerator;
+use BaseApi\OpenApi\Builders\IRBuilder;
+use BaseApi\OpenApi\Emitters\OpenAPIEmitter;
+use BaseApi\OpenApi\Emitters\TypeScriptTypesEmitter;
+use BaseApi\OpenApi\Emitters\RoutesEmitter;
+use BaseApi\OpenApi\Emitters\ClientEmitter;
 
 class TypesGenerateCommand implements Command
 {
-    private readonly OpenApiGenerator $generator;
-
-    public function __construct()
-    {
-        $this->generator = new OpenApiGenerator();
-    }
-
     #[Override]
     public function name(): string
     {
@@ -43,26 +40,70 @@ class TypesGenerateCommand implements Command
         echo ColorHelper::header("🔧 Generating types from BaseApi controllers and routes...") . "\n";
 
         try {
-            // Step 1: Generate using OpenApiGenerator
+            // Step 1: Build IR from routes and controllers
             echo ColorHelper::info("📖 Analyzing routes and controllers...") . "\n";
-            $spec = $this->generator->generate();
+            $builder = new IRBuilder();
+            $ir = $builder->build();
             
             // Step 2: Generate OpenAPI if requested
             if (isset($options['out-openapi'])) {
-                echo ColorHelper::info("🌐 Writing OpenAPI spec...") . "\n";
-                $this->writeOpenApiSpec($spec, $options);
+                echo ColorHelper::info("🌐 Generating OpenAPI spec...") . "\n";
+                $emitter = new OpenAPIEmitter();
+                $spec = $emitter->emit($ir);
+                $this->writeFile($options['out-openapi'], json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+                echo ColorHelper::success('   📄 OpenAPI spec written to ' . $options['out-openapi']) . "\n";
             }
 
-            // Step 3: Generate TypeScript if requested
+            // Step 3: Generate TypeScript types
             if (isset($options['out-ts'])) {
-                echo ColorHelper::info("🔷 Generating TypeScript definitions...") . "\n";
-                $this->generateTypeScriptFromSpec($spec, $options);
+                echo ColorHelper::info("🔷 Generating TypeScript types...") . "\n";
+                $emitter = new TypeScriptTypesEmitter();
+                $types = $emitter->emit($ir);
+                $this->writeFile($options['out-ts'], $types);
+                echo ColorHelper::success('   📘 TypeScript types written to ' . $options['out-ts']) . "\n";
             }
 
-            echo ColorHelper::success("Type generation completed!") . "\n";
+            // Step 4: Generate routes
+            if (isset($options['out-routes'])) {
+                echo ColorHelper::info("🛣️  Generating route constants...") . "\n";
+                $emitter = new RoutesEmitter();
+                $routes = $emitter->emit($ir);
+                $this->writeFile($options['out-routes'], $routes);
+                echo ColorHelper::success('   📘 Route constants written to ' . $options['out-routes']) . "\n";
+            }
+
+            // Step 5: Generate HTTP client
+            if (isset($options['out-http'])) {
+                echo ColorHelper::info("🌐 Generating HTTP client...") . "\n";
+                $emitter = new ClientEmitter();
+                $http = $emitter->emitHttp($ir);
+                $this->writeFile($options['out-http'], $http);
+                echo ColorHelper::success('   📘 HTTP client written to ' . $options['out-http']) . "\n";
+            }
+
+            // Step 6: Generate API client
+            if (isset($options['out-client'])) {
+                echo ColorHelper::info("📡 Generating API client functions...") . "\n";
+                $emitter = new ClientEmitter();
+                $client = $emitter->emitClient($ir);
+                $this->writeFile($options['out-client'], $client);
+                echo ColorHelper::success('   📘 API client written to ' . $options['out-client']) . "\n";
+            }
+
+            // Step 7: Generate React hooks
+            if (isset($options['out-hooks'])) {
+                echo ColorHelper::info("⚛️  Generating React hooks...") . "\n";
+                $emitter = new ClientEmitter();
+                $hooks = $emitter->emitHooks($ir);
+                $this->writeFile($options['out-hooks'], $hooks);
+                echo ColorHelper::success('   📘 React hooks written to ' . $options['out-hooks']) . "\n";
+            }
+
+            echo ColorHelper::success("✨ Type generation completed!") . "\n";
             return 0;
         } catch (Exception $exception) {
             echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
+            echo ColorHelper::error('   ' . $exception->getTraceAsString()) . "\n";
             return 1;
         }
     }
@@ -78,23 +119,29 @@ class TypesGenerateCommand implements Command
                 $options['out-ts'] = substr((string) $arg, 9);
             } elseif (str_starts_with((string) $arg, '--out-openapi=')) {
                 $options['out-openapi'] = substr((string) $arg, 14);
-            } elseif (str_starts_with((string) $arg, '--format=')) {
-                $options['format'] = substr((string) $arg, 9);
-            } elseif (str_starts_with((string) $arg, '--schemas-dir=')) {
-                $options['schemas-dir'] = substr((string) $arg, 14);
+            } elseif (str_starts_with((string) $arg, '--out-routes=')) {
+                $options['out-routes'] = substr((string) $arg, 13);
+            } elseif (str_starts_with((string) $arg, '--out-http=')) {
+                $options['out-http'] = substr((string) $arg, 11);
+            } elseif (str_starts_with((string) $arg, '--out-client=')) {
+                $options['out-client'] = substr((string) $arg, 13);
+            } elseif (str_starts_with((string) $arg, '--out-hooks=')) {
+                $options['out-hooks'] = substr((string) $arg, 12);
+            } elseif ($arg === '--all') {
+                $options['out-ts'] = 'types.ts';
+                $options['out-openapi'] = 'openapi.json';
+                $options['out-routes'] = 'routes.ts';
+                $options['out-http'] = 'http.ts';
+                $options['out-client'] = 'client.ts';
+                $options['out-hooks'] = 'hooks.ts';
             }
         }
 
-        // Defaults
-        if (!isset($options['format'])) {
-            $options['format'] = 'json';
-        }
-
-        if (!isset($options['out-ts'])) {
+        // Set default to generate at least types and openapi
+        if (!isset($options['out-ts']) && !isset($options['out-openapi']) && 
+            !isset($options['out-routes']) && !isset($options['out-http']) && 
+            !isset($options['out-client']) && !isset($options['out-hooks'])) {
             $options['out-ts'] = 'types.ts';
-        }
-
-        if (!isset($options['out-openapi'])) {
             $options['out-openapi'] = 'openapi.json';
         }
 
@@ -110,259 +157,42 @@ Usage:
   ./mason types:generate [options]
 
 Options:
-  --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
-  --out-openapi=PATH     Output path for OpenAPI specification (default: openapi.json)
-  --format=FORMAT        OpenAPI format: json (default) or yaml
-  --schemas-dir=PATH     Output directory for individual JSON schemas
+  --out-ts=PATH          Output path for TypeScript type definitions
+  --out-openapi=PATH     Output path for OpenAPI specification
+  --out-routes=PATH      Output path for route constants and path builder
+  --out-http=PATH        Output path for HTTP client
+  --out-client=PATH      Output path for API client functions
+  --out-hooks=PATH       Output path for React hooks
+  --all                  Generate all outputs with default names
   --help, -h             Show this help message
 
 Examples:
+  # Generate types and OpenAPI (default)
   ./mason types:generate
-  ./mason types:generate --out-ts=web/types/baseapi.d.ts
-  ./mason types:generate --out-openapi=storage/openapi.json
-  ./mason types:generate --out-ts=types.d.ts --out-openapi=api.json --format=yaml
+  
+  # Generate all outputs
+  ./mason types:generate --all
+  
+  # Generate specific outputs
+  ./mason types:generate --out-ts=web/types.ts --out-routes=web/routes.ts
+  
+  # Generate full client SDK
+  ./mason types:generate --out-ts=sdk/types.ts --out-routes=sdk/routes.ts \\
+    --out-http=sdk/http.ts --out-client=sdk/client.ts --out-hooks=sdk/hooks.ts
 
 HELP;
     }
 
-    private function writeOpenApiSpec(array $spec, array $options): void
+    private function writeFile(string $path, string $content): void
     {
-        $output = json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-
-        $this->ensureDirectoryExists(dirname((string) $options['out-openapi']));
-
-        if (file_put_contents($options['out-openapi'], $output) === false) {
-            throw new Exception('Failed to write OpenAPI spec to ' . $options['out-openapi']);
-        }
-
-        echo ColorHelper::success(sprintf('   📄 OpenAPI spec written to %s', $options['out-openapi'])) . "\n";
-    }
-
-    private function generateTypeScriptFromSpec(array $spec, array $options): void
-    {
-        $ts = [];
-
-        // Header and base types
-        $ts[] = "// Generated TypeScript definitions for BaseApi";
-        $ts[] = "// Do not edit manually - regenerate with: ./mason types:generate";
-        $ts[] = "";
-        $ts[] = "export type UUID = string;";
-        $ts[] = "export type Envelope<T> = { data: T };";
-        $ts[] = "";
-        $ts[] = "export interface ErrorResponse {";
-        $ts[] = "  error: string;";
-        $ts[] = "  requestId: string;";
-        $ts[] = "  errors?: Record<string, string>;";
-        $ts[] = "}";
-        $ts[] = "";
-
-        // Generate DTO interfaces from OpenAPI components/schemas
-        if (isset($spec['components']['schemas'])) {
-            foreach ($spec['components']['schemas'] as $name => $schema) {
-                if ($name === 'ErrorResponse') {
-                    continue;
-                } // Skip error response, already defined
-                
-                $ts = array_merge($ts, $this->generateTypeScriptInterfaceFromSchema($name, $schema));
-                $ts[] = "";
-            }
-        }
-
-        // Generate request/response types for each path
-        if (isset($spec['paths'])) {
-            foreach ($spec['paths'] as $path => $methods) {
-                foreach ($methods as $method => $operation) {
-                    $ts = array_merge($ts, $this->generateTypeScriptOperationFromSpec($operation, $method, $path));
-                    $ts[] = "";
-                }
-            }
-        }
-
-        $output = implode("\n", $ts);
-
-        $this->ensureDirectoryExists(dirname((string) $options['out-ts']));
-
-        if (file_put_contents($options['out-ts'], $output) === false) {
-            throw new Exception('Failed to write TypeScript definitions to ' . $options['out-ts']);
-        }
-
-        echo ColorHelper::success(sprintf('   📘 TypeScript definitions written to %s', $options['out-ts'])) . "\n";
-    }
-
-    private function generateTypeScriptInterfaceFromSchema(string $name, array $schema): array
-    {
-        $lines = [];
-        $lines[] = sprintf('export interface %s {', $name);
-
-        if (isset($schema['properties'])) {
-            foreach ($schema['properties'] as $propName => $propSchema) {
-                $tsType = $this->openApiTypeToTypeScript($propSchema);
-                $required = isset($schema['required']) && in_array($propName, $schema['required']);
-                $optional = $required ? '' : '?';
-                $lines[] = sprintf('  %s%s: %s;', $propName, $optional, $tsType);
-            }
-        }
-
-        $lines[] = "}";
-        return $lines;
-    }
-
-    private function generateTypeScriptOperationFromSpec(array $operation, string $method, string $path): array
-    {
-        $lines = [];
-        $operationName = $this->getOperationNameFromSpec($operation, $method, $path);
-
-        // Generate path parameters interface if needed
-        $pathParams = $this->getPathParametersFromSpec($operation);
-        if ($pathParams !== []) {
-            $lines[] = sprintf('export interface %sRequestPath {', $operationName);
-            foreach ($pathParams as $param) {
-                $tsType = $this->openApiTypeToTypeScript($param['schema']);
-                $lines[] = sprintf('  %s: %s;', $param['name'], $tsType);
-            }
-
-            $lines[] = "}";
-            $lines[] = "";
-        }
-
-        // Generate query/body parameters interface if needed
-        $queryParams = $this->getQueryParametersFromSpec($operation);
-        $requestBody = $this->getRequestBodyFromSpec($operation);
+        $directory = dirname($path);
         
-        if ($queryParams !== [] || $requestBody !== []) {
-            $interfaceType = $method === 'get' ? 'Query' : 'Body';
-            $lines[] = sprintf('export interface %sRequest%s {', $operationName, $interfaceType);
-            
-            // Add query parameters
-            foreach ($queryParams as $param) {
-                $tsType = $this->openApiTypeToTypeScript($param['schema']);
-                $optional = $param['required'] ? '' : '?';
-                $lines[] = sprintf('  %s%s: %s;', $param['name'], $optional, $tsType);
-            }
-            
-            // Add request body properties
-            if ($requestBody !== [] && isset($requestBody['properties'])) {
-                foreach ($requestBody['properties'] as $propName => $propSchema) {
-                    $tsType = $this->openApiTypeToTypeScript($propSchema);
-                    $required = isset($requestBody['required']) && in_array($propName, $requestBody['required']);
-                    $optional = $required ? '' : '?';
-                    $lines[] = sprintf('  %s%s: %s;', $propName, $optional, $tsType);
-                }
-            }
-            
-            $lines[] = "}";
-            $lines[] = "";
-        }
-
-        // Generate response type
-        $responseType = $this->getResponseTypeFromSpec($operation);
-        $lines[] = sprintf('export type %sResponse = Envelope<%s>;', $operationName, $responseType);
-
-        return $lines;
-    }
-
-    private function openApiTypeToTypeScript(array $schema): string
-    {
-        if (isset($schema['$ref'])) {
-            // Extract type name from reference
-            $ref = $schema['$ref'];
-            $parts = explode('/', (string) $ref);
-            return end($parts);
-        }
-
-        if (isset($schema['type'])) {
-            switch ($schema['type']) {
-                case 'integer':
-                case 'number':
-                    return 'number';
-                case 'string':
-                    return 'string';
-                case 'boolean':
-                    return 'boolean';
-                case 'array':
-                    if (isset($schema['items'])) {
-                        $itemType = $this->openApiTypeToTypeScript($schema['items']);
-                        return $itemType . '[]';
-                    }
-
-                    return 'any[]';
-                case 'object':
-                    if (isset($schema['properties'])) {
-                        $props = [];
-                        foreach ($schema['properties'] as $propName => $propSchema) {
-                            $propType = $this->openApiTypeToTypeScript($propSchema);
-                            $props[] = sprintf('%s: %s', $propName, $propType);
-                        }
-
-                        return '{ ' . implode('; ', $props) . ' }';
-                    }
-
-                    return 'Record<string, any>';
-                default:
-                    return 'any';
-            }
-        }
-
-        return 'any';
-    }
-
-    private function getOperationNameFromSpec(array $operation, string $method, string $path): string
-    {
-        if (isset($operation['operationId'])) {
-            // Convert operationId to PascalCase for interface names
-            return ucfirst((string) $operation['operationId']);
-        }
-
-        // Fallback: generate from method and path
-        $pathParts = array_filter(explode('/', $path));
-        $pathName = implode('', array_map('ucfirst', $pathParts));
-        return ucfirst($method) . $pathName;
-    }
-
-    private function getPathParametersFromSpec(array $operation): array
-    {
-        if (!isset($operation['parameters'])) {
-            return [];
-        }
-
-        return array_filter($operation['parameters'], fn($param): bool => $param['in'] === 'path');
-    }
-
-    private function getQueryParametersFromSpec(array $operation): array
-    {
-        if (!isset($operation['parameters'])) {
-            return [];
-        }
-
-        return array_filter($operation['parameters'], fn($param): bool => $param['in'] === 'query');
-    }
-
-    private function getRequestBodyFromSpec(array $operation): array
-    {
-        if (!isset($operation['requestBody']['content']['application/json']['schema'])) {
-            return [];
-        }
-
-        return $operation['requestBody']['content']['application/json']['schema'];
-    }
-
-    private function getResponseTypeFromSpec(array $operation): string
-    {
-        // Look for successful response (200, 201, etc.)
-        foreach ($operation['responses'] as $status => $response) {
-            // 2xx status codes
-            $statusStr = (string)$status;
-            if ($statusStr[0] === '2' && isset($response['content']['application/json']['schema']['properties']['data'])) { return $this->openApiTypeToTypeScript($response['content']['application/json']['schema']['properties']['data']);
-            }
-        }
-
-        return 'any';
-    }
-
-    private function ensureDirectoryExists(string $directory): void
-    {
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
             throw new Exception('Failed to create directory: ' . $directory);
+        }
+
+        if (file_put_contents($path, $content) === false) {
+            throw new Exception('Failed to write file to ' . $path);
         }
     }
 }

@@ -35,14 +35,19 @@ export default function OpenAPI() {
             <CodeBlock language="bash" code={`# Generate both OpenAPI and TypeScript (default behavior)
 ./mason types:generate
 
+# Generate complete SDK including React hooks
+./mason types:generate --all
+
 # Generate with custom output paths
-./mason types:generate --out-openapi=custom-api.json --out-ts=my-types.d.ts
+./mason types:generate --out-openapi=custom-api.json --out-ts=my-types.ts
 
 # Generate only OpenAPI specification
-./mason types:generate --out-openapi=openapi.json
+./mason types:generate --out-openapi=openapi.json`} />
 
-# Generate with YAML format (not yet implemented)
-./mason types:generate --format=yaml`} />
+            <Callout type="info" title="TypeScript SDK Generation">
+                BaseAPI can generate a complete TypeScript SDK with React hooks.
+                See <a href="/reference/typescript-sdk" style={{ color: 'inherit' }}>TypeScript SDK Generation</a> for details.
+            </Callout>
 
             <Typography>
                 This generates an <code>openapi.json</code> file in your project root containing the complete
@@ -459,10 +464,13 @@ APP_URL="https://api.example.com"  # Used for server URL in spec
 ./mason types:generate --help
 
 # Available options:
-#   --out-ts=PATH          Output path for TypeScript definitions (default: types.ts)
-#   --out-openapi=PATH     Output path for OpenAPI specification (default: openapi.json)
-#   --format=FORMAT        OpenAPI format: json (default) or yaml (not yet implemented)
-#   --schemas-dir=PATH     Output directory for individual JSON schemas (not yet implemented)`} />
+#   --out-ts=PATH          Output path for TypeScript type definitions
+#   --out-openapi=PATH     Output path for OpenAPI specification
+#   --out-routes=PATH      Output path for route constants and path builder
+#   --out-http=PATH        Output path for HTTP client
+#   --out-client=PATH      Output path for API client functions
+#   --out-hooks=PATH       Output path for React hooks
+#   --all                  Generate all outputs with default names`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Integration with CI/CD

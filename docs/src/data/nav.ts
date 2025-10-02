@@ -113,6 +113,7 @@ export const NAV: NavNode[] = [
         icon: 'library_books',
         children: [
             { title: 'OpenAPI', path: '/reference/openapi', icon: 'api' },
+            { title: 'TypeScript SDK', path: '/reference/typescript-sdk', icon: 'code' },
             { title: 'HTTP Responses', path: '/reference/http-responses', icon: 'http' },
             { title: 'Cache API', path: '/reference/cache-api', icon: 'cached' },
         ]
