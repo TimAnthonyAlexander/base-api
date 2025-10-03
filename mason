@@ -63,6 +63,7 @@ use BaseApi\Console\Commands\QueueStatusCommand;
 use BaseApi\Console\Commands\JobMakeCommand;
 use BaseApi\Console\Commands\QueueRetryCommand;
 use BaseApi\Console\Commands\CreateJobsTableCommand;
+use BaseApi\Console\Commands\StorageLinkCommand;
 
 // Load environment if available
 $envPath = $baseAppPath . '/.env';
@@ -94,6 +95,9 @@ $app->register('queue:status', new QueueStatusCommand());
 $app->register('queue:retry', new QueueRetryCommand());
 $app->register('queue:install', new CreateJobsTableCommand());
 $app->register('make:job', new JobMakeCommand());
+
+// Storage commands
+$app->register('storage:link', new StorageLinkCommand());
 
 // Run the application
 exit($app->run($argv));
