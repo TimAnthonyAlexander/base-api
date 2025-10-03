@@ -77,6 +77,8 @@ class TypeScriptTypesEmitter
                 $lines[] = sprintf('  %s: %s;', $param->name, $tsType);
             }
 
+            // Add index signature for compatibility with buildPath function
+            $lines[] = "  [key: string]: string | number | null;";
             $lines[] = "}";
             $lines[] = "";
         }
@@ -201,4 +203,5 @@ class TypeScriptTypesEmitter
         return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $str)));
     }
 }
+
 

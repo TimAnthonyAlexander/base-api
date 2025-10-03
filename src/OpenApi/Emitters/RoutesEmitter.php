@@ -50,13 +50,15 @@ class RoutesEmitter
         $lines[] = " */";
         $lines[] = "export function buildPath<K extends RouteKey>(";
         $lines[] = "  key: K,";
-        $lines[] = "  params?: Record<string, string | number>";
+        $lines[] = "  params?: Record<string, string | number | null>";
         $lines[] = "): string {";
-        $lines[] = "  let path = Routes[key];";
+        $lines[] = "  let path: string = Routes[key];";
         $lines[] = "";
         $lines[] = "  if (params) {";
         $lines[] = "    for (const [paramKey, paramValue] of Object.entries(params)) {";
-        $lines[] = "      path = path.replace(`{\${paramKey}}`, encodeURIComponent(String(paramValue)));";
+        $lines[] = "      if (paramValue !== null && paramValue !== undefined) {";
+        $lines[] = "        path = path.replace(`{\${paramKey}}`, encodeURIComponent(String(paramValue)));";
+        $lines[] = "      }";
         $lines[] = "    }";
         $lines[] = "  }";
         $lines[] = "";
@@ -104,3 +106,4 @@ class RoutesEmitter
         return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $str)));
     }
 }
+

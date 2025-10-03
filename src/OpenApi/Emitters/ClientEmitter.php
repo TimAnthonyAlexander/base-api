@@ -24,14 +24,21 @@ class ClientEmitter
         $lines[] = "";
 
         $lines[] = "export class ApiError extends Error {";
+        $lines[] = "  status: number;";
+        $lines[] = "  requestId?: string;";
+        $lines[] = "  errors?: Record<string, string>;";
+        $lines[] = "";
         $lines[] = "  constructor(";
         $lines[] = "    message: string,";
-        $lines[] = "    public status: number,";
-        $lines[] = "    public requestId?: string,";
-        $lines[] = "    public errors?: Record<string, string>";
+        $lines[] = "    status: number,";
+        $lines[] = "    requestId?: string,";
+        $lines[] = "    errors?: Record<string, string>";
         $lines[] = "  ) {";
         $lines[] = "    super(message);";
         $lines[] = "    this.name = 'ApiError';";
+        $lines[] = "    this.status = status;";
+        $lines[] = "    this.requestId = requestId;";
+        $lines[] = "    this.errors = errors;";
         $lines[] = "  }";
         $lines[] = "}";
         $lines[] = "";
@@ -135,7 +142,7 @@ class ClientEmitter
         $lines[] = '// Generated API client functions for ' . $ir->title;
         $lines[] = "// Do not edit manually - regenerate with: ./mason types:generate";
         $lines[] = "";
-        $lines[] = "import { http, HttpOptions } from './http';";
+        $lines[] = "import { http, type HttpOptions } from './http';";
         $lines[] = "import { buildPath } from './routes';";
         $lines[] = "import * as Types from './types';";
         $lines[] = "";
@@ -155,8 +162,8 @@ class ClientEmitter
         $lines[] = '// Generated React hooks for ' . $ir->title;
         $lines[] = "// Do not edit manually - regenerate with: ./mason types:generate";
         $lines[] = "";
-        $lines[] = "import { useState, useEffect, useCallback, DependencyList } from 'react';";
-        $lines[] = "import { HttpOptions } from './http';";
+        $lines[] = "import { useState, useEffect, useCallback, type DependencyList } from 'react';";
+        $lines[] = "import { type HttpOptions } from './http';";
         $lines[] = "import * as Api from './client';";
         $lines[] = "import * as Types from './types';";
         $lines[] = "";
@@ -397,6 +404,10 @@ class ClientEmitter
 
         $variablesType .= implode('; ', $variablesParts) . "}";
 
+        // Check if variables are actually used (prefix with _ if unused)
+        $hasVariables = $operation->pathParams !== [] || $operation->queryParams !== [] || $operation->body !== null;
+        $variablesParam = $hasVariables ? 'variables' : '_variables';
+
         $lines[] = "/**";
         $lines[] = sprintf(' * React hook for %s %s', $operation->method, $operation->path);
         $lines[] = " * Returns a mutate function that must be called manually";
@@ -408,7 +419,7 @@ class ClientEmitter
         $lines[] = "  const [loading, setLoading] = useState(false);";
         $lines[] = "  const [error, setError] = useState<Error | null>(null);";
         $lines[] = "";
-        $lines[] = sprintf('  const mutate = useCallback(async (variables: %s) => {', $variablesType);
+        $lines[] = sprintf('  const mutate = useCallback(async (%s: %s) => {', $variablesParam, $variablesType);
         $lines[] = "    setLoading(true);";
         $lines[] = "    setError(null);";
         $lines[] = "    ";
@@ -417,15 +428,15 @@ class ClientEmitter
         // Build API call - include query if present
         $callParams = [];
         if ($operation->pathParams !== []) {
-            $callParams[] = "variables.path";
+            $callParams[] = $variablesParam . ".path";
         }
 
         if ($operation->queryParams !== []) {
-            $callParams[] = "variables.query";
+            $callParams[] = $variablesParam . ".query";
         }
 
         if ($operation->body) {
-            $callParams[] = "variables.body";
+            $callParams[] = $variablesParam . ".body";
         }
 
         $callParams[] = "options";
