@@ -216,4 +216,5 @@ BaseAPI is open-source software licensed under the [MIT license](LICENSE).
 - **[Template Repository](https://github.com/timanthonyalexander/base-api-template)** This is the project you start with when building your own API
 - **[Hotel Comparison Project](https://hotel.timanthonyalexander.de)** This is a Hotel Comparison API + Frontend UI ontop of BaseAPI
 - **[Webshop w/ Stripe Project](https://shop.timanthonyalexander.de)** This is a WebShop API + Frontend UI ontop of BaseAPI
+- **[Flix Movies and Series Website](https://github.com/timanthonyalexander/base-api/flix)** This is a Netflix-like application with movies and series
 
