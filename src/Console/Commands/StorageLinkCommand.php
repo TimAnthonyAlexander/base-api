@@ -35,6 +35,7 @@ class StorageLinkCommand implements Command
                 echo ColorHelper::error('❌ Failed to create storage/public directory') . "\n";
                 return 1;
             }
+
             echo ColorHelper::success('✓ Created storage/public directory') . "\n";
         }
         
@@ -46,12 +47,13 @@ class StorageLinkCommand implements Command
                     echo ColorHelper::comment('ℹ The "public/storage" link already exists and points to the correct location') . "\n";
                     return 0;
                 }
-                
+
                 // Remove incorrect symlink
                 if (!unlink($publicStoragePath)) {
                     echo ColorHelper::error('❌ Failed to remove existing symlink') . "\n";
                     return 1;
                 }
+
                 echo ColorHelper::comment('⚠ Removed incorrect symlink') . "\n";
             } else {
                 echo ColorHelper::error('❌ The public/storage path already exists as a file or directory (not a symlink)') . "\n";
