@@ -21,7 +21,8 @@ class HasMany extends Relation
             return $this->foreignKey;
         }
 
-        // Default to parentTable_id (e.g. 'users' becomes 'user_id')
+        // Default to parentTable_id (parent table is already in snake_case)
+        // e.g. 'watch_item' table becomes 'watch_item_id'
         $parentTable = $this->parent::table();
         $singularTable = BaseModel::singularize($parentTable);
         return $singularTable . '_id';

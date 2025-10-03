@@ -11,9 +11,19 @@ abstract class Relation
 {
     protected ?string $localKey = null;
 
-    public function __construct(protected BaseModel $parent, protected string $relatedClass, protected ?string $foreignKey = null, ?string $localKey = null)
+    public function __construct(protected BaseModel $parent, protected string $relatedClass, protected ?string $foreignKey = null, ?string $localKey = null, protected ?string $relationName = null)
     {
         $this->localKey = $localKey ?? 'id';
+    }
+
+    /**
+     * Convert a string from PascalCase or camelCase to snake_case
+     */
+    protected function toSnakeCase(string $string): string
+    {
+        // Insert underscore before uppercase letters and convert to lowercase
+        $snake = preg_replace('/([a-z])([A-Z])/', '$1_$2', $string);
+        return strtolower((string) $snake);
     }
 
     /**

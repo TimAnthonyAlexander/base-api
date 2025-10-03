@@ -342,7 +342,14 @@ abstract class BaseModel implements \JsonSerializable
      */
     public function belongsTo(string $relatedClass, ?string $foreignKey = null, ?string $localKey = null): BelongsTo
     {
-        return new BelongsTo($this, $relatedClass, $foreignKey, $localKey);
+        // Capture the relation method name from backtrace to infer foreign key
+        $relationName = null;
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        if (isset($trace[1]['function'])) {
+            $relationName = $trace[1]['function'];
+        }
+
+        return new BelongsTo($this, $relatedClass, $foreignKey, $localKey, $relationName);
     }
 
     /**
@@ -350,7 +357,14 @@ abstract class BaseModel implements \JsonSerializable
      */
     public function hasMany(string $relatedClass, ?string $foreignKey = null, ?string $localKey = null): HasMany
     {
-        return new HasMany($this, $relatedClass, $foreignKey, $localKey);
+        // Capture the relation method name from backtrace to infer foreign key
+        $relationName = null;
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        if (isset($trace[1]['function'])) {
+            $relationName = $trace[1]['function'];
+        }
+
+        return new HasMany($this, $relatedClass, $foreignKey, $localKey, $relationName);
     }
 
     /**

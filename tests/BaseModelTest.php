@@ -576,4 +576,69 @@ class BaseModelTest extends TestCase
         $this->assertArrayNotHasKey('user', $data);
         $this->assertArrayNotHasKey('product', $data);
     }
+
+    public function testBelongsToInfersSnakeCaseForeignKeyFromClassName(): void
+    {
+        // Test that belongsTo correctly infers snake_case foreign keys from class name
+        // when called from a properly named relation method
+        
+        // Create a test model with a relation method that matches the expected class name
+        $testModel = new class extends BaseModel {
+            public string $id = '';
+
+            public string $test_post_model_id = '';
+
+            public function testPostModel(): BelongsTo {
+                return $this->belongsTo(TestPostModel::class);
+            }
+        };
+        
+        $testModel->id = '123';
+        
+        // Call the relation method
+        $relation = $testModel->testPostModel();
+        
+        // Access the protected getForeignKey method via reflection
+        $reflection = new ReflectionClass($relation);
+        $method = $reflection->getMethod('getForeignKey');
+        $method->setAccessible(true);
+        
+        $foreignKey = $method->invoke($relation);
+        
+        // Should convert method name 'testPostModel' to snake_case: test_post_model_id
+        $this->assertEquals('test_post_model_id', $foreignKey);
+    }
+
+    public function testRelationMethodNameUsedForForeignKey(): void
+    {
+        // Test that the relation method name is preferred over the class name
+        // when inferring foreign keys
+        
+        // Create a test model with a method that calls belongsTo
+        $testModel = new class extends BaseModel {
+            public string $id = '';
+
+            public string $watch_item_id = '';
+
+            public function watchItem(): BelongsTo {
+                return $this->belongsTo(TestPostModel::class);
+            }
+        };
+        
+        $testModel->id = '123';
+        $testModel->watch_item_id = 'watch-456';
+        
+        // Call the relation method
+        $relation = $testModel->watchItem();
+        
+        // Access the protected getForeignKey method via reflection
+        $reflection = new ReflectionClass($relation);
+        $method = $reflection->getMethod('getForeignKey');
+        $method->setAccessible(true);
+        
+        $foreignKey = $method->invoke($relation);
+        
+        // Should use the method name 'watchItem' and convert to snake_case: watch_item_id
+        $this->assertEquals('watch_item_id', $foreignKey);
+    }
 }

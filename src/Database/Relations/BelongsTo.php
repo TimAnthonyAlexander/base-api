@@ -21,10 +21,15 @@ class BelongsTo extends Relation
             return $this->foreignKey;
         }
 
-        // Default to relationName_id (e.g. 'user' becomes 'user_id')
+        // Prefer relation method name (e.g. 'watchItem' becomes 'watch_item_id')
+        if ($this->relationName !== null) {
+            return $this->toSnakeCase($this->relationName) . '_id';
+        }
+
+        // Fall back to related class name in snake_case
         $relatedClass = $this->relatedClass;
         $className = (new ReflectionClass($relatedClass))->getShortName();
-        return strtolower($className) . '_id';
+        return $this->toSnakeCase($className) . '_id';
     }
 
     /**
