@@ -446,6 +446,13 @@ export default function CLIOverview() {
                                 <code>./mason queue:work --timeout=60</code>
                             </TableCell>
                         </TableRow>
+                        <TableRow>
+                            <TableCell><code>storage:link</code></TableCell>
+                            <TableCell>Create symlink from public/storage to storage/public</TableCell>
+                            <TableCell>
+                                <code>./mason storage:link</code>
+                            </TableCell>
+                        </TableRow>
                     </TableBody>
                 </Table>
             </TableContainer>

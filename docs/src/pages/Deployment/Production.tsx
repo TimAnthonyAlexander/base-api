@@ -137,9 +137,19 @@ server {
         return 404;
     }
     
-    location ~* ^/(storage|vendor|bin|config)/ {
+    location ~* ^/(vendor|bin|config)/ {
         deny all;
         return 404;
+    }
+    
+    # Serve public storage files (symlinked from storage/public)
+    # Use ./mason storage:link to create the symlink
+    location ^~ /storage/ {
+        disable_symlinks off;
+        try_files $uri =404;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        access_log off;
     }
     
     # API routes
@@ -357,6 +367,42 @@ sudo systemctl status php8.4-fpm  # Verify it's running`}
                     />
                 </AccordionDetails>
             </Accordion>
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Storage Setup
+            </Typography>
+
+            <Typography paragraph>
+                BaseAPI includes a Laravel-like storage system for serving public files (like user uploads, product images, etc.).
+                The <code>storage:link</code> command creates a symbolic link from <code>public/storage</code> to <code>storage/public</code>,
+                allowing these files to be served through your web server.
+            </Typography>
+
+            <CodeBlock
+                language="bash"
+                title="Create Storage Symlink"
+                code={`# In your application directory
+./mason storage:link
+
+# This creates:
+# public/storage -> ../storage/public (symlink)`}
+            />
+
+            <Alert severity="info" sx={{ my: 2 }}>
+                The NGINX configuration above includes a dedicated <code>location ^~ /storage/</code> block
+                that serves these files with proper caching headers and allows following symlinks.
+            </Alert>
+
+            <Callout type="tip" title="File Permissions">
+                <Typography>
+                    Ensure the <code>storage/public</code> directory and its contents are readable by the web server user:
+                </Typography>
+                <CodeBlock
+                    language="bash"
+                    code={`sudo chown -R www-data:www-data storage/public
+sudo chmod -R 755 storage/public`}
+                />
+            </Callout>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Environment Management
@@ -595,6 +641,12 @@ tcp-backlog 511`}
                     <ListItemText
                         primary="File Permissions"
                         secondary="storage/ directory writable, .env file secure (600/640 permissions)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Storage Symlink"
+                        secondary="./mason storage:link executed, public/storage symlink created"
                     />
                 </ListItem>
                 <ListItem>
