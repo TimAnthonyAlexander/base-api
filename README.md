@@ -1,6 +1,6 @@
 # BaseAPI
 
-<img src="baseapi.png" alt="BaseAPI Logo" width="200"/>
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/TimAnthonyAlexander/baseapi-template?quickstart=1)
 
 A tiny, KISS-first PHP 8.4+ framework for building production-ready REST APIs.
 
