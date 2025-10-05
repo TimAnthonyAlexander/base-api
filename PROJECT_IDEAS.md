@@ -1,6 +1,6 @@
 # BaseAPI Project Ideas
 
-Welcome to the BaseAPI project ideas collection! This document contains 100 carefully curated project ideas that you can build using BaseAPI's powerful yet simple PHP framework. Each project leverages BaseAPI's core strengths: rapid development, built-in security, database agnosticism, unified caching, and automatic documentation generation.
+Welcome to the BaseAPI project ideas collection! This document contains 100+ carefully crafted project ideas that you can build using BaseAPI's powerful yet simple PHP framework. Each project leverages BaseAPI's core strengths: rapid development, built-in security, database agnosticism, unified caching, and automatic documentation generation.
 
 ## Getting Started Projects (1-20)
 
