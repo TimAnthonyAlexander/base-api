@@ -32,6 +32,9 @@ class RouteCacheCommand implements Command
         try {
             echo ColorHelper::info("🚀 Compiling routes...") . "\n";
 
+            // Load application routes
+            $this->loadRoutes();
+
             $router = App::router();
             $cachePath = App::storagePath('cache/routes.php');
 
@@ -100,6 +103,18 @@ class RouteCacheCommand implements Command
         }
         
         return round($bytes / 1048576, 2) . ' MB';
+    }
+
+    /**
+     * Load application routes from the routes file.
+     */
+    private function loadRoutes(): void
+    {
+        $routesFile = App::basePath('routes/api.php');
+        
+        if (file_exists($routesFile)) {
+            require $routesFile;
+        }
     }
 }
 

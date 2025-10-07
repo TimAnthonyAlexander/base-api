@@ -30,6 +30,9 @@ class RouteListCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         try {
+            // Load application routes
+            $this->loadRoutes();
+
             $router = App::router();
             $routes = $router->getRoutes();
 
@@ -119,6 +122,18 @@ class RouteListCommand implements Command
         }
 
         return mb_substr($str, 0, $length - 3) . '...';
+    }
+
+    /**
+     * Load application routes from the routes file.
+     */
+    private function loadRoutes(): void
+    {
+        $routesFile = App::basePath('routes/api.php');
+        
+        if (file_exists($routesFile)) {
+            require $routesFile;
+        }
     }
 }
 
