@@ -179,6 +179,162 @@ $router->post(
                 <br />• Apply middleware only where needed to avoid overhead
                 <br />• Group related routes together for maintainability
             </Alert>
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 5 }}>
+                Route Caching & Performance
+            </Typography>
+
+            <Typography paragraph>
+                BaseAPI includes a high-performance route compilation system that optimizes routing
+                dispatch by pre-computing route structures and eliminating runtime overhead.
+            </Typography>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                How Route Compilation Works
+            </Typography>
+
+            <Typography paragraph>
+                The router uses a two-tier dispatch system:
+            </Typography>
+
+            <Box component="ul" sx={{ pl: 3 }}>
+                <li>
+                    <Typography>
+                        <strong>Static routes</strong> (no parameters) use O(1) hash map lookups
+                    </Typography>
+                </li>
+                <li>
+                    <Typography>
+                        <strong>Dynamic routes</strong> (with parameters) use segment-based matching
+                    </Typography>
+                </li>
+            </Box>
+
+            <Typography paragraph sx={{ mt: 2 }}>
+                When routes are compiled:
+            </Typography>
+
+            <Box component="ul" sx={{ pl: 3 }}>
+                <li>Routes are separated into static and dynamic groups</li>
+                <li>Middleware stacks are pre-merged at compile time</li>
+                <li>Parameter constraints are pre-compiled to regex patterns</li>
+                <li>All data is exported as pure PHP arrays for Opcache optimization</li>
+            </Box>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Caching Routes
+            </Typography>
+
+            <Typography paragraph>
+                In production, compile your routes to maximize performance:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Compile routes to cache
+./mason route:cache
+
+# View all registered routes
+./mason route:list
+
+# Clear route cache (development)
+./mason route:clear`} />
+
+            <Alert severity="warning" sx={{ my: 3 }}>
+                <strong>Important:</strong> After modifying routes, remember to run <code>route:cache</code>
+                again in production. The cache is automatically bypassed in development when not present.
+            </Alert>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Performance Benefits
+            </Typography>
+
+            <TableContainer component={Paper} sx={{ my: 3 }}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell><strong>Scenario</strong></TableCell>
+                            <TableCell><strong>Without Cache</strong></TableCell>
+                            <TableCell><strong>With Cache</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell>Static route lookup</TableCell>
+                            <TableCell>O(n) scan through routes</TableCell>
+                            <TableCell>O(1) hash map lookup</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>Dynamic route matching</TableCell>
+                            <TableCell>Regex match on every route</TableCell>
+                            <TableCell>Segment-based matching with early exit</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>Middleware resolution</TableCell>
+                            <TableCell>Merged per request</TableCell>
+                            <TableCell>Pre-merged at compile time</TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell>Memory allocation</TableCell>
+                            <TableCell>New objects per request</TableCell>
+                            <TableCell>Zero-allocation hot path</TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Callout type="tip" title="Automatic Cache Detection">
+                The router automatically detects and loads compiled routes if present.
+                No code changes are needed - just run <code>route:cache</code> and your
+                application immediately benefits from optimized routing.
+            </Callout>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Cache Invalidation
+            </Typography>
+
+            <Typography paragraph>
+                The route cache is a simple PHP file stored in <code>storage/cache/routes.php</code>.
+                It's automatically invalidated when:
+            </Typography>
+
+            <Box component="ul" sx={{ pl: 3 }}>
+                <li>You run <code>./mason route:clear</code></li>
+                <li>You manually delete the cache file</li>
+                <li>You redeploy with <code>route:cache</code> (overwrites existing cache)</li>
+            </Box>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Deployment Workflow
+            </Typography>
+
+            <CodeBlock language="bash" code={`# In your deployment script (after composer install)
+./mason route:cache
+./mason cache:clear  # Clear application caches
+./mason migrate:apply  # Run migrations
+
+# Restart PHP-FPM/workers if using long-running processes
+sudo service php8.4-fpm restart`} />
+
+            <Alert severity="info" sx={{ my: 3 }}>
+                <strong>Opcache Optimization:</strong> Compiled routes are designed to work
+                seamlessly with Opcache. The cache file uses immutable data structures and
+                readonly classes that Opcache can fully optimize.
+            </Alert>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Backwards Compatibility
+            </Typography>
+
+            <Typography paragraph>
+                Route compilation is fully backwards compatible. If no cache file exists,
+                the router automatically falls back to traditional route matching. This means:
+            </Typography>
+
+            <Box component="ul" sx={{ pl: 3 }}>
+                <li>Development works without caching (automatic reloading)</li>
+                <li>Existing applications work without any code changes</li>
+                <li>You can enable caching gradually on specific environments</li>
+                <li>The same codebase works with or without the cache</li>
+            </Box>
         </Box>
     );
 }

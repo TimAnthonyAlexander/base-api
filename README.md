@@ -121,10 +121,13 @@ BaseAPI v1.0.0 is built for production with everything you need:
 - Relationship support (belongsTo, hasMany)
 
 **Performance & Caching**
-- Sub-millisecond framework overhead
+- Sub-millisecond framework overhead with compiled route caching
+- O(1) static route lookups via hash map dispatch
+- Segment-based dynamic route matching with zero allocation
 - File and Redis-based caching with tagged invalidation
 - Query result caching
 - Connection pooling
+- Opcache-optimized route compilation
 
 **Security**
 - CORS middleware with configurable allowlists
@@ -136,7 +139,8 @@ BaseAPI v1.0.0 is built for production with everything you need:
 **Developer Experience**
 - Automatic OpenAPI specification generation
 - TypeScript type generation for frontend integration
-- Mason CLI for migrations, code generation, and queue management
+- Mason CLI for migrations, code generation, queue management, and route caching
+- Route inspection and performance tools (`route:cache`, `route:list`, `route:clear`)
 - Comprehensive validation with custom rules
 - Built-in file upload handling with security checks
 
