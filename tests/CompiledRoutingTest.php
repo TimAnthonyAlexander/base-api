@@ -49,11 +49,13 @@ class CompiledRoutingTest extends TestCase
         // Load compiled routes
         $compiled = require $this->tempCachePath;
 
-        // Verify structure
+        // Verify structure (v2 format)
         $this->assertIsArray($compiled);
         $this->assertArrayHasKey('static', $compiled);
-        $this->assertArrayHasKey('dynamic', $compiled);
+        $this->assertArrayHasKey('dynamicIndex', $compiled);
         $this->assertArrayHasKey('methods', $compiled);
+        $this->assertArrayHasKey('version', $compiled);
+        $this->assertEquals(2, $compiled['version']);
 
         // Verify static routes
         $this->assertArrayHasKey('GET', $compiled['static']);
@@ -76,12 +78,16 @@ class CompiledRoutingTest extends TestCase
         // Load compiled routes from cache (arrays, not objects)
         $compiled = require $this->tempCachePath;
 
-        // Verify dynamic routes
-        $this->assertArrayHasKey('GET', $compiled['dynamic']);
-        $this->assertNotEmpty($compiled['dynamic']['GET']);
+        // Verify dynamic routes are indexed by segment count
+        $this->assertArrayHasKey('dynamicIndex', $compiled);
+        $this->assertNotEmpty($compiled['dynamicIndex']);
 
+        // Routes with 2 segments (/users/{id})
+        $this->assertArrayHasKey(2, $compiled['dynamicIndex']);
+        $this->assertArrayHasKey('GET', $compiled['dynamicIndex'][2]);
+        
         // Cache exports routes as arrays for Opcache efficiency
-        $route = $compiled['dynamic']['GET'][0];
+        $route = $compiled['dynamicIndex'][2]['GET'][0];
         $this->assertIsArray($route);
         $this->assertArrayHasKey('isStatic', $route);
         $this->assertFalse($route['isStatic']);
@@ -104,16 +110,12 @@ class CompiledRoutingTest extends TestCase
 
         $reflection = new ReflectionClass($router);
 
-        // Manually load and hydrate cache
+        // Manually load cache (no hydration needed - arrays stay as arrays)
         $cached = require $this->tempCachePath;
-        $hydrateCacheMethod = $reflection->getMethod('hydrateCache');
-        $hydrateCacheMethod->setAccessible(true);
-
-        $hydrated = $hydrateCacheMethod->invoke($router, $cached);
 
         $compiledProperty = $reflection->getProperty('compiled');
         $compiledProperty->setAccessible(true);
-        $compiledProperty->setValue($router, $hydrated);
+        $compiledProperty->setValue($router, $cached);
 
         $compiledLoadedProperty = $reflection->getProperty('compiledLoaded');
         $compiledLoadedProperty->setAccessible(true);
@@ -163,20 +165,12 @@ class CompiledRoutingTest extends TestCase
 
         $reflection = new ReflectionClass($router);
 
-        // Force it to load from our test cache path
-        $getCachePathMethod = $reflection->getMethod('getCachePath');
-        $getCachePathMethod->setAccessible(true);
-
-        // Manually load and hydrate cache
+        // Manually load cache (no hydration needed - arrays stay as arrays)
         $cached = require $this->tempCachePath;
-        $hydrateCacheMethod = $reflection->getMethod('hydrateCache');
-        $hydrateCacheMethod->setAccessible(true);
-
-        $hydrated = $hydrateCacheMethod->invoke($router, $cached);
 
         $compiledProperty = $reflection->getProperty('compiled');
         $compiledProperty->setAccessible(true);
-        $compiledProperty->setValue($router, $hydrated);
+        $compiledProperty->setValue($router, $cached);
 
         $compiledLoadedProperty = $reflection->getProperty('compiledLoaded');
         $compiledLoadedProperty->setAccessible(true);
@@ -194,14 +188,17 @@ class CompiledRoutingTest extends TestCase
     {
         // Register routes in random order
         $this->router->get('/users/{id}', ['ShowUserController']);
-        $this->router->get('/users/me', ['CurrentUserController']); // Should match first
+        $this->router->get('/users/me', ['CurrentUserController']); // Should match first (static)
         $this->router->get('/users/{id}/posts', ['UserPostsController']);
 
         $compiler = new RouteCompiler();
         $compiled = $compiler->compile($this->router->getRoutes());
 
-        // In compiled form, more specific routes should come first
-        $this->assertNotEmpty($compiled['dynamic']['GET']);
+        // In compiled form, dynamic routes are indexed by segment count
+        // Routes with 2 segments: /users/{id}
+        $this->assertArrayHasKey(2, $compiled['dynamicIndex']);
+        $this->assertArrayHasKey('GET', $compiled['dynamicIndex'][2]);
+        $this->assertNotEmpty($compiled['dynamicIndex'][2]['GET']);
 
         // Note: '/users/me' is static, so it goes in static map
         $this->assertArrayHasKey('/users/me', $compiled['static']['GET']);
@@ -219,11 +216,11 @@ class CompiledRoutingTest extends TestCase
         $compiler = new RouteCompiler();
         $compiled = $compiler->compile($this->router->getRoutes());
 
-        /** @var CompiledRoute $route */
+        // Routes are now arrays, not objects
         $route = $compiled['static']['GET']['/protected'];
 
-        $this->assertEquals(['AuthMiddleware', 'RateLimitMiddleware'], $route->middlewares);
-        $this->assertEquals('ProtectedController', $route->controller);
+        $this->assertEquals(['AuthMiddleware', 'RateLimitMiddleware'], $route['middlewares']);
+        $this->assertEquals('ProtectedController', $route['controller']);
     }
 
     public function testParameterConstraints(): void
@@ -234,14 +231,15 @@ class CompiledRoutingTest extends TestCase
         $compiler = new RouteCompiler();
         $compiled = $compiler->compile($this->router->getRoutes());
 
-        /** @var CompiledRoute $route */
-        $route = $compiled['dynamic']['GET'][0];
+        // Routes are indexed by segment count (2 segments: users, {id})
+        $route = $compiled['dynamicIndex'][2]['GET'][0];
 
-        // Should have a constraint at segment index 1 (the {id} segment)
-        $this->assertNotEmpty($route->paramConstraints);
-        $this->assertArrayHasKey(1, $route->paramConstraints);
-        $this->assertIsString($route->paramConstraints[1]);
-        $this->assertStringContainsString('\d+', $route->paramConstraints[1]);
+        // Should have a constraint map at segment index 1 (the {id} segment)
+        $this->assertNotEmpty($route['constraintMap']);
+        $this->assertArrayHasKey(1, $route['constraintMap']);
+        $this->assertIsArray($route['constraintMap'][1]);
+        // First element is constraint type (CONSTRAINT_INT = 1)
+        $this->assertEquals(1, $route['constraintMap'][1][0]);
     }
 
     public function testCompiledRouteMatchingWithConstraints(): void
@@ -309,11 +307,12 @@ class CompiledRoutingTest extends TestCase
         $compiler = new RouteCompiler();
         $compiled = $compiler->compile($this->router->getRoutes());
 
-        // Verify methods index
+        // Verify methods index (now a hash set)
         $this->assertArrayHasKey('methods', $compiled);
-        $this->assertContains('GET', $compiled['methods']);
-        $this->assertContains('POST', $compiled['methods']);
-        $this->assertNotContains('DELETE', $compiled['methods']);
+        $this->assertIsArray($compiled['methods']);
+        $this->assertArrayHasKey('GET', $compiled['methods']);
+        $this->assertArrayHasKey('POST', $compiled['methods']);
+        $this->assertArrayNotHasKey('DELETE', $compiled['methods']);
     }
 
     public function testEmptyRouteCompilation(): void
@@ -324,7 +323,7 @@ class CompiledRoutingTest extends TestCase
 
         $this->assertIsArray($compiled);
         $this->assertArrayHasKey('static', $compiled);
-        $this->assertArrayHasKey('dynamic', $compiled);
+        $this->assertArrayHasKey('dynamicIndex', $compiled);
         $this->assertArrayHasKey('methods', $compiled);
         $this->assertEmpty($compiled['methods']);
     }
@@ -338,14 +337,19 @@ class CompiledRoutingTest extends TestCase
         $compiler = new RouteCompiler();
         $compiled = $compiler->compile($this->router->getRoutes());
 
-        /** @var CompiledRoute $route */
-        $route = $compiled['dynamic']['GET'][0];
+        // Routes are indexed by segment count (6 segments)
+        $route = $compiled['dynamicIndex'][6]['GET'][0];
 
-        $this->assertCount(3, $route->paramNames);
-        $this->assertEquals(['userId', 'postId', 'commentId'], $route->paramNames);
+        $this->assertCount(3, $route['paramNames']);
+        $this->assertEquals(['userId', 'postId', 'commentId'], $route['paramNames']);
 
-        // Test matching
-        $params = $route->matchSegments(['users', '1', 'posts', '2', 'comments', '3']);
+        // Test matching using router's matchSegments method
+        $router = new Router();
+        $reflection = new ReflectionClass($router);
+        $matchSegmentsMethod = $reflection->getMethod('matchSegments');
+        $matchSegmentsMethod->setAccessible(true);
+
+        $params = $matchSegmentsMethod->invoke($router, $route, ['users', '1', 'posts', '2', 'comments', '3']);
         $this->assertNotNull($params);
         $this->assertEquals([
             'userId' => '1',
@@ -398,8 +402,8 @@ class CompiledRoutingTest extends TestCase
         $this->assertArrayHasKey('HEAD', $cached['static']);
         $this->assertArrayHasKey('/api/data', $cached['static']['HEAD']);
         
-        // Verify methods list includes HEAD
-        $this->assertContains('HEAD', $cached['methods']);
+        // Verify methods hash set includes HEAD
+        $this->assertArrayHasKey('HEAD', $cached['methods']);
     }
 
     public function testPrecomputedAllowedMethods(): void

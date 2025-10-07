@@ -2,6 +2,7 @@
 
 namespace BaseApi\Routing;
 
+use RuntimeException;
 use BaseApi\Route;
 
 /**
@@ -9,105 +10,154 @@ use BaseApi\Route;
  * 
  * Separates static routes (O(1) lookup) from dynamic routes (segment-based matching).
  * Precomputes middleware stacks and parameter constraints at compile time.
+ * 
+ * Optimizations:
+ * - No object hydration: cache is pure arrays
+ * - Dynamic routes indexed by segment count (O(k) not O(R))
+ * - Methods as hash set for isset() checks
+ * - Precomputed param maps for zero-allocation matching
+ * - Fast-path for common constraints (INT, HEX32)
+ * - HEAD synthesis for all GET routes
+ * - Deduped and normalized allowed methods
  */
 final class RouteCompiler
 {
+    // Standard method order for normalized output
+    private const array METHOD_ORDER = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
+
+    // Constraint type enum for fast-path matching
+    private const int CONSTRAINT_NONE = 0;
+
+    private const int CONSTRAINT_INT = 1;
+
+    private const int CONSTRAINT_HEX32 = 2;
+
+    private const int CONSTRAINT_REGEX = 3;
+
     /**
      * Compile an array of Route objects into optimized structures.
-     * Returns CompiledRoute objects for in-memory use.
+     * Returns pure array structures (no objects).
      *
      * @param array<string,array<Route>> $routes Routes indexed by method
-     * @return array{static: array, dynamic: array, methods: array<string>, allowedMethods: array} Compiled route data
+     * @return array Compiled route data as pure arrays
      */
     public function compile(array $routes): array
     {
         $compiled = [
-            'static' => [],  // method => [path => CompiledRoute object]
-            'dynamic' => [], // method => [CompiledRoute object, ...]
-            'methods' => [], // List of all methods that have routes
-            'allowedMethods' => [] // path => [methods] for static routes (fast 405/OPTIONS)
+            'static' => [],  // method => [path => route_array]
+            'dynamicIndex' => [], // segment_count => method => [route_array, ...]
+            'methods' => [], // Hash set: [method => 1]
+            'allowedMethods' => [], // path => [methods] (deduped, normalized order)
+            'version' => 2 // Cache version for compatibility checks
         ];
+
+        $allDynamicRoutes = []; // Collect for indexing by segment count
 
         // First pass: collect all routes
         foreach ($routes as $method => $methodRoutes) {
-            $compiled['methods'][] = $method;
-            $compiled['static'][$method] = [];
-            $compiled['dynamic'][$method] = [];
+            $compiled['methods'][$method] = 1; // Hash set
+
+            if (!isset($compiled['static'][$method])) {
+                $compiled['static'][$method] = [];
+            }
 
             foreach ($methodRoutes as $route) {
-                $compiledRoute = $this->compileRoute($route);
+                $compiledRoute = $this->compileRouteToArray($route);
 
-                if ($compiledRoute->isStatic) {
+                if ($compiledRoute['isStatic']) {
                     // Static routes go into exact-match map
-                    $compiled['static'][$method][$compiledRoute->path] = $compiledRoute;
+                    $compiled['static'][$method][$compiledRoute['path']] = $compiledRoute;
+
+                    // Track allowed methods for static routes
+                    if (!isset($compiled['allowedMethods'][$compiledRoute['path']])) {
+                        $compiled['allowedMethods'][$compiledRoute['path']] = [];
+                    }
+
+                    $compiled['allowedMethods'][$compiledRoute['path']][$method] = 1;
                 } else {
-                    // Dynamic routes go into segment-based list
-                    $compiled['dynamic'][$method][] = $compiledRoute;
+                    // Collect dynamic routes for indexing
+                    $allDynamicRoutes[] = [
+                        'method' => $method,
+                        'route' => $compiledRoute
+                    ];
                 }
-            }
-
-            // Sort dynamic routes by specificity (longest static prefix first)
-            usort($compiled['dynamic'][$method], function (CompiledRoute $a, CompiledRoute $b): int {
-                $aStaticCount = $this->countStaticSegments($a->segments);
-                $bStaticCount = $this->countStaticSegments($b->segments);
-                
-                if ($aStaticCount !== $bStaticCount) {
-                    return $bStaticCount <=> $aStaticCount; // More static segments = higher priority
-                }
-                
-                // If same number of static segments, prefer constrained params over unconstrained
-                $aConstrainedCount = count(array_filter($a->paramConstraints, fn($c): bool => $c !== null));
-                $bConstrainedCount = count(array_filter($b->paramConstraints, fn($c): bool => $c !== null));
-                
-                return $bConstrainedCount <=> $aConstrainedCount;
-            });
-        }
-
-        // Second pass: precompute allowed methods for static routes (for fast 405/OPTIONS)
-        foreach ($compiled['static'] as $method => $paths) {
-            foreach (array_keys($paths) as $path) {
-                if (!isset($compiled['allowedMethods'][$path])) {
-                    $compiled['allowedMethods'][$path] = [];
-                }
-
-                $compiled['allowedMethods'][$path][] = $method;
             }
         }
 
-        // Add HEAD→GET fallback: if GET exists but HEAD doesn't, register HEAD
+        // Sort dynamic routes by deterministic specificity
+        usort($allDynamicRoutes, fn(array $a, array $b): int => $this->compareSpecificity($a['route'], $b['route']));
+
+        // Index dynamic routes by segment count
+        foreach ($allDynamicRoutes as $item) {
+            $method = $item['method'];
+            $route = $item['route'];
+            $segmentCount = $route['segmentCount'];
+
+            if (!isset($compiled['dynamicIndex'][$segmentCount])) {
+                $compiled['dynamicIndex'][$segmentCount] = [];
+            }
+
+            if (!isset($compiled['dynamicIndex'][$segmentCount][$method])) {
+                $compiled['dynamicIndex'][$segmentCount][$method] = [];
+            }
+
+            $compiled['dynamicIndex'][$segmentCount][$method][] = $route;
+        }
+
+        // Add HEAD→GET fallback for static routes
         if (isset($compiled['static']['GET'])) {
             if (!isset($compiled['static']['HEAD'])) {
                 $compiled['static']['HEAD'] = [];
             }
-            
-            // Add HEAD to methods list if we're creating HEAD routes
-            if (!in_array('HEAD', $compiled['methods'], true)) {
-                $compiled['methods'][] = 'HEAD';
-            }
-            
+
+            $compiled['methods']['HEAD'] = 1;
+
             foreach ($compiled['static']['GET'] as $path => $route) {
                 if (!isset($compiled['static']['HEAD'][$path])) {
                     $compiled['static']['HEAD'][$path] = $route;
-                    $compiled['allowedMethods'][$path][] = 'HEAD';
+                    $compiled['allowedMethods'][$path]['HEAD'] = 1;
                 }
             }
+        }
+
+        // Add HEAD→GET fallback for dynamic routes
+        foreach ($compiled['dynamicIndex'] as $segmentCount => $methods) {
+            if (isset($methods['GET'])) {
+                if (!isset($compiled['dynamicIndex'][$segmentCount]['HEAD'])) {
+                    $compiled['dynamicIndex'][$segmentCount]['HEAD'] = [];
+                }
+
+                // Mark GET routes as HEAD-allowed
+                foreach ($methods['GET'] as $route) {
+                    $headRoute = $route;
+                    $headRoute['allowsHead'] = true;
+                    $compiled['dynamicIndex'][$segmentCount]['HEAD'][] = $headRoute;
+                }
+            }
+        }
+
+        // Normalize allowed methods: dedupe and sort
+        foreach ($compiled['allowedMethods'] as $path => $methodSet) {
+            $compiled['allowedMethods'][$path] = $this->normalizeMethodList(array_keys($methodSet));
         }
 
         return $compiled;
     }
 
     /**
-     * Compile a single Route into a CompiledRoute.
+     * Compile a single Route into an array (no objects).
      */
-    private function compileRoute(Route $route): CompiledRoute
+    private function compileRouteToArray(Route $route): array
     {
         $path = $route->path();
         $segments = array_filter(explode('/', trim($path, '/')), fn($s): bool => $s !== '');
         $segments = array_values($segments);
-         // Reindex
+
         $paramNames = [];
-        $paramConstraints = [];
+        $paramMap = []; // Position => name
+        $constraintMap = []; // Position => [type, pattern]
         $isStatic = true;
+        $staticCount = 0;
 
         // Analyze each segment
         foreach ($segments as $index => $segment) {
@@ -118,135 +168,148 @@ final class RouteCompiler
                 $constraint = $matches[2] ?? null;
 
                 $paramNames[] = $paramName;
+                $paramMap[$index] = $paramName;
 
-                // Store constraint at segment position
-                if ($constraint !== null) {
-                    $paramConstraints[$index] = '/^' . $constraint . '$/';
+                // Detect fast-path constraints
+                if ($constraint === null) {
+                    $constraintMap[$index] = [self::CONSTRAINT_NONE, null];
+                } elseif ($constraint === '\d+' || $constraint === '[0-9]+') {
+                    $constraintMap[$index] = [self::CONSTRAINT_INT, null];
+                } elseif ($constraint === '[0-9a-f]{32}' || $constraint === '[0-9a-fA-F]{32}') {
+                    $constraintMap[$index] = [self::CONSTRAINT_HEX32, null];
                 } else {
-                    $paramConstraints[$index] = null; // Unconstrained
+                    $constraintMap[$index] = [self::CONSTRAINT_REGEX, '/^' . $constraint . '$/'];
                 }
-
-                // Keep the segment pattern as-is for matching (e.g., "{id}")
-                // This allows CompiledRoute to detect parameter positions
+            } else {
+                $staticCount++;
             }
         }
 
-        // Precompute middleware stack
-        $middlewares = $route->middlewares();
-
-        return new CompiledRoute(
-            method: $route->method(),
-            path: $path,
-            segments: $segments, // Preserve original segment patterns including {param}
-            paramNames: $paramNames,
-            paramConstraints: $paramConstraints,
-            middlewares: $middlewares,
-            controller: $route->controllerClass(),
-            isStatic: $isStatic,
-            compiledRegex: null // We don't need this for segment-based matching
-        );
+        return [
+            'method' => $route->method(),
+            'path' => $path,
+            'segments' => $segments,
+            'segmentCount' => count($segments),
+            'staticCount' => $staticCount,
+            'paramNames' => $paramNames,
+            'paramMap' => $paramMap, // Position => name
+            'constraintMap' => $constraintMap, // Position => [type, pattern]
+            'middlewares' => $route->middlewares(),
+            'controller' => $route->controllerClass(),
+            'isStatic' => $isStatic,
+            'allowsHead' => false // Will be set for GET routes
+        ];
     }
 
     /**
-     * Count static (non-parameter) segments in a segment list.
+     * Compare two routes for deterministic specificity ordering.
+     * More specific routes come first.
      */
-    private function countStaticSegments(array $segments): int
+    private function compareSpecificity(array $a, array $b): int
     {
-        $count = 0;
-        foreach ($segments as $segment) {
-            if (!str_starts_with((string) $segment, '{')) {
-                $count++;
+        // 1. More static segments = higher priority
+        if ($a['staticCount'] !== $b['staticCount']) {
+            return $b['staticCount'] <=> $a['staticCount'];
+        }
+
+        // 2. More constrained params = higher priority
+        $aConstrained = count(array_filter($a['constraintMap'], fn($c): bool => $c[0] !== self::CONSTRAINT_NONE));
+        $bConstrained = count(array_filter($b['constraintMap'], fn($c): bool => $c[0] !== self::CONSTRAINT_NONE));
+
+        if ($aConstrained !== $bConstrained) {
+            return $bConstrained <=> $aConstrained;
+        }
+
+        // 3. More total segments = higher priority
+        if ($a['segmentCount'] !== $b['segmentCount']) {
+            return $b['segmentCount'] <=> $a['segmentCount'];
+        }
+
+        // 4. Lexicographic path for stable order
+        return strcmp((string) $a['path'], (string) $b['path']);
+    }
+
+    /**
+     * Normalize method list: dedupe and sort in standard order.
+     */
+    private function normalizeMethodList(array $methods): array
+    {
+        $methodSet = array_flip($methods);
+        $normalized = [];
+
+        foreach (self::METHOD_ORDER as $method) {
+            if (isset($methodSet[$method])) {
+                $normalized[] = $method;
             }
         }
 
-        return $count;
+        // Add any non-standard methods at the end
+        foreach ($methods as $method) {
+            if (!in_array($method, self::METHOD_ORDER, true) && !in_array($method, $normalized, true)) {
+                $normalized[] = $method;
+            }
+        }
+
+        return $normalized;
     }
 
     /**
      * Export compiled routes to a PHP file for Opcache.
-     * Uses atomic write (write to temp file, then rename) for safety.
-     * Converts CompiledRoute objects to arrays for better Opcache performance.
+     * Uses atomic write with flock, fflush, and fsync for durability.
      *
-     * @param array $compiled Compiled route data
+     * @param array $compiled Compiled route data (already as arrays)
      * @param string $targetPath Path to write the cache file
      */
     public function exportToFile(array $compiled, string $targetPath): void
     {
-        // Convert CompiledRoute objects to arrays for better Opcache performance
-        $exportData = $this->prepareForExport($compiled);
-
         // Serialize compiled routes to PHP code
         $code = "<?php\n\n";
         $code .= "// Auto-generated route cache. Do not edit manually.\n";
-        $code .= "// Generated at: " . date('Y-m-d H:i:s') . "\n\n";
-        $code .= "return " . var_export($exportData, true) . ";\n";
+        $code .= "// Generated at: " . date('Y-m-d H:i:s') . "\n";
+        $code .= "// Version: " . ($compiled['version'] ?? 1) . "\n\n";
+        $code .= "return " . var_export($compiled, true) . ";\n";
 
         $dir = dirname($targetPath);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        // Atomic write: write to temp file, then rename
+        // Atomic write with durability: write to temp file with flock
         $tempPath = $targetPath . '.' . uniqid('tmp', true);
-        file_put_contents($tempPath, $code);
-        
-        // Atomic rename (overwrites existing file atomically)
+        $fp = fopen($tempPath, 'wb');
+
+        if ($fp === false) {
+            throw new RuntimeException('Failed to open temp file for writing: ' . $tempPath);
+        }
+
+        // Lock file for exclusive write
+        if (!flock($fp, LOCK_EX)) {
+            fclose($fp);
+            throw new RuntimeException('Failed to acquire lock on temp file: ' . $tempPath);
+        }
+
+        // Write content
+        fwrite($fp, $code);
+
+        // Flush PHP buffers
+        fflush($fp);
+
+        // Sync to disk (fsync equivalent in PHP)
+        if (function_exists('fsync')) {
+            fsync($fp);
+        }
+
+        // Release lock and close
+        flock($fp, LOCK_UN);
+        fclose($fp);
+
+        // Atomic rename (overwrites existing file atomically on POSIX)
         rename($tempPath, $targetPath);
-        
+
         // Invalidate opcache for the file
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate($targetPath, true);
         }
     }
-
-    /**
-     * Prepare compiled data for export by converting objects to arrays.
-     */
-    private function prepareForExport(array $compiled): array
-    {
-        $export = [
-            'static' => [],
-            'dynamic' => [],
-            'methods' => $compiled['methods'],
-            'allowedMethods' => $compiled['allowedMethods']
-        ];
-
-        // Convert static routes
-        foreach ($compiled['static'] as $method => $routes) {
-            $export['static'][$method] = [];
-            foreach ($routes as $path => $compiledRoute) {
-                $export['static'][$method][$path] = $this->routeToArray($compiledRoute);
-            }
-        }
-
-        // Convert dynamic routes
-        foreach ($compiled['dynamic'] as $method => $routes) {
-            $export['dynamic'][$method] = [];
-            foreach ($routes as $compiledRoute) {
-                $export['dynamic'][$method][] = $this->routeToArray($compiledRoute);
-            }
-        }
-
-        return $export;
-    }
-
-    /**
-     * Convert a CompiledRoute to an array.
-     */
-    private function routeToArray(CompiledRoute $route): array
-    {
-        return [
-            'method' => $route->method,
-            'path' => $route->path,
-            'segments' => $route->segments,
-            'paramNames' => $route->paramNames,
-            'paramConstraints' => $route->paramConstraints,
-            'middlewares' => $route->middlewares,
-            'controller' => $route->controller,
-            'isStatic' => $route->isStatic,
-            'compiledRegex' => $route->compiledRegex
-        ];
-    }
-
 }
 
