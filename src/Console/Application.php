@@ -132,7 +132,10 @@ class Application
             'migrate' => [],
             'types' => [],
             'i18n' => [],
-            'queue' => []
+            'queue' => [],
+            'route' => [],
+            'cache' => [],
+            'storage' => []
         ];
 
         foreach ($this->commands as $name => $command) {

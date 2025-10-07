@@ -22,6 +22,9 @@ use BaseApi\Console\Commands\StorageLinkCommand;
 use BaseApi\Console\Commands\CacheClearCommand;
 use BaseApi\Console\Commands\CacheCleanupCommand;
 use BaseApi\Console\Commands\CacheStatsCommand;
+use BaseApi\Console\Commands\RouteCacheCommand;
+use BaseApi\Console\Commands\RouteClearCommand;
+use BaseApi\Console\Commands\RouteListCommand;
 use Dotenv\Dotenv;
 
 /**
@@ -100,6 +103,11 @@ class MasonBootstrap
         $app->register('cache:clear', new CacheClearCommand());
         $app->register('cache:cleanup', new CacheCleanupCommand());
         $app->register('cache:stats', new CacheStatsCommand());
+        
+        // Route commands
+        $app->register('route:cache', new RouteCacheCommand());
+        $app->register('route:clear', new RouteClearCommand());
+        $app->register('route:list', new RouteListCommand());
     }
     
     /**
