@@ -263,14 +263,15 @@ class RouterTest extends TestCase
         $this->router->post('/users', ['PostController']);
         $this->router->put('/users', ['PutController']);
         $this->router->delete('/users', ['DeleteController']);
-        
+
         $allowedMethods = $this->router->allowedMethodsForPath('/users');
-        
-        $this->assertCount(4, $allowedMethods);
+
+        $this->assertCount(5, $allowedMethods); // GET, POST, PUT, DELETE, HEAD (auto-added)
         $this->assertContains('GET', $allowedMethods);
         $this->assertContains('POST', $allowedMethods);
         $this->assertContains('PUT', $allowedMethods);
         $this->assertContains('DELETE', $allowedMethods);
+        $this->assertContains('HEAD', $allowedMethods); // HEAD auto-added for GET routes
     }
     
     public function testAllowedMethodsForParameterizedPath(): void
@@ -278,13 +279,14 @@ class RouterTest extends TestCase
         $this->router->get('/users/{id}', ['GetController']);
         $this->router->patch('/users/{id}', ['PatchController']);
         $this->router->delete('/users/{id}', ['DeleteController']);
-        
+
         $allowedMethods = $this->router->allowedMethodsForPath('/users/123');
-        
-        $this->assertCount(3, $allowedMethods);
+
+        $this->assertCount(4, $allowedMethods); // GET, PATCH, DELETE, HEAD (auto-added)
         $this->assertContains('GET', $allowedMethods);
         $this->assertContains('PATCH', $allowedMethods);
         $this->assertContains('DELETE', $allowedMethods);
+        $this->assertContains('HEAD', $allowedMethods); // HEAD auto-added for GET routes
     }
     
     public function testAllowedMethodsForNonExistentPath(): void
@@ -304,8 +306,10 @@ class RouterTest extends TestCase
         
         $allowedMethods = $this->router->allowedMethodsForPath('/test');
         
-        // Should only return GET once
-        $this->assertEquals(['GET'], $allowedMethods);
+        // Should return GET and HEAD (auto-added for GET routes)
+        $this->assertCount(2, $allowedMethods);
+        $this->assertContains('GET', $allowedMethods);
+        $this->assertContains('HEAD', $allowedMethods);
     }
     
     public function testEmptyRouterMatchesNothing(): void

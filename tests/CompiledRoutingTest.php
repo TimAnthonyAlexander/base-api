@@ -73,18 +73,20 @@ class CompiledRoutingTest extends TestCase
         // Compile routes
         $this->assertTrue($this->router->compile($this->tempCachePath));
 
-        // Load compiled routes
+        // Load compiled routes from cache (arrays, not objects)
         $compiled = require $this->tempCachePath;
 
         // Verify dynamic routes
         $this->assertArrayHasKey('GET', $compiled['dynamic']);
         $this->assertNotEmpty($compiled['dynamic']['GET']);
 
-        /** @var CompiledRoute $route */
+        // Cache exports routes as arrays for Opcache efficiency
         $route = $compiled['dynamic']['GET'][0];
-        $this->assertInstanceOf(CompiledRoute::class, $route);
-        $this->assertFalse($route->isStatic);
-        $this->assertNotEmpty($route->paramNames);
+        $this->assertIsArray($route);
+        $this->assertArrayHasKey('isStatic', $route);
+        $this->assertFalse($route['isStatic']);
+        $this->assertArrayHasKey('paramNames', $route);
+        $this->assertNotEmpty($route['paramNames']);
     }
 
     public function testCompiledRouteMatching(): void
@@ -99,11 +101,19 @@ class CompiledRoutingTest extends TestCase
 
         // Create fresh router to test cache loading
         $router = new Router();
-        // Manually load compiled cache for testing (simulating cache hit)
+
         $reflection = new ReflectionClass($router);
+
+        // Manually load and hydrate cache
+        $cached = require $this->tempCachePath;
+        $hydrateCacheMethod = $reflection->getMethod('hydrateCache');
+        $hydrateCacheMethod->setAccessible(true);
+
+        $hydrated = $hydrateCacheMethod->invoke($router, $cached);
+
         $compiledProperty = $reflection->getProperty('compiled');
         $compiledProperty->setAccessible(true);
-        $compiledProperty->setValue($router, require $this->tempCachePath);
+        $compiledProperty->setValue($router, $hydrated);
 
         $compiledLoadedProperty = $reflection->getProperty('compiledLoaded');
         $compiledLoadedProperty->setAccessible(true);
@@ -148,21 +158,36 @@ class CompiledRoutingTest extends TestCase
 
         $this->router->compile($this->tempCachePath);
 
-        // Manually set compiled cache
-        $reflection = new ReflectionClass($this->router);
+        // Create fresh router and let it load the cache properly
+        $router = new Router();
+
+        $reflection = new ReflectionClass($router);
+
+        // Force it to load from our test cache path
+        $getCachePathMethod = $reflection->getMethod('getCachePath');
+        $getCachePathMethod->setAccessible(true);
+
+        // Manually load and hydrate cache
+        $cached = require $this->tempCachePath;
+        $hydrateCacheMethod = $reflection->getMethod('hydrateCache');
+        $hydrateCacheMethod->setAccessible(true);
+
+        $hydrated = $hydrateCacheMethod->invoke($router, $cached);
+
         $compiledProperty = $reflection->getProperty('compiled');
         $compiledProperty->setAccessible(true);
-        $compiledProperty->setValue($this->router, require $this->tempCachePath);
+        $compiledProperty->setValue($router, $hydrated);
 
         $compiledLoadedProperty = $reflection->getProperty('compiledLoaded');
         $compiledLoadedProperty->setAccessible(true);
-        $compiledLoadedProperty->setValue($this->router, true);
+        $compiledLoadedProperty->setValue($router, true);
 
-        $allowed = $this->router->allowedMethodsForPath('/users');
-        $this->assertCount(3, $allowed);
+        $allowed = $router->allowedMethodsForPath('/users');
+        $this->assertCount(4, $allowed); // GET, POST, PUT, HEAD (auto-added)
         $this->assertContains('GET', $allowed);
         $this->assertContains('POST', $allowed);
         $this->assertContains('PUT', $allowed);
+        $this->assertContains('HEAD', $allowed); // HEAD auto-added for GET routes
     }
 
     public function testRoutePrioritySorting(): void
@@ -344,6 +369,73 @@ class CompiledRoutingTest extends TestCase
         $data2 = require $this->tempCachePath;
 
         $this->assertEquals($data1, $data2);
+    }
+
+    public function testHeadToGetFallback(): void
+    {
+        // Register only GET route
+        $this->router->get('/users', ['UsersController']);
+
+        // HEAD should work via fallback
+        $match = $this->router->match('HEAD', '/users');
+        $this->assertNotNull($match);
+        [$route, $params] = $match;
+        $this->assertInstanceOf(Route::class, $route);
+        $this->assertEquals([], $params);
+    }
+
+    public function testHeadToGetFallbackWithCompilation(): void
+    {
+        // Register only GET route
+        $this->router->get('/api/data', ['DataController']);
+        
+        $this->router->compile($this->tempCachePath);
+
+        // Load cached data to verify HEAD was added
+        $cached = require $this->tempCachePath;
+        
+        // Verify HEAD route was created from GET
+        $this->assertArrayHasKey('HEAD', $cached['static']);
+        $this->assertArrayHasKey('/api/data', $cached['static']['HEAD']);
+        
+        // Verify methods list includes HEAD
+        $this->assertContains('HEAD', $cached['methods']);
+    }
+
+    public function testPrecomputedAllowedMethods(): void
+    {
+        // Register routes with GET
+        $this->router->get('/health', ['HealthController']);
+        $this->router->post('/users', ['CreateUserController']);
+        
+        $this->router->compile($this->tempCachePath);
+
+        // Load cache to check precomputed allowed methods
+        $cached = require $this->tempCachePath;
+        
+        // Verify allowedMethods are precomputed
+        $this->assertArrayHasKey('allowedMethods', $cached);
+        $this->assertArrayHasKey('/health', $cached['allowedMethods']);
+        
+        // GET routes should automatically include HEAD
+        $this->assertContains('GET', $cached['allowedMethods']['/health']);
+        $this->assertContains('HEAD', $cached['allowedMethods']['/health']);
+        
+        // POST-only routes should not include HEAD
+        $this->assertContains('POST', $cached['allowedMethods']['/users']);
+        $this->assertNotContains('HEAD', $cached['allowedMethods']['/users']);
+    }
+
+    public function testAllowedMethodsIncludesHead(): void
+    {
+        // Register GET route
+        $this->router->get('/api/resource', ['ResourceController']);
+        
+        // Check allowed methods includes HEAD
+        $allowed = $this->router->allowedMethodsForPath('/api/resource');
+        
+        $this->assertContains('GET', $allowed);
+        $this->assertContains('HEAD', $allowed);
     }
 }
 

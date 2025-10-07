@@ -14,18 +14,21 @@ final class RouteCompiler
 {
     /**
      * Compile an array of Route objects into optimized structures.
+     * Returns CompiledRoute objects for in-memory use.
      *
      * @param array<string,array<Route>> $routes Routes indexed by method
-     * @return array{static: array, dynamic: array, methods: array<string>} Compiled route data
+     * @return array{static: array, dynamic: array, methods: array<string>, allowedMethods: array} Compiled route data
      */
     public function compile(array $routes): array
     {
         $compiled = [
-            'static' => [],  // method => [path => CompiledRoute]
-            'dynamic' => [], // method => [CompiledRoute, ...]
-            'methods' => []  // List of all methods that have routes
+            'static' => [],  // method => [path => CompiledRoute object]
+            'dynamic' => [], // method => [CompiledRoute object, ...]
+            'methods' => [], // List of all methods that have routes
+            'allowedMethods' => [] // path => [methods] for static routes (fast 405/OPTIONS)
         ];
 
+        // First pass: collect all routes
         foreach ($routes as $method => $methodRoutes) {
             $compiled['methods'][] = $method;
             $compiled['static'][$method] = [];
@@ -39,7 +42,6 @@ final class RouteCompiler
                     $compiled['static'][$method][$compiledRoute->path] = $compiledRoute;
                 } else {
                     // Dynamic routes go into segment-based list
-                    // Sorted by specificity (most specific first)
                     $compiled['dynamic'][$method][] = $compiledRoute;
                 }
             }
@@ -59,6 +61,36 @@ final class RouteCompiler
                 
                 return $bConstrainedCount <=> $aConstrainedCount;
             });
+        }
+
+        // Second pass: precompute allowed methods for static routes (for fast 405/OPTIONS)
+        foreach ($compiled['static'] as $method => $paths) {
+            foreach (array_keys($paths) as $path) {
+                if (!isset($compiled['allowedMethods'][$path])) {
+                    $compiled['allowedMethods'][$path] = [];
+                }
+
+                $compiled['allowedMethods'][$path][] = $method;
+            }
+        }
+
+        // Add HEAD→GET fallback: if GET exists but HEAD doesn't, register HEAD
+        if (isset($compiled['static']['GET'])) {
+            if (!isset($compiled['static']['HEAD'])) {
+                $compiled['static']['HEAD'] = [];
+            }
+            
+            // Add HEAD to methods list if we're creating HEAD routes
+            if (!in_array('HEAD', $compiled['methods'], true)) {
+                $compiled['methods'][] = 'HEAD';
+            }
+            
+            foreach ($compiled['static']['GET'] as $path => $route) {
+                if (!isset($compiled['static']['HEAD'][$path])) {
+                    $compiled['static']['HEAD'][$path] = $route;
+                    $compiled['allowedMethods'][$path][] = 'HEAD';
+                }
+            }
         }
 
         return $compiled;
@@ -132,101 +164,89 @@ final class RouteCompiler
 
     /**
      * Export compiled routes to a PHP file for Opcache.
+     * Uses atomic write (write to temp file, then rename) for safety.
+     * Converts CompiledRoute objects to arrays for better Opcache performance.
      *
      * @param array $compiled Compiled route data
      * @param string $targetPath Path to write the cache file
      */
     public function exportToFile(array $compiled, string $targetPath): void
     {
+        // Convert CompiledRoute objects to arrays for better Opcache performance
+        $exportData = $this->prepareForExport($compiled);
+
         // Serialize compiled routes to PHP code
         $code = "<?php\n\n";
         $code .= "// Auto-generated route cache. Do not edit manually.\n";
         $code .= "// Generated at: " . date('Y-m-d H:i:s') . "\n\n";
-        $code .= "return " . $this->varExport($compiled) . ";\n";
+        $code .= "return " . var_export($exportData, true) . ";\n";
 
         $dir = dirname($targetPath);
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        file_put_contents($targetPath, $code);
+        // Atomic write: write to temp file, then rename
+        $tempPath = $targetPath . '.' . uniqid('tmp', true);
+        file_put_contents($tempPath, $code);
         
-        // Try to set opcache timestamp for the file
+        // Atomic rename (overwrites existing file atomically)
+        rename($tempPath, $targetPath);
+        
+        // Invalidate opcache for the file
         if (function_exists('opcache_invalidate')) {
             opcache_invalidate($targetPath, true);
         }
     }
 
     /**
-     * Custom var_export that produces cleaner, more Opcache-friendly code.
+     * Prepare compiled data for export by converting objects to arrays.
      */
-    private function varExport(mixed $value, int $indent = 0): string
+    private function prepareForExport(array $compiled): array
     {
-        if (is_array($value)) {
-            if ($value === []) {
-                return '[]';
+        $export = [
+            'static' => [],
+            'dynamic' => [],
+            'methods' => $compiled['methods'],
+            'allowedMethods' => $compiled['allowedMethods']
+        ];
+
+        // Convert static routes
+        foreach ($compiled['static'] as $method => $routes) {
+            $export['static'][$method] = [];
+            foreach ($routes as $path => $compiledRoute) {
+                $export['static'][$method][$path] = $this->routeToArray($compiledRoute);
             }
+        }
 
-            $isAssoc = array_keys($value) !== range(0, count($value) - 1);
-            $items = [];
-            $indentStr = str_repeat('    ', $indent + 1);
-            
-            foreach ($value as $key => $val) {
-                if ($isAssoc) {
-                    $exportedKey = is_string($key) ? "'" . addslashes($key) . "'" : $key;
-                    $items[] = $indentStr . $exportedKey . ' => ' . $this->varExport($val, $indent + 1);
-                } else {
-                    $items[] = $indentStr . $this->varExport($val, $indent + 1);
-                }
+        // Convert dynamic routes
+        foreach ($compiled['dynamic'] as $method => $routes) {
+            $export['dynamic'][$method] = [];
+            foreach ($routes as $compiledRoute) {
+                $export['dynamic'][$method][] = $this->routeToArray($compiledRoute);
             }
-
-            $closeIndent = str_repeat('    ', $indent);
-            return "[\n" . implode(",\n", $items) . ",\n" . $closeIndent . "]";
         }
 
-        if ($value instanceof CompiledRoute) {
-            // Export CompiledRoute as constructor call
-            return sprintf(
-                "new \\BaseApi\\Routing\\CompiledRoute(\n" .
-                "    method: %s,\n" .
-                "    path: %s,\n" .
-                "    segments: %s,\n" .
-                "    paramNames: %s,\n" .
-                "    paramConstraints: %s,\n" .
-                "    middlewares: %s,\n" .
-                "    controller: %s,\n" .
-                "    isStatic: %s,\n" .
-                "    compiledRegex: %s\n" .
-                ")",
-                $this->varExport($value->method),
-                $this->varExport($value->path),
-                $this->varExport($value->segments),
-                $this->varExport($value->paramNames),
-                $this->varExport($value->paramConstraints),
-                $this->varExport($value->middlewares),
-                $this->varExport($value->controller),
-                $value->isStatic ? 'true' : 'false',
-                $value->compiledRegex === null ? 'null' : $this->varExport($value->compiledRegex)
-            );
-        }
-
-        if (is_string($value)) {
-            return "'" . addslashes($value) . "'";
-        }
-
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
-
-        if (is_null($value)) {
-            return 'null';
-        }
-
-        if (is_int($value) || is_float($value)) {
-            return (string) $value;
-        }
-
-        return var_export($value, true);
+        return $export;
     }
+
+    /**
+     * Convert a CompiledRoute to an array.
+     */
+    private function routeToArray(CompiledRoute $route): array
+    {
+        return [
+            'method' => $route->method,
+            'path' => $route->path,
+            'segments' => $route->segments,
+            'paramNames' => $route->paramNames,
+            'paramConstraints' => $route->paramConstraints,
+            'middlewares' => $route->middlewares,
+            'controller' => $route->controller,
+            'isStatic' => $route->isStatic,
+            'compiledRegex' => $route->compiledRegex
+        ];
+    }
+
 }
 

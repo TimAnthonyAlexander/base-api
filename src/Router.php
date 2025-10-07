@@ -174,7 +174,9 @@ class Router
         $cachePath = $this->getCachePath();
         if ($cachePath !== null && file_exists($cachePath)) {
             try {
-                $this->compiled = require $cachePath;
+                $cached = require $cachePath;
+                // Convert array-based cache to CompiledRoute objects
+                $this->compiled = $this->hydrateCache($cached);
                 $this->compiledLoaded = true;
                 return true;
             } catch (Throwable) {
@@ -186,6 +188,55 @@ class Router
 
         $this->compiledLoaded = true;
         return false;
+    }
+
+    /**
+     * Convert array-based cache to CompiledRoute objects.
+     */
+    private function hydrateCache(array $cached): array
+    {
+        $hydrated = [
+            'static' => [],
+            'dynamic' => [],
+            'methods' => $cached['methods'],
+            'allowedMethods' => $cached['allowedMethods']
+        ];
+
+        // Hydrate static routes
+        foreach ($cached['static'] as $method => $routes) {
+            $hydrated['static'][$method] = [];
+            foreach ($routes as $path => $routeData) {
+                $hydrated['static'][$method][$path] = $this->arrayToCompiledRoute($routeData);
+            }
+        }
+
+        // Hydrate dynamic routes
+        foreach ($cached['dynamic'] as $method => $routes) {
+            $hydrated['dynamic'][$method] = [];
+            foreach ($routes as $routeData) {
+                $hydrated['dynamic'][$method][] = $this->arrayToCompiledRoute($routeData);
+            }
+        }
+
+        return $hydrated;
+    }
+
+    /**
+     * Convert array to CompiledRoute object.
+     */
+    private function arrayToCompiledRoute(array $data): CompiledRoute
+    {
+        return new CompiledRoute(
+            method: $data['method'],
+            path: $data['path'],
+            segments: $data['segments'],
+            paramNames: $data['paramNames'],
+            paramConstraints: $data['paramConstraints'],
+            middlewares: $data['middlewares'],
+            controller: $data['controller'],
+            isStatic: $data['isStatic'],
+            compiledRegex: $data['compiledRegex']
+        );
     }
 
     /**
@@ -242,6 +293,20 @@ class Router
      */
     private function matchTraditional(string $method, string $path): ?array
     {
+        // HEAD→GET fallback: if HEAD requested but not defined, try GET
+        if ($method === 'HEAD' && !isset($this->routes['HEAD'])) {
+            if (isset($this->routes['GET'])) {
+                foreach ($this->routes['GET'] as $route) {
+                    $params = $route->match($path);
+                    if ($params !== null) {
+                        return [$route, $params];
+                    }
+                }
+            }
+
+            return null;
+        }
+
         if (!isset($this->routes[$method])) {
             return null;
         }
@@ -261,14 +326,19 @@ class Router
      */
     private function allowedMethodsCompiledForPath(string $path): array
     {
+        // Fast path: check precomputed allowed methods for static routes
+        if (isset($this->compiled['allowedMethods'][$path])) {
+            return $this->compiled['allowedMethods'][$path];
+        }
+
+        // Slow path: scan dynamic routes (only if not a static route)
         $allowedMethods = [];
         $segments = array_filter(explode('/', trim($path, '/')), fn($s): bool => $s !== '');
         $segments = array_values($segments);
 
         foreach ($this->compiled['methods'] as $method) {
-            // Check static routes
-            if (isset($this->compiled['static'][$method][$path])) {
-                $allowedMethods[] = $method;
+            // Skip HEAD since it's auto-generated from GET
+            if ($method === 'HEAD') {
                 continue;
             }
 
@@ -277,6 +347,11 @@ class Router
                 foreach ($this->compiled['dynamic'][$method] as $compiledRoute) {
                     if ($compiledRoute->matchSegments($segments) !== null) {
                         $allowedMethods[] = $method;
+                        // If GET is allowed, HEAD is also allowed
+                        if ($method === 'GET') {
+                            $allowedMethods[] = 'HEAD';
+                        }
+
                         break;
                     }
                 }
@@ -297,6 +372,11 @@ class Router
             foreach ($routes as $route) {
                 if ($route->match($path) !== null) {
                     $allowedMethods[] = $method;
+                    // If GET is allowed, HEAD is also allowed (auto-fallback)
+                    if ($method === 'GET' && !in_array('HEAD', $allowedMethods, true)) {
+                        $allowedMethods[] = 'HEAD';
+                    }
+
                     break;
                 }
             }
