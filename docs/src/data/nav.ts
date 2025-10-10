@@ -116,6 +116,7 @@ export const NAV: NavNode[] = [
             { title: 'TypeScript SDK', path: '/reference/typescript-sdk', icon: 'code' },
             { title: 'HTTP Responses', path: '/reference/http-responses', icon: 'http' },
             { title: 'Cache API', path: '/reference/cache-api', icon: 'cached' },
+            { title: 'OpenAI API', path: '/reference/openai-api', icon: 'psychology' },
         ]
     },
     {

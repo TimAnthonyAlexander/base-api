@@ -154,6 +154,12 @@ BaseAPI v1.0.0 is built for production with everything you need:
 - Automatic translation via OpenAI or DeepL
 - Token scanning and management CLI
 
+**AI Integration**
+- OpenAI Responses API wrapper with streaming support
+- Function calling (tools) for AI-powered features
+- Structured JSON output with schema validation
+- Support for reasoning models (o-series)
+
 **Deployment**
 - Environment-based configuration
 - Health check endpoints
@@ -188,6 +194,7 @@ Topics covered:
 - Authentication and authorization
 - File storage and uploads
 - Internationalization
+- AI integration (OpenAI)
 - Deployment guides
 - API reference
 

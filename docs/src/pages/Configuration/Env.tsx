@@ -149,6 +149,38 @@ const redisEnvVars = [
     },
 ];
 
+const openaiEnvVars = [
+    {
+        key: 'OPENAI_API_KEY',
+        description: 'Your OpenAI API key from platform.openai.com/api-keys',
+    },
+    {
+        key: 'OPENAI_DEFAULT_MODEL',
+        default: 'gpt-5.1-mini',
+        description: 'Default model to use for API requests',
+        type: 'enum' as const,
+        options: ['gpt-5.1-mini', 'gpt-5.1', 'o4-mini', 'o4'],
+    },
+    {
+        key: 'OPENAI_TEMPERATURE',
+        default: '1.0',
+        description: 'Controls randomness (0.0 = deterministic, 2.0 = very creative)',
+        type: 'number' as const,
+    },
+    {
+        key: 'OPENAI_MAX_TOKENS',
+        default: '1000',
+        description: 'Maximum tokens to generate per response',
+        type: 'number' as const,
+    },
+    {
+        key: 'OPENAI_TIMEOUT',
+        default: '30',
+        description: 'HTTP request timeout in seconds',
+        type: 'number' as const,
+    },
+];
+
 const envFileExample = `########################################
 # Application Settings
 ########################################
@@ -204,7 +236,24 @@ CACHE_DEFAULT_TTL=3600
 CACHE_RESPONSES=false
 
 # Default TTL for response cache in seconds
-CACHE_RESPONSE_TTL=600`;
+CACHE_RESPONSE_TTL=600
+
+
+########################################
+# OpenAI Configuration
+########################################
+
+# Your OpenAI API key (get one at platform.openai.com/api-keys)
+OPENAI_API_KEY=
+
+# Default model to use (gpt-5.1-mini, gpt-5.1, o4-mini, o4)
+OPENAI_DEFAULT_MODEL=gpt-5.1-mini
+
+# Temperature (0.0 = deterministic, 2.0 = very creative)
+OPENAI_TEMPERATURE=1.0
+
+# Maximum tokens per response
+OPENAI_MAX_TOKENS=1000`;
 
 export default function Env() {
     return (
@@ -332,6 +381,32 @@ export default function Env() {
                     <Callout type="info">
                         <Typography>
                             <strong>Production Recommended:</strong> Use Redis for caching in production environments, especially for multi-server deployments.
+                        </Typography>
+                    </Callout>
+                </AccordionDetails>
+            </Accordion>
+
+            <Accordion>
+                <AccordionSummary expandIcon={<ExpandIcon />}>
+                    <Typography variant="h6" fontWeight={600}>
+                        OpenAI Configuration
+                    </Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <Typography color="text.secondary">
+                        OpenAI API integration settings for AI-powered features using the Responses API.
+                    </Typography>
+                    <EnvTable envVars={openaiEnvVars} />
+
+                    <Callout type="warning">
+                        <Typography>
+                            <strong>Security:</strong> Never commit your <code>OPENAI_API_KEY</code> to version control. Add it to <code>.env</code> only and keep <code>.env.example</code> without the actual key.
+                        </Typography>
+                    </Callout>
+
+                    <Callout type="info">
+                        <Typography>
+                            <strong>Getting Started:</strong> Get your API key at <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">platform.openai.com/api-keys</a>. The OpenAI module supports text responses, streaming, function calling, and structured JSON output.
                         </Typography>
                     </Callout>
                 </AccordionDetails>

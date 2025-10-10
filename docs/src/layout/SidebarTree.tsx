@@ -47,6 +47,7 @@ import {
   Error,
   Quiz,
   People,
+  Psychology,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 import { NAV, type NavNode } from '../data/nav';
@@ -90,6 +91,7 @@ const iconMap = {
   error: Error,
   quiz: Quiz,
   people: People,
+  psychology: Psychology,
 };
 
 // Function to render icon dynamically

@@ -38,6 +38,7 @@ const ReferenceOpenApi = lazy(() => import('./pages/Reference/OpenApi'));
 const ReferenceTypeScriptSdk = lazy(() => import('./pages/Reference/TypeScriptSdk'));
 const ReferenceHttpResponses = lazy(() => import('./pages/Reference/HttpResponses'));
 const ReferenceCacheApi = lazy(() => import('./pages/Reference/CacheApi'));
+const ReferenceOpenAiApi = lazy(() => import('./pages/Reference/OpenAiApi'));
 const TroubleshootingCommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));
 const TroubleshootingFaq = lazy(() => import('./pages/Troubleshooting/Faq'));
 const Community = lazy(() => import('./pages/Community'));
@@ -103,6 +104,7 @@ const router = createBrowserRouter([
             { path: 'reference/typescript-sdk', element: <ReferenceTypeScriptSdk /> },
             { path: 'reference/http-responses', element: <ReferenceHttpResponses /> },
             { path: 'reference/cache-api', element: <ReferenceCacheApi /> },
+            { path: 'reference/openai-api', element: <ReferenceOpenAiApi /> },
 
             // Troubleshooting
             { path: 'troubleshooting/common-errors', element: <TroubleshootingCommonErrors /> },

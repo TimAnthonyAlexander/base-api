@@ -27,12 +27,12 @@
         "rector/rector": "^1.2"
     },
     "autoload": {
-        "psr-4": {
-            "BaseApi\\": "src/"
-        },
         "files": [
             "src/helpers.php"
-        ]
+        ],
+        "psr-4": {
+            "BaseApi\\": "src/"
+        }
     },
     "autoload-dev": {
         "psr-4": {
