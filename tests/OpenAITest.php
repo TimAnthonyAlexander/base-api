@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests;
 
 use BaseApi\Modules\OpenAI;
-use BaseApi\App;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -16,7 +15,7 @@ class OpenAITest extends TestCase
 {
     public function test_constructor_accepts_custom_api_key_and_model(): void
     {
-        $openai = new OpenAI('custom-key', 'gpt-4');
+        $openai = new OpenAI('custom-key', 'gpt-4.1');
         
         $this->assertInstanceOf(OpenAI::class, $openai);
     }
@@ -150,7 +149,7 @@ class OpenAITest extends TestCase
     {
         $openai = new OpenAI('test-api-key');
         
-        $withModel = $openai->model('gpt-4o');
+        $withModel = $openai->model('gpt-5');
         
         $this->assertInstanceOf(OpenAI::class, $withModel);
         $this->assertNotSame($openai, $withModel);
@@ -311,7 +310,7 @@ class OpenAITest extends TestCase
         $openai = new OpenAI('test-api-key');
         
         $configured = $openai
-            ->model('gpt-4o')
+            ->model('gpt-5')
             ->withOptions(['temperature' => 0.8])
             ->withReasoning('high')
             ->withTools([['type' => 'function']]);

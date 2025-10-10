@@ -32,7 +32,7 @@ class OpenAIProvider implements TranslationProvider
         $config = array_merge($defaultConfig, $config);
 
         $this->apiKey = $config['api_key'] ?? '';
-        $this->model = $config['model'] ?? 'gpt-4o-mini';
+        $this->model = $config['model'] ?? 'gpt-4.1-mini';
         $this->temperature = $config['temperature'] ?? 0.3;
 
         if (empty($this->apiKey)) {

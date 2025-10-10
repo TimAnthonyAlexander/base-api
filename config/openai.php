@@ -28,13 +28,18 @@ return [
     | per-request using the model() method.
     |
     | Available models:
-    | - gpt-5.1-mini: Fast, cost-effective for simple tasks
-    | - gpt-5.1: Balanced performance and capability
-    | - o4-mini: Reasoning-focused model for complex problems
-    | - o4: Advanced reasoning model
+    | - gpt-4.1: Full reasoning and multimodal capabilities, 1M-token context
+    | - gpt-4.1-mini: Lightweight, cost-efficient version of gpt-4.1
+    | - gpt-4.1-nano: Ultra-low-latency for embedded and real-time inference
+    | - o1: Reasoning-focused with persistent state and advanced planning
+    | - o3: Improved reasoning depth and accuracy, smaller footprint
+    | - o4-mini: Next-gen reasoning, optimized for concise answers
+    | - gpt-5: Unified multimodal reasoning with extended memory
+    | - gpt-5-mini: Speed and cost optimized GPT-5 variant
+    | - gpt-5-nano: Lowest-latency GPT-5 for rapid inference
     |
     */
-    'default_model' => $_ENV['OPENAI_DEFAULT_MODEL'] ?? 'gpt-5.1-mini',
+    'default_model' => $_ENV['OPENAI_DEFAULT_MODEL'] ?? 'gpt-4.1-mini',
 
     /*
     |--------------------------------------------------------------------------

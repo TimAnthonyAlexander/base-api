@@ -34,7 +34,7 @@ export default function OpenAiApi() {
 
             <CodeBlock language="bash" code={`# Get your key at https://platform.openai.com/api-keys
 OPENAI_API_KEY=sk-proj-...
-OPENAI_DEFAULT_MODEL=gpt-5.1-mini`} />
+OPENAI_DEFAULT_MODEL=gpt-4.1-mini`} />
 
             <Typography sx={{ mt: 2 }}>
                 Then use the OpenAI class in your application:
@@ -80,7 +80,7 @@ $response = $ai
 
 // Use a different model
 $response = $ai
-    ->model('gpt-5.1')
+    ->model('gpt-4.1')
     ->response('Analyze this complex problem...');
 
 // Full response structure
@@ -88,7 +88,7 @@ $response = $ai->response('Hello!');
 // Returns:
 // [
 //   'id' => 'resp_abc123',
-//   'model' => 'gpt-5.1-mini',
+//   'model' => 'gpt-4.1-mini',
 //   'output' => [
 //     ['type' => 'output_text', 'text' => '...'],
 //   ],
@@ -300,9 +300,9 @@ use BaseApi\\Modules\\OpenAI;
 
 $ai = new OpenAI();
 
-// Enable reasoning mode
+// Enable reasoning mode with o-series models
 $response = $ai
-    ->model('o4-mini')
+    ->model('o4-mini') // or 'o1', 'o3'
     ->withReasoning('medium') // 'low', 'medium', 'high'
     ->withOptions(['max_output_tokens' => 500])
     ->response('Explain the difference between A* and Dijkstra algorithm.');
@@ -325,7 +325,7 @@ $ai = new OpenAI();
 
 // Chain multiple configuration methods
 $response = $ai
-    ->model('gpt-5.1')
+    ->model('gpt-5')
     ->withOptions([
         'temperature' => 0.3,
         'max_output_tokens' => 1500,
@@ -348,7 +348,7 @@ $ai = new OpenAI();
 // Override API key and model
 $ai = new OpenAI(
     apiKey: 'sk-proj-...',
-    model: 'gpt-5.1'
+    model: 'gpt-4.1'
 );`} />
 
             <Typography variant="h6" gutterBottom sx={{ mt: 3, fontWeight: 600 }}>
@@ -580,7 +580,7 @@ try {
 OPENAI_API_KEY=sk-proj-...
 
 # Optional: Default model
-OPENAI_DEFAULT_MODEL=gpt-5.1-mini
+OPENAI_DEFAULT_MODEL=gpt-4.1-mini
 
 # Optional: Default temperature (0.0 - 2.0)
 OPENAI_TEMPERATURE=1.0

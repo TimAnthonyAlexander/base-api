@@ -156,10 +156,10 @@ const openaiEnvVars = [
     },
     {
         key: 'OPENAI_DEFAULT_MODEL',
-        default: 'gpt-5.1-mini',
+        default: 'gpt-4.1-mini',
         description: 'Default model to use for API requests',
         type: 'enum' as const,
-        options: ['gpt-5.1-mini', 'gpt-5.1', 'o4-mini', 'o4'],
+        options: ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'o1', 'o3', 'o4-mini', 'gpt-5', 'gpt-5-mini', 'gpt-5-nano'],
     },
     {
         key: 'OPENAI_TEMPERATURE',
@@ -246,8 +246,8 @@ CACHE_RESPONSE_TTL=600
 # Your OpenAI API key (get one at platform.openai.com/api-keys)
 OPENAI_API_KEY=
 
-# Default model to use (gpt-5.1-mini, gpt-5.1, o4-mini, o4)
-OPENAI_DEFAULT_MODEL=gpt-5.1-mini
+# Default model to use (gpt-4.1-mini, gpt-5-mini, o4-mini, etc.)
+OPENAI_DEFAULT_MODEL=gpt-4.1-mini
 
 # Temperature (0.0 = deterministic, 2.0 = very creative)
 OPENAI_TEMPERATURE=1.0

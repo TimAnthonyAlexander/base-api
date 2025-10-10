@@ -28,7 +28,7 @@ final class OpenAI
     public function __construct(?string $apiKey = null, ?string $model = null)
     {
         $this->apiKey = $apiKey ?? App::config('openai.api_key', '');
-        $this->model = $model ?? App::config('openai.default_model', 'gpt-5.1-mini');
+        $this->model = $model ?? App::config('openai.default_model', 'gpt-4.1-mini');
 
         if (empty($this->apiKey)) {
             throw new RuntimeException('OpenAI API key not configured. Set OPENAI_API_KEY in .env');
