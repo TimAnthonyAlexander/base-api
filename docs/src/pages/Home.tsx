@@ -26,7 +26,7 @@ const features = [
         icon: <PerformanceIcon />,
         title: 'Competitive Performance',
         description: 'Minimal framework overhead with unified caching system for enhanced query performance',
-        link: '/configuration/caching',
+        link: '/advanced/caching',
     },
     {
         icon: <SecurityIcon />,
@@ -50,13 +50,13 @@ const features = [
         icon: <I18nIcon />,
         title: 'Internationalization',
         description: 'Full i18n support with automatic translation providers (OpenAI, DeepL)',
-        link: '/i18n/overview',
+        link: '/advanced/i18n',
     },
     {
         icon: <DocsIcon />,
         title: 'Auto Documentation',
         description: 'Generate OpenAPI specs and TypeScript types with one command',
-        link: '/cli/overview',
+        link: '/tools/cli',
     },
 ];
 
@@ -153,7 +153,7 @@ export default function Home() {
                         </Button>
                         <Button
                             component={Link}
-                            to="/architecture/overview"
+                            to="/fundamentals/overview"
                             variant="outlined"
                             size="large"
                             sx={{
