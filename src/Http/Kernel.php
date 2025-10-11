@@ -270,6 +270,12 @@ class Kernel
             header(sprintf('%s: %s', $name, $value));
         }
 
+        // Handle streamed responses
+        if ($response instanceof StreamedResponse) {
+            $response->sendContent();
+            return;
+        }
+
         // Send body
         if (is_resource($response->body)) {
             fpassthru($response->body);

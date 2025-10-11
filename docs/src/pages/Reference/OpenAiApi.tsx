@@ -111,6 +111,7 @@ $response = $ai->response('Hello!');
             <CodeBlock language="php" code={`<?php
 
 use BaseApi\\Modules\\OpenAI;
+use BaseApi\\Http\\StreamedResponse;
 
 $ai = new OpenAI();
 
@@ -126,22 +127,20 @@ foreach ($ai->stream('Tell me a story about a robot.') as $chunk) {
 // Use in a controller to stream to the client
 class StreamController extends Controller
 {
-    public function get(): Response
+    public string $prompt = '';
+    
+    public function get(): StreamedResponse
     {
         $ai = new OpenAI();
         
-        return new Response(function() use ($ai) {
+        return StreamedResponse::sse(function() use ($ai) {
             foreach ($ai->stream($this->prompt) as $chunk) {
                 if (isset($chunk['delta'])) {
                     echo "data: " . json_encode($chunk) . "\\n\\n";
                     flush();
                 }
             }
-        }, 200, [
-            'Content-Type' => 'text/event-stream',
-            'Cache-Control' => 'no-cache',
-            'X-Accel-Buffering' => 'no',
-        ]);
+        });
     }
 }`} />
 
