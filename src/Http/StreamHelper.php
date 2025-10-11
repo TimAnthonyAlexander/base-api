@@ -39,18 +39,17 @@ class StreamHelper
                     if (connection_aborted() !== 0) {
                         break;
                     }
-
+                    
                     // Transform chunk if transformer provided
                     $data = $transformer !== null ? $transformer($chunk) : $chunk;
                     // Skip empty chunks
                     if ($data === null) {
                         continue;
                     }
-
                     if ($data === []) {
                         continue;
                     }
-
+                    
                     // Send SSE data
                     echo "data: " . json_encode($data) . "\n\n";
                     self::flush();
