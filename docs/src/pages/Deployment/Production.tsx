@@ -501,37 +501,13 @@ SENTRY_DSN=your-sentry-dsn-here`}
             <Accordion>
                 <AccordionSummary expandIcon={<ExpandIcon />}>
                     <Typography variant="h6" fontWeight={600}>
-                        Systemd Service Configuration
+                        Systemd Environment Configuration
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                     <Typography>
-                        For production services, consider using systemd environment files instead of .env:
+                        For production applications, consider using systemd environment files instead of .env:
                     </Typography>
-
-                    <CodeBlock
-                        language="ini"
-                        title="/etc/systemd/system/baseapi.service"
-                        code={`[Unit]
-Description=BaseAPI Application
-After=network.target mysql.service redis.service
-Requires=mysql.service redis.service
-
-[Service]
-Type=oneshot
-User=www-data
-Group=www-data
-WorkingDirectory=/var/www/baseapi
-EnvironmentFile=/etc/baseapi/environment
-ExecStart=/usr/bin/./mason cache:warm
-ExecReload=/usr/bin/./mason cache:clear
-RemainAfterExit=yes
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target`}
-                    />
 
                     <CodeBlock
                         language="bash"
@@ -554,10 +530,8 @@ REDIS_PASSWORD=redis-password`}
 sudo chmod 640 /etc/baseapi/environment
 sudo chown root:www-data /etc/baseapi/environment
 
-# Enable and start the service
-sudo systemctl daemon-reload
-sudo systemctl enable baseapi.service
-sudo systemctl start baseapi.service`}
+# Reference environment file in your systemd service
+# by adding: EnvironmentFile=/etc/baseapi/environment`}
                     />
                 </AccordionDetails>
             </Accordion>

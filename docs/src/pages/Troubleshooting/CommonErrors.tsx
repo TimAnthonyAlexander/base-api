@@ -306,7 +306,7 @@ class UserController extends Controller
 }
 
 # List routes to verify
-./mason routes:list`
+./mason route:list`
     },
     {
         id: 'validation-failed',

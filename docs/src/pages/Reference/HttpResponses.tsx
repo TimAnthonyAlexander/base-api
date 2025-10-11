@@ -69,9 +69,6 @@ return JsonResponse::forbidden('Access denied');
 // 404 Not Found
 return JsonResponse::notFound('Resource not found');
 
-// 409 Conflict
-return JsonResponse::conflict('Resource already exists');
-
 // 500 Internal Server Error
 return JsonResponse::error('Something went wrong', 500);`} />
 
@@ -123,11 +120,6 @@ return JsonResponse::error('Something went wrong', 500);`} />
                             <TableCell><code>JsonResponse::notFound($msg)</code></TableCell>
                             <TableCell>404</TableCell>
                             <TableCell>Resource not found</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>JsonResponse::conflict($msg)</code></TableCell>
-                            <TableCell>409</TableCell>
-                            <TableCell>Resource conflicts</TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>JsonResponse::error($msg, $code)</code></TableCell>

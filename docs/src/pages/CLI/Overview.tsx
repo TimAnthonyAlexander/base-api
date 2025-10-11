@@ -113,14 +113,6 @@ export default function CLIOverview() {
                                 <code>./mason make:model Product --with-controller</code>
                             </TableCell>
                         </TableRow>
-                        <TableRow>
-                            <TableCell><code>make:service</code></TableCell>
-                            <TableCell>Generate a new service class</TableCell>
-                            <TableCell>
-                                <code>./mason make:service EmailService</code><br />
-                                <code>./mason make:service Payment/StripeService</code>
-                            </TableCell>
-                        </TableRow>
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -154,22 +146,6 @@ export default function CLIOverview() {
                             <TableCell>
                                 <code>./mason migrate:apply</code><br />
                                 <code>./mason migrate:apply --force</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>migrate:rollback</code></TableCell>
-                            <TableCell>Rollback the last migration batch</TableCell>
-                            <TableCell>
-                                <code>./mason migrate:rollback</code><br />
-                                <code>./mason migrate:rollback --steps=3</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>db:seed</code></TableCell>
-                            <TableCell>Seed database with test data</TableCell>
-                            <TableCell>
-                                <code>./mason db:seed</code><br />
-                                <code>./mason db:seed --class=UserSeeder</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -216,14 +192,6 @@ export default function CLIOverview() {
                                 <code>./mason cache:cleanup --force</code>
                             </TableCell>
                         </TableRow>
-                        <TableRow>
-                            <TableCell><code>cache:warm</code></TableCell>
-                            <TableCell>Warm up cache with essential data</TableCell>
-                            <TableCell>
-                                <code>./mason cache:warm</code><br />
-                                <code>./mason cache:warm --routes --config</code>
-                            </TableCell>
-                        </TableRow>
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -253,20 +221,12 @@ export default function CLIOverview() {
                             </TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell><code>docs:generate</code></TableCell>
-                            <TableCell>Generate API documentation from annotations</TableCell>
-                            <TableCell>
-                                <code>./mason docs:generate</code><br />
-                                <code>./mason docs:generate --format=html</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>routes:list</code></TableCell>
+                            <TableCell><code>route:list</code></TableCell>
                             <TableCell>List all registered routes</TableCell>
                             <TableCell>
-                                <code>./mason routes:list</code><br />
-                                <code>./mason routes:list --method=GET</code><br />
-                                <code>./mason routes:list --filter=user</code>
+                                <code>./mason route:list</code><br />
+                                <code>./mason route:list --method=GET</code><br />
+                                <code>./mason route:list --filter=user</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -324,11 +284,10 @@ export default function CLIOverview() {
                             </TableCell>
                         </TableRow>
                         <TableRow>
-                            <TableCell><code>i18n:export</code></TableCell>
-                            <TableCell>Export translations to external formats</TableCell>
+                            <TableCell><code>i18n:hash</code></TableCell>
+                            <TableCell>Generate hash keys for translation strings</TableCell>
                             <TableCell>
-                                <code>./mason i18n:export --format=po</code><br />
-                                <code>./mason i18n:export --format=csv --locale=fr</code>
+                                <code>./mason i18n:hash</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -390,9 +349,9 @@ export default function CLIOverview() {
                 </Table>
             </TableContainer>
 
-            {/* System Commands */}
+            {/* Storage & Route Commands */}
             <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
-                System Commands
+                Storage & Route Commands
             </Typography>
 
             <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
@@ -406,51 +365,24 @@ export default function CLIOverview() {
                     </TableHead>
                     <TableBody>
                         <TableRow>
-                            <TableCell><code>config:cache</code></TableCell>
-                            <TableCell>Cache configuration files for performance</TableCell>
-                            <TableCell>
-                                <code>./mason config:cache</code><br />
-                                <code>./mason config:cache --clear</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>optimize</code></TableCell>
-                            <TableCell>Optimize application for production</TableCell>
-                            <TableCell>
-                                <code>./mason optimize</code><br />
-                                <code>./mason optimize --force</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>env:decrypt</code></TableCell>
-                            <TableCell>Decrypt environment files</TableCell>
-                            <TableCell>
-                                <code>./mason env:decrypt</code><br />
-                                <code>./mason env:decrypt --key=your-key</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>env:encrypt</code></TableCell>
-                            <TableCell>Encrypt environment files for secure storage</TableCell>
-                            <TableCell>
-                                <code>./mason env:encrypt</code><br />
-                                <code>./mason env:encrypt --env=production</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell><code>queue:work</code></TableCell>
-                            <TableCell>Process background job queues</TableCell>
-                            <TableCell>
-                                <code>./mason queue:work</code><br />
-                                <code>./mason queue:work --queue=emails</code><br />
-                                <code>./mason queue:work --timeout=60</code>
-                            </TableCell>
-                        </TableRow>
-                        <TableRow>
                             <TableCell><code>storage:link</code></TableCell>
                             <TableCell>Create symlink from public/storage to storage/public</TableCell>
                             <TableCell>
                                 <code>./mason storage:link</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>route:cache</code></TableCell>
+                            <TableCell>Cache route definitions for performance</TableCell>
+                            <TableCell>
+                                <code>./mason route:cache</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>route:clear</code></TableCell>
+                            <TableCell>Clear cached route definitions</TableCell>
+                            <TableCell>
+                                <code>./mason route:clear</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>

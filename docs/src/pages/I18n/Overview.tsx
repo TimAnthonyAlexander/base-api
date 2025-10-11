@@ -241,24 +241,26 @@ curl -H "Accept-Language: es" http://localhost:7879/users/123/profile
 # - order.* for e-commerce functionality
 # - admin.* for admin interface
 
-# 2. Export translations for external translation services
-./mason i18n:export --format=csv --locale=en > translations_en.csv
-./mason i18n:export --format=po --locale=en > translations_en.po
+# 2. Add all required languages
+./mason i18n:add-lang fr
+./mason i18n:add-lang de
+./mason i18n:add-lang es
 
-# 3. Send files to translators, receive back translated versions
+# 3. Scan codebase and add new translation tokens
+./mason i18n:scan --update
 
-# 4. Import translated files
-./mason i18n:import --format=csv --locale=fr translations_fr.csv
-./mason i18n:import --format=po --locale=de translations_de.po
+# 4. Use AI to fill translations for each language
+./mason i18n:fill --provider=deepl --locale=fr
+./mason i18n:fill --provider=deepl --locale=de
+./mason i18n:fill --provider=openai --locale=es
 
-# 5. Use AI to fill any missing translations
-./mason i18n:fill --provider=deepl --missing-only
-
-# 6. Validate and lint all translations
+# 5. Validate and lint all translations
 ./mason i18n:lint --strict
 
-# 7. Generate translation reports
-./mason i18n:stats --detailed`} />
+# 6. Generate hashes and commit
+./mason i18n:hash
+git add lang/
+git commit -m "Update translations"`} />
 
             {/* Translation File Examples */}
             <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
