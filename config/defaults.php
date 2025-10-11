@@ -95,11 +95,11 @@ return [
     ],
 
     'openai' => [
-        'api_key' => $_ENV['OPENAI_API_KEY'] ?? '',
-        'default_model' => $_ENV['OPENAI_DEFAULT_MODEL'] ?? 'gpt-4.1-mini',
-        'temperature' => (float)($_ENV['OPENAI_TEMPERATURE'] ?? 1.0),
-        'max_output_tokens' => (int)($_ENV['OPENAI_MAX_TOKENS'] ?? 1000),
-        'timeout' => (int)($_ENV['OPENAI_TIMEOUT'] ?? 30),
-        'max_retries' => (int)($_ENV['OPENAI_MAX_RETRIES'] ?? 3),
+        'api_key' => getenv('OPENAI_API_KEY') ?: '',
+        'default_model' => getenv('OPENAI_DEFAULT_MODEL') ?: 'gpt-4.1-mini',
+        'temperature' => (float)(getenv('OPENAI_TEMPERATURE') ?: 1.0),
+        'max_output_tokens' => (int)(getenv('OPENAI_MAX_TOKENS') ?: 1000),
+        'timeout' => (int)(getenv('OPENAI_TIMEOUT') ?: 30),
+        'max_retries' => (int)(getenv('OPENAI_MAX_RETRIES') ?: 3),
     ],
 ];

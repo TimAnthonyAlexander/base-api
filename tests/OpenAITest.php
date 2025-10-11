@@ -25,7 +25,8 @@ class OpenAITest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('OpenAI API key not configured');
         
-        new OpenAI();
+        // Explicitly pass empty string to bypass config
+        new OpenAI('');
     }
     
     public function test_with_tools_returns_new_instance(): void
