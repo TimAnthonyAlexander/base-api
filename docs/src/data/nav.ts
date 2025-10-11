@@ -22,7 +22,7 @@ export const NAV: NavNode[] = [
     },
     {
         title: 'Fundamentals',
-        icon: 'foundation',
+        icon: 'Category',
         children: [
             { title: 'Overview', path: '/fundamentals/overview', icon: 'visibility' },
             { title: 'Routing', path: '/fundamentals/routing', icon: 'route' },
@@ -42,7 +42,7 @@ export const NAV: NavNode[] = [
     },
     {
         title: 'Advanced Features',
-        icon: 'auto_awesome',
+        icon: 'Extension',
         children: [
             { title: 'File Storage', path: '/advanced/file-storage', icon: 'cloud_upload' },
             { title: 'Caching', path: '/advanced/caching', icon: 'cached' },
@@ -54,16 +54,16 @@ export const NAV: NavNode[] = [
         title: 'Security',
         icon: 'security',
         children: [
-            { title: 'Overview', path: '/security/overview', icon: 'shield' },
-            { title: 'Authentication', path: '/security/authentication', icon: 'key' },
+            { title: 'Overview', path: '/security/overview', icon: 'Lock' },
+            { title: 'Authentication', path: '/security/authentication', icon: 'Password' },
         ]
     },
     {
         title: 'Deployment',
-        icon: 'rocket',
+        icon: 'rocket_launch',
         children: [
             { title: 'Configuration', path: '/deployment/configuration', icon: 'settings' },
-            { title: 'Production Setup', path: '/deployment/production', icon: 'cloud_done' },
+            { title: 'Production Setup', path: '/deployment/production', icon: 'publish' },
         ]
     },
     {
@@ -80,7 +80,7 @@ export const NAV: NavNode[] = [
         title: 'Guides',
         icon: 'menu_book',
         children: [
-            { title: 'Building a CRUD API', path: '/guides/crud-api', icon: 'edit_note' },
+            { title: 'Building a CRUD API', path: '/guides/crud-api', icon: 'list' },
             { title: 'OpenAI Integration', path: '/guides/openai', icon: 'psychology' },
         ]
     },
