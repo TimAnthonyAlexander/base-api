@@ -129,8 +129,13 @@ class StreamController extends Controller
 {
     public string $prompt = '';
     
-    public function get(): StreamedResponse
+    public function get(): StreamedResponse|JsonResponse
     {
+        // Validate that prompt is provided
+        $this->validate([
+            'prompt' => 'required|string|min:1',
+        ]);
+        
         $ai = new OpenAI();
         
         return StreamedResponse::sse(function() use ($ai) {
