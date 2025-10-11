@@ -14,13 +14,13 @@ export default function OpenAiApi() {
             </Typography>
 
             <Typography>
-                BaseAPI includes a clean, minimal wrapper for OpenAI's Responses API that supports text generation, 
-                streaming, function calling (tools), and structured JSON output. The implementation follows KISS principles 
+                BaseAPI includes a clean, minimal wrapper for OpenAI's Responses API that supports text generation,
+                streaming, function calling (tools), and structured JSON output. The implementation follows KISS principles
                 while providing all essential features for AI-powered applications.
             </Typography>
 
             <Alert severity="info" sx={{ my: 3 }}>
-                The OpenAI module uses the <strong>Responses API</strong> endpoint (not the legacy Chat Completions API). 
+                The OpenAI module uses the <strong>Responses API</strong> endpoint (not the legacy Chat Completions API).
                 Configure your API key in <code>.env</code> using <code>OPENAI_API_KEY</code>.
             </Alert>
 
@@ -104,18 +104,19 @@ $response = $ai->response('Hello!');
             </Typography>
 
             <Typography>
-                Stream responses in real-time using Server-Sent Events. The <code>stream()</code> method returns a 
-                Generator that yields chunks as they arrive:
+                Stream responses in real-time using Server-Sent Events. The <code>stream()</code> method returns a
+                Generator that yields chunks as they arrive. BaseAPI provides <code>StreamHelper</code> to simplify
+                SSE streaming with automatic buffering, error handling, and connection management:
             </Typography>
 
             <CodeBlock language="php" code={`<?php
 
 use BaseApi\\Modules\\OpenAI;
+use BaseApi\\Http\\StreamHelper;
 use BaseApi\\Http\\StreamedResponse;
 
+// Manual streaming (low-level)
 $ai = new OpenAI();
-
-// Stream a response
 foreach ($ai->stream('Tell me a story about a robot.') as $chunk) {
     // Process each chunk as it arrives
     if (isset($chunk['delta'])) {
@@ -124,42 +125,88 @@ foreach ($ai->stream('Tell me a story about a robot.') as $chunk) {
     }
 }
 
-// Use in a controller to stream to the client
+// Controller with StreamHelper (recommended)
 class StreamController extends Controller
 {
     public string $prompt = '';
     
-    public function get(): StreamedResponse|JsonResponse
+    public function get(): StreamedResponse
     {
-        // Validate that prompt is provided
         $this->validate([
             'prompt' => 'required|string|min:1',
         ]);
         
-        $ai = new OpenAI();
+        $openAI = new OpenAI();
         
-        return StreamedResponse::sse(function() use ($ai) {
-            foreach ($ai->stream($this->prompt) as $chunk) {
-                // Extract only the text content
-                if (isset($chunk['delta']) && is_string($chunk['delta'])) {
-                    echo "data: " . json_encode(['content' => $chunk['delta']]) . "\\n\\n";
-                    flush();
-                }
-            }
-            
-            // Send completion marker
-            echo "data: [DONE]\\n\\n";
-            flush();
-        });
+        // StreamHelper handles SSE formatting, buffering, and errors automatically
+        return StreamHelper::sse(
+            fn(): Generator => $openAI->stream($this->prompt),
+            StreamHelper::openAITextTransformer(...)
+        );
     }
 }`} />
+
+            <Callout type="tip">
+                <Typography>
+                    <strong>StreamHelper Benefits:</strong> The <code>StreamHelper::sse()</code> method automatically
+                    handles output buffering, connection abort detection, error handling, and sends completion signals.
+                    It's the recommended way to stream responses.
+                </Typography>
+            </Callout>
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 3, fontWeight: 600 }}>
+                Stream Transformers
+            </Typography>
+
+            <Typography>
+                Transformers let you filter and shape streaming data before sending it to the client:
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+use BaseApi\\Http\\StreamHelper;
+
+// Built-in OpenAI text transformer - extracts only text content
+StreamHelper::sse(
+    fn() => $openAI->stream($prompt),
+    StreamHelper::openAITextTransformer(...) // Returns ['content' => $delta]
+);
+
+// Built-in full transformer - passes through all data
+StreamHelper::sse(
+    fn() => $openAI->stream($prompt),
+    StreamHelper::openAIFullTransformer(...) // Returns complete chunk
+);
+
+// Custom transformer
+StreamHelper::sse(
+    fn() => $openAI->stream($prompt),
+    function(array $chunk): ?array {
+        // Return null to skip chunk
+        if (!isset($chunk['delta'])) {
+            return null;
+        }
+        
+        // Transform and return
+        return [
+            'text' => $chunk['delta'],
+            'timestamp' => time(),
+        ];
+    }
+);
+
+// No transformer - pass raw chunks
+StreamHelper::sse(
+    fn() => $openAI->stream($prompt)
+    // Transformer is optional
+);`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Function Calling (Tools)
             </Typography>
 
             <Typography>
-                Enable function calling to let the AI invoke your application's functions. Define tools with JSON Schema 
+                Enable function calling to let the AI invoke your application's functions. Define tools with JSON Schema
                 parameters, and the model will return structured tool calls:
             </Typography>
 
@@ -231,7 +278,7 @@ foreach ($toolCalls as $toolCall) {
 
             <Callout type="tip">
                 <Typography>
-                    <strong>Tool Choice Options:</strong> Use <code>'auto'</code> to let the model decide, 
+                    <strong>Tool Choice Options:</strong> Use <code>'auto'</code> to let the model decide,
                     <code>'required'</code> to force a tool call, or <code>'none'</code> to prevent tool calling.
                 </Typography>
             </Callout>
@@ -241,7 +288,7 @@ foreach ($toolCalls as $toolCall) {
             </Typography>
 
             <Typography>
-                Enforce strict JSON output validated against a schema. Perfect for parsing, data extraction, 
+                Enforce strict JSON output validated against a schema. Perfect for parsing, data extraction,
                 and structured data generation:
             </Typography>
 
@@ -290,7 +337,7 @@ $data = json_decode($text, true);
 
             <Callout type="info">
                 <Typography>
-                    <strong>Guaranteed Valid JSON:</strong> When <code>strict: true</code> is used, the model will 
+                    <strong>Guaranteed Valid JSON:</strong> When <code>strict: true</code> is used, the model will
                     always return valid JSON matching your schema. No parsing errors!
                 </Typography>
             </Callout>
@@ -394,6 +441,20 @@ OpenAI::extractText(array $response): string
 
 // Extract tool calls from response
 OpenAI::extractToolCalls(array $response): array`} />
+
+            <Typography variant="h6" gutterBottom sx={{ mt: 3, fontWeight: 600 }}>
+                StreamHelper Methods
+            </Typography>
+
+            <CodeBlock language="php" code={`// Stream SSE with automatic handling
+StreamHelper::sse(
+    callable $generator,  // Function that returns a Generator
+    ?callable $transformer = null  // Optional transformer function
+): StreamedResponse
+
+// Built-in transformers
+StreamHelper::openAITextTransformer(array $chunk): ?array
+StreamHelper::openAIFullTransformer(array $chunk): ?array`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Practical Examples
@@ -571,8 +632,8 @@ try {
 
             <Callout type="warning">
                 <Typography>
-                    <strong>API Key Security:</strong> Never expose your OpenAI API key in client-side code or 
-                    version control. Always keep it in <code>.env</code> and add <code>.env</code> to your 
+                    <strong>API Key Security:</strong> Never expose your OpenAI API key in client-side code or
+                    version control. Always keep it in <code>.env</code> and add <code>.env</code> to your
                     <code>.gitignore</code>.
                 </Typography>
             </Callout>
@@ -606,34 +667,34 @@ OPENAI_TIMEOUT=30`} />
 
             <Box component="ul" sx={{ pl: 3 }}>
                 <Typography component="li" paragraph>
-                    <strong>Use structured output:</strong> Always use <code>withJsonSchema()</code> when you need 
+                    <strong>Use structured output:</strong> Always use <code>withJsonSchema()</code> when you need
                     parseable results. This guarantees valid JSON and eliminates parsing errors.
                 </Typography>
                 <Typography component="li" paragraph>
-                    <strong>Lower temperature for consistency:</strong> Use <code>temperature: 0.3</code> or lower 
+                    <strong>Lower temperature for consistency:</strong> Use <code>temperature: 0.3</code> or lower
                     for deterministic tasks like extraction, summarization, or translation.
                 </Typography>
                 <Typography component="li" paragraph>
-                    <strong>Stream long responses:</strong> Use <code>stream()</code> for better UX when generating 
+                    <strong>Stream long responses:</strong> Use <code>stream()</code> for better UX when generating
                     long-form content. Users see progress immediately.
                 </Typography>
                 <Typography component="li" paragraph>
-                    <strong>Cache expensive calls:</strong> Store AI responses in your cache when appropriate to 
+                    <strong>Cache expensive calls:</strong> Store AI responses in your cache when appropriate to
                     reduce API costs and improve response times.
                 </Typography>
                 <Typography component="li" paragraph>
-                    <strong>Handle rate limits:</strong> Implement proper error handling for rate limits and 
+                    <strong>Handle rate limits:</strong> Implement proper error handling for rate limits and
                     consider using queues for bulk processing.
                 </Typography>
                 <Typography component="li" paragraph>
-                    <strong>Monitor token usage:</strong> Track <code>usage.total_tokens</code> in responses to 
+                    <strong>Monitor token usage:</strong> Track <code>usage.total_tokens</code> in responses to
                     manage costs and optimize prompts.
                 </Typography>
             </Box>
 
             <Callout type="info">
                 <Typography>
-                    <strong>Learn More:</strong> For detailed information about the Responses API, models, and 
+                    <strong>Learn More:</strong> For detailed information about the Responses API, models, and
                     advanced features, visit the{' '}
                     <a href="https://platform.openai.com/docs" target="_blank" rel="noopener noreferrer">
                         OpenAI Platform Documentation
