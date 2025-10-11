@@ -171,7 +171,7 @@ export default function Installation() {
 
                     <Button
                         component={Link}
-                        to="/architecture/overview"
+                        to="/fundamentals/overview"
                         variant="text"
                         endIcon={<ArrowIcon />}
                     >

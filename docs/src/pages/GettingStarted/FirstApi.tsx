@@ -371,7 +371,7 @@ export default function FirstApi() {
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
                 <Button
                     component={Link}
-                    to="/queue/overview"
+                    to="/advanced/queue"
                     variant="contained"
                     endIcon={<ArrowIcon />}
                 >
@@ -389,7 +389,7 @@ export default function FirstApi() {
 
                 <Button
                     component={Link}
-                    to="/configuration/caching"
+                    to="/advanced/caching"
                     variant="outlined"
                     endIcon={<ArrowIcon />}
                 >
@@ -398,7 +398,7 @@ export default function FirstApi() {
 
                 <Button
                     component={Link}
-                    to="/i18n/overview"
+                    to="/advanced/i18n"
                     variant="text"
                     endIcon={<ArrowIcon />}
                 >
@@ -617,10 +617,10 @@ curl -X POST http://localhost:7879/products \\
                 </Typography>
                 
                 <Box component="ul" sx={{ pl: 3, mb: 2 }}>
-                    <Box component="li"><Link to="/queue/overview">Background Job Processing</Link> - Handle time-consuming tasks asynchronously</Box>
-                    <Box component="li"><Link to="/security/api-token-auth">API Token Authentication</Link> - Secure your endpoints</Box>
-                    <Box component="li"><Link to="/i18n/overview">Internationalization</Link> - Support multiple languages</Box>
-                    <Box component="li"><Link to="/cli/overview">Advanced CLI Commands</Link> - Automate development tasks</Box>
+                    <Box component="li"><Link to="/advanced/queue">Background Job Processing</Link> - Handle time-consuming tasks asynchronously</Box>
+                    <Box component="li"><Link to="/security/authentication">API Token Authentication</Link> - Secure your endpoints</Box>
+                    <Box component="li"><Link to="/advanced/i18n">Internationalization</Link> - Support multiple languages</Box>
+                    <Box component="li"><Link to="/tools/cli">Advanced CLI Commands</Link> - Automate development tasks</Box>
                     <Box component="li"><Link to="/deployment/production">Production Deployment</Link> - Deploy with confidence</Box>
                 </Box>
                 
@@ -632,7 +632,7 @@ curl -X POST http://localhost:7879/products \\
             <Callout type="tip">
                 <Typography>
                     <strong>Keep Learning:</strong> Check out our <Link to="/guides/crud-api">complete CRUD guide</Link> for more advanced patterns, 
-                    or explore <Link to="/architecture/validation">input validation</Link> to make your API even more robust.
+                    or explore <Link to="/fundamentals/validation">input validation</Link> to make your API even more robust.
                 </Typography>
             </Callout>
         </Box>
