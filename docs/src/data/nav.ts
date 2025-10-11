@@ -1,100 +1,142 @@
+import {
+    Home,
+    RocketLaunch,
+    Download,
+    Api,
+    Folder,
+    Visibility,
+    Route,
+    SettingsInputComponent,
+    Verified,
+    Public,
+    DataObject,
+    SyncAlt,
+    Power,
+    Extension,
+    CloudUpload,
+    Cached,
+    Queue,
+    Language,
+    Security,
+    Lock,
+    Password,
+    Settings,
+    Publish,
+    Build,
+    Terminal,
+    BugReport,
+    Hub,
+    MenuBook,
+    List,
+    Psychology,
+    HelpOutline,
+    Error,
+    Quiz,
+    People,
+    Category,
+} from '@mui/icons-material';
+import { type SvgIconTypeMap } from '@mui/material/SvgIcon';
+import { type OverridableComponent } from '@mui/types';
+
+type MuiIcon = OverridableComponent<SvgIconTypeMap<object, 'svg'>> & { muiName: string };
+
 export type NavNode = {
     title: string;
     path?: string;
     children?: NavNode[];
-    icon?: string;
+    icon?: MuiIcon;
 };
 
 export const NAV: NavNode[] = [
     {
         title: 'Home',
         path: '/',
-        icon: 'home'
+        icon: Home
     },
     {
         title: 'Getting Started',
-        icon: 'rocket_launch',
+        icon: RocketLaunch,
         children: [
-            { title: 'Installation', path: '/getting-started/installation', icon: 'download' },
-            { title: 'First API', path: '/getting-started/first-api', icon: 'api' },
-            { title: 'Project Structure', path: '/getting-started/project-structure', icon: 'folder' },
+            { title: 'Installation', path: '/getting-started/installation', icon: Download },
+            { title: 'First API', path: '/getting-started/first-api', icon: Api },
+            { title: 'Project Structure', path: '/getting-started/project-structure', icon: Folder },
         ]
     },
     {
         title: 'Fundamentals',
-        icon: 'Category',
+        icon: Category,
         children: [
-            { title: 'Overview', path: '/fundamentals/overview', icon: 'visibility' },
-            { title: 'Routing', path: '/fundamentals/routing', icon: 'route' },
-            { title: 'Controllers', path: '/fundamentals/controllers', icon: 'settings_input_component' },
-            { title: 'Validation', path: '/fundamentals/validation', icon: 'verified' },
-            { title: 'HTTP Responses', path: '/fundamentals/http-responses', icon: 'http' },
+            { title: 'Overview', path: '/fundamentals/overview', icon: Visibility },
+            { title: 'Routing', path: '/fundamentals/routing', icon: Route },
+            { title: 'Controllers', path: '/fundamentals/controllers', icon: SettingsInputComponent },
+            { title: 'Validation', path: '/fundamentals/validation', icon: Verified },
+            { title: 'HTTP Responses', path: '/fundamentals/http-responses', icon: Public },
         ]
     },
     {
         title: 'Database & Models',
-        icon: 'storage',
+        icon: DataObject,
         children: [
-            { title: 'Models & ORM', path: '/database/models-orm', icon: 'schema' },
-            { title: 'Migrations', path: '/database/migrations', icon: 'sync_alt' },
-            { title: 'Database Drivers', path: '/database/drivers', icon: 'power' },
+            { title: 'Models & ORM', path: '/database/models-orm', icon: DataObject },
+            { title: 'Migrations', path: '/database/migrations', icon: SyncAlt },
+            { title: 'Database Drivers', path: '/database/drivers', icon: Power },
         ]
     },
     {
         title: 'Advanced Features',
-        icon: 'Extension',
+        icon: Extension,
         children: [
-            { title: 'File Storage', path: '/advanced/file-storage', icon: 'cloud_upload' },
-            { title: 'Caching', path: '/advanced/caching', icon: 'cached' },
-            { title: 'Queue System', path: '/advanced/queue', icon: 'queue' },
-            { title: 'Internationalization', path: '/advanced/i18n', icon: 'language' },
+            { title: 'File Storage', path: '/advanced/file-storage', icon: CloudUpload },
+            { title: 'Caching', path: '/advanced/caching', icon: Cached },
+            { title: 'Queue System', path: '/advanced/queue', icon: Queue },
+            { title: 'Internationalization', path: '/advanced/i18n', icon: Language },
         ]
     },
     {
         title: 'Security',
-        icon: 'security',
+        icon: Security,
         children: [
-            { title: 'Overview', path: '/security/overview', icon: 'Lock' },
-            { title: 'Authentication', path: '/security/authentication', icon: 'Password' },
+            { title: 'Overview', path: '/security/overview', icon: Lock },
+            { title: 'Authentication', path: '/security/authentication', icon: Password },
         ]
     },
     {
         title: 'Deployment',
-        icon: 'rocket_launch',
+        icon: RocketLaunch,
         children: [
-            { title: 'Configuration', path: '/deployment/configuration', icon: 'settings' },
-            { title: 'Production Setup', path: '/deployment/production', icon: 'publish' },
+            { title: 'Configuration', path: '/deployment/configuration', icon: Settings },
+            { title: 'Production Setup', path: '/deployment/production', icon: Publish },
         ]
     },
     {
         title: 'Developer Tools',
-        icon: 'build',
+        icon: Build,
         children: [
-            { title: 'CLI Reference', path: '/tools/cli', icon: 'terminal' },
-            { title: 'Debugging', path: '/tools/debugging', icon: 'bug_report' },
-            { title: 'OpenAPI & Types', path: '/tools/openapi-types', icon: 'api' },
-            { title: 'Dependency Injection', path: '/tools/dependency-injection', icon: 'hub' },
+            { title: 'CLI Reference', path: '/tools/cli', icon: Terminal },
+            { title: 'Debugging', path: '/tools/debugging', icon: BugReport },
+            { title: 'OpenAPI & Types', path: '/tools/openapi-types', icon: Api },
+            { title: 'Dependency Injection', path: '/tools/dependency-injection', icon: Hub },
         ]
     },
     {
         title: 'Guides',
-        icon: 'menu_book',
+        icon: MenuBook,
         children: [
-            { title: 'Building a CRUD API', path: '/guides/crud-api', icon: 'list' },
-            { title: 'OpenAI Integration', path: '/guides/openai', icon: 'psychology' },
+            { title: 'Building a CRUD API', path: '/guides/crud-api', icon: List },
+            { title: 'OpenAI Integration', path: '/guides/openai', icon: Psychology },
         ]
     },
     {
         title: 'Troubleshooting',
-        icon: 'help_outline',
+        icon: HelpOutline,
         children: [
-            { title: 'Common Errors', path: '/troubleshooting/common-errors', icon: 'error' },
-            { title: 'FAQ', path: '/troubleshooting/faq', icon: 'quiz' },
+            { title: 'Common Errors', path: '/troubleshooting/common-errors', icon: Error },
+            { title: 'FAQ', path: '/troubleshooting/faq', icon: Quiz },
         ]
     },
     {
         title: 'Community',
         path: '/community',
-        icon: 'people'
+        icon: People
     },
 ];
