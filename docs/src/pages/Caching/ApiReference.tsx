@@ -2,7 +2,7 @@
 import { Box, Typography, Alert } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 
-export default function CacheAPI() {
+export default function CachingApiReference() {
     return (
         <Box>
             <Typography variant="h1" gutterBottom>
@@ -176,3 +176,4 @@ Cache::extend('custom', function($config) {
         </Box>
     );
 }
+

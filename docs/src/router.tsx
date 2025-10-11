@@ -4,43 +4,53 @@ import RootLayout from './layout/RootLayout';
 
 // Lazy load pages for code splitting
 const Home = lazy(() => import('./pages/Home'));
+
+// Getting Started
 const Installation = lazy(() => import('./pages/GettingStarted/Installation'));
 const FirstApi = lazy(() => import('./pages/GettingStarted/FirstApi'));
 const ProjectStructure = lazy(() => import('./pages/GettingStarted/ProjectStructure'));
-const ArchitectureOverview = lazy(() => import('./pages/Architecture/Overview'));
+
+// Fundamentals (renamed from Architecture)
+const FundamentalsOverview = lazy(() => import('./pages/Architecture/Overview'));
 const Routing = lazy(() => import('./pages/Architecture/Routing'));
 const Controllers = lazy(() => import('./pages/Architecture/Controllers'));
+const Validation = lazy(() => import('./pages/Architecture/Validation'));
+const HttpResponses = lazy(() => import('./pages/Reference/HttpResponses'));
+
+// Database & Models
 const ModelsOrm = lazy(() => import('./pages/Architecture/ModelsOrm'));
 const Migrations = lazy(() => import('./pages/Architecture/Migrations'));
-const Validation = lazy(() => import('./pages/Architecture/Validation'));
-const FileStorage = lazy(() => import('./pages/Architecture/FileStorage'));
-
-// Queue System
-const QueueOverview = lazy(() => import('./pages/Queue/Overview'));
-const QueueCreatingJobs = lazy(() => import('./pages/Queue/CreatingJobs'));
-const QueueProcessingJobs = lazy(() => import('./pages/Queue/ProcessingJobs'));
-const QueueConfiguration = lazy(() => import('./pages/Queue/Configuration'));
-
 const DatabaseDrivers = lazy(() => import('./pages/Database/Drivers'));
-const ConfigurationEnv = lazy(() => import('./pages/Configuration/Env'));
-const ConfigurationCaching = lazy(() => import('./pages/Configuration/Caching'));
+
+// Advanced Features
+const FileStorage = lazy(() => import('./pages/Architecture/FileStorage'));
+const Caching = lazy(() => import('./pages/Caching/Configuration'));
+const QueueSystem = lazy(() => import('./pages/Queue/Overview'));
+const I18n = lazy(() => import('./pages/I18n/Overview'));
+
+// Security
+const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
+const Authentication = lazy(() => import('./pages/Security/ApiTokenAuth'));
 
 // Deployment
-const DeploymentProduction = lazy(() => import('./pages/Deployment/Production'));
-const DIContainer = lazy(() => import('./pages/DI/Container'));
-const CLIOverview = lazy(() => import('./pages/CLI/Overview'));
-const DevelopmentDebugging = lazy(() => import('./pages/Development/Debugging'));
-const I18nOverview = lazy(() => import('./pages/I18n/Overview'));
-const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
-const SecurityApiTokenAuth = lazy(() => import('./pages/Security/ApiTokenAuth'));
-const GuidesCrudApi = lazy(() => import('./pages/Guides/CrudApi'));
-const ReferenceOpenApi = lazy(() => import('./pages/Reference/OpenApi'));
-const ReferenceTypeScriptSdk = lazy(() => import('./pages/Reference/TypeScriptSdk'));
-const ReferenceHttpResponses = lazy(() => import('./pages/Reference/HttpResponses'));
-const ReferenceCacheApi = lazy(() => import('./pages/Reference/CacheApi'));
-const ReferenceOpenAiApi = lazy(() => import('./pages/Reference/OpenAiApi'));
-const TroubleshootingCommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));
-const TroubleshootingFaq = lazy(() => import('./pages/Troubleshooting/Faq'));
+const Configuration = lazy(() => import('./pages/Configuration/Env'));
+const ProductionSetup = lazy(() => import('./pages/Deployment/Production'));
+
+// Developer Tools
+const CLIReference = lazy(() => import('./pages/CLI/Overview'));
+const Debugging = lazy(() => import('./pages/Development/Debugging'));
+const OpenApiTypes = lazy(() => import('./pages/Reference/OpenApi'));
+const DependencyInjection = lazy(() => import('./pages/DI/Container'));
+
+// Guides
+const CrudApi = lazy(() => import('./pages/Guides/CrudApi'));
+const OpenAiIntegration = lazy(() => import('./pages/Reference/OpenAiApi'));
+
+// Troubleshooting
+const CommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));
+const Faq = lazy(() => import('./pages/Troubleshooting/Faq'));
+
+// Community
 const Community = lazy(() => import('./pages/Community'));
 
 const router = createBrowserRouter([
@@ -55,60 +65,45 @@ const router = createBrowserRouter([
             { path: 'getting-started/first-api', element: <FirstApi /> },
             { path: 'getting-started/project-structure', element: <ProjectStructure /> },
 
-            // Architecture
-            { path: 'architecture/overview', element: <ArchitectureOverview /> },
-            { path: 'architecture/routing', element: <Routing /> },
-            { path: 'architecture/controllers', element: <Controllers /> },
-            { path: 'architecture/models-orm', element: <ModelsOrm /> },
-            { path: 'architecture/migrations', element: <Migrations /> },
-            { path: 'architecture/validation', element: <Validation /> },
-            { path: 'architecture/file-storage', element: <FileStorage /> },
+            // Fundamentals
+            { path: 'fundamentals/overview', element: <FundamentalsOverview /> },
+            { path: 'fundamentals/routing', element: <Routing /> },
+            { path: 'fundamentals/controllers', element: <Controllers /> },
+            { path: 'fundamentals/validation', element: <Validation /> },
+            { path: 'fundamentals/http-responses', element: <HttpResponses /> },
 
-            // Queue System
-            { path: 'queue/overview', element: <QueueOverview /> },
-            { path: 'queue/creating-jobs', element: <QueueCreatingJobs /> },
-            { path: 'queue/processing-jobs', element: <QueueProcessingJobs /> },
-            { path: 'queue/configuration', element: <QueueConfiguration /> },
-
-            // Database
+            // Database & Models
+            { path: 'database/models-orm', element: <ModelsOrm /> },
+            { path: 'database/migrations', element: <Migrations /> },
             { path: 'database/drivers', element: <DatabaseDrivers /> },
 
-            // Configuration
-            { path: 'configuration/env', element: <ConfigurationEnv /> },
-            { path: 'configuration/caching', element: <ConfigurationCaching /> },
-
-            // Deployment
-            { path: 'deployment/production', element: <DeploymentProduction /> },
-
-            // Dependency Injection
-            { path: 'di/container', element: <DIContainer /> },
-
-            // CLI
-            { path: 'cli/overview', element: <CLIOverview /> },
-
-            // Development
-            { path: 'development/debugging', element: <DevelopmentDebugging /> },
-
-            // I18n
-            { path: 'i18n/overview', element: <I18nOverview /> },
+            // Advanced Features
+            { path: 'advanced/file-storage', element: <FileStorage /> },
+            { path: 'advanced/caching', element: <Caching /> },
+            { path: 'advanced/queue', element: <QueueSystem /> },
+            { path: 'advanced/i18n', element: <I18n /> },
 
             // Security
             { path: 'security/overview', element: <SecurityOverview /> },
-            { path: 'security/api-token-auth', element: <SecurityApiTokenAuth /> },
+            { path: 'security/authentication', element: <Authentication /> },
+
+            // Deployment
+            { path: 'deployment/configuration', element: <Configuration /> },
+            { path: 'deployment/production', element: <ProductionSetup /> },
+
+            // Developer Tools
+            { path: 'tools/cli', element: <CLIReference /> },
+            { path: 'tools/debugging', element: <Debugging /> },
+            { path: 'tools/openapi-types', element: <OpenApiTypes /> },
+            { path: 'tools/dependency-injection', element: <DependencyInjection /> },
 
             // Guides
-            { path: 'guides/crud-api', element: <GuidesCrudApi /> },
-
-            // Reference
-            { path: 'reference/openapi', element: <ReferenceOpenApi /> },
-            { path: 'reference/typescript-sdk', element: <ReferenceTypeScriptSdk /> },
-            { path: 'reference/http-responses', element: <ReferenceHttpResponses /> },
-            { path: 'reference/cache-api', element: <ReferenceCacheApi /> },
-            { path: 'reference/openai-api', element: <ReferenceOpenAiApi /> },
+            { path: 'guides/crud-api', element: <CrudApi /> },
+            { path: 'guides/openai', element: <OpenAiIntegration /> },
 
             // Troubleshooting
-            { path: 'troubleshooting/common-errors', element: <TroubleshootingCommonErrors /> },
-            { path: 'troubleshooting/faq', element: <TroubleshootingFaq /> },
+            { path: 'troubleshooting/common-errors', element: <CommonErrors /> },
+            { path: 'troubleshooting/faq', element: <Faq /> },
 
             // Community
             { path: 'community', element: <Community /> },

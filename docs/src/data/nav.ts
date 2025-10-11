@@ -21,102 +21,67 @@ export const NAV: NavNode[] = [
         ]
     },
     {
-        title: 'Architecture',
-        icon: 'architecture',
+        title: 'Fundamentals',
+        icon: 'foundation',
         children: [
-            { title: 'Overview', path: '/architecture/overview', icon: 'visibility' },
-            { title: 'Routing', path: '/architecture/routing', icon: 'route' },
-            { title: 'Controllers', path: '/architecture/controllers', icon: 'settings_input_component' },
-            { title: 'Models & ORM', path: '/architecture/models-orm', icon: 'schema' },
-            { title: 'Migrations', path: '/architecture/migrations', icon: 'sync_alt' },
-            { title: 'Validation', path: '/architecture/validation', icon: 'verified' },
-            { title: 'File Storage', path: '/architecture/file-storage', icon: 'cloud_upload' },
+            { title: 'Overview', path: '/fundamentals/overview', icon: 'visibility' },
+            { title: 'Routing', path: '/fundamentals/routing', icon: 'route' },
+            { title: 'Controllers', path: '/fundamentals/controllers', icon: 'settings_input_component' },
+            { title: 'Validation', path: '/fundamentals/validation', icon: 'verified' },
+            { title: 'HTTP Responses', path: '/fundamentals/http-responses', icon: 'http' },
         ]
     },
     {
-        title: 'Queue System',
-        icon: 'queue',
-        children: [
-            { title: 'Overview', path: '/queue/overview', icon: 'visibility' },
-            { title: 'Creating Jobs', path: '/queue/creating-jobs', icon: 'add_task' },
-            { title: 'Processing Jobs', path: '/queue/processing-jobs', icon: 'play_arrow' },
-            { title: 'Configuration', path: '/queue/configuration', icon: 'tune' },
-        ]
-    },
-    {
-        title: 'Database',
+        title: 'Database & Models',
         icon: 'storage',
         children: [
-            { title: 'Drivers', path: '/database/drivers', icon: 'power' },
+            { title: 'Models & ORM', path: '/database/models-orm', icon: 'schema' },
+            { title: 'Migrations', path: '/database/migrations', icon: 'sync_alt' },
+            { title: 'Database Drivers', path: '/database/drivers', icon: 'power' },
         ]
     },
     {
-        title: 'Configuration',
-        icon: 'settings',
+        title: 'Advanced Features',
+        icon: 'auto_awesome',
         children: [
-            { title: 'Environment', path: '/configuration/env', icon: 'eco' },
-            { title: 'Caching', path: '/configuration/caching', icon: 'cached' },
-        ]
-    },
-    {
-        title: 'Deployment',
-        icon: 'cloud_upload',
-        children: [
-            { title: 'Production Setup', path: '/deployment/production', icon: 'rocket' },
-        ]
-    },
-    {
-        title: 'Dependency Injection',
-        icon: 'hub',
-        children: [
-            { title: 'Container', path: '/di/container', icon: 'inventory_2' },
-        ]
-    },
-    {
-        title: 'CLI',
-        icon: 'terminal',
-        children: [
-            { title: 'Overview', path: '/cli/overview', icon: 'visibility' },
-        ]
-    },
-    {
-        title: 'Development',
-        icon: 'build',
-        children: [
-            { title: 'Debug & Profiling', path: '/development/debugging', icon: 'bug_report' },
-        ]
-    },
-    {
-        title: 'Internationalization',
-        icon: 'language',
-        children: [
-            { title: 'Overview', path: '/i18n/overview', icon: 'visibility' },
+            { title: 'File Storage', path: '/advanced/file-storage', icon: 'cloud_upload' },
+            { title: 'Caching', path: '/advanced/caching', icon: 'cached' },
+            { title: 'Queue System', path: '/advanced/queue', icon: 'queue' },
+            { title: 'Internationalization', path: '/advanced/i18n', icon: 'language' },
         ]
     },
     {
         title: 'Security',
         icon: 'security',
         children: [
-            { title: 'Overview', path: '/security/overview', icon: 'visibility' },
-            { title: 'API Token Auth', path: '/security/api-token-auth', icon: 'key' },
+            { title: 'Overview', path: '/security/overview', icon: 'shield' },
+            { title: 'Authentication', path: '/security/authentication', icon: 'key' },
+        ]
+    },
+    {
+        title: 'Deployment',
+        icon: 'rocket',
+        children: [
+            { title: 'Configuration', path: '/deployment/configuration', icon: 'settings' },
+            { title: 'Production Setup', path: '/deployment/production', icon: 'cloud_done' },
+        ]
+    },
+    {
+        title: 'Developer Tools',
+        icon: 'build',
+        children: [
+            { title: 'CLI Reference', path: '/tools/cli', icon: 'terminal' },
+            { title: 'Debugging', path: '/tools/debugging', icon: 'bug_report' },
+            { title: 'OpenAPI & Types', path: '/tools/openapi-types', icon: 'api' },
+            { title: 'Dependency Injection', path: '/tools/dependency-injection', icon: 'hub' },
         ]
     },
     {
         title: 'Guides',
         icon: 'menu_book',
         children: [
-            { title: 'CRUD API', path: '/guides/crud-api', icon: 'api' },
-        ]
-    },
-    {
-        title: 'Reference',
-        icon: 'library_books',
-        children: [
-            { title: 'OpenAPI', path: '/reference/openapi', icon: 'api' },
-            { title: 'TypeScript SDK', path: '/reference/typescript-sdk', icon: 'code' },
-            { title: 'HTTP Responses', path: '/reference/http-responses', icon: 'http' },
-            { title: 'Cache API', path: '/reference/cache-api', icon: 'cached' },
-            { title: 'OpenAI API', path: '/reference/openai-api', icon: 'psychology' },
+            { title: 'Building a CRUD API', path: '/guides/crud-api', icon: 'edit_note' },
+            { title: 'OpenAI Integration', path: '/guides/openai', icon: 'psychology' },
         ]
     },
     {

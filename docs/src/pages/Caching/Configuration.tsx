@@ -3,7 +3,7 @@ import { Box, Typography, Alert, List, ListItem, ListItemText, Table, TableBody,
 import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
 
-export default function Caching() {
+export default function CachingConfiguration() {
     return (
         <Box>
             <Typography variant="h1" gutterBottom>
@@ -361,3 +361,4 @@ REDIS_CACHE_DB=2           # Dedicated database for cache`} />
         </Box>
     );
 }
+
