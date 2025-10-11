@@ -138,12 +138,66 @@ return JsonResponse::error('Something went wrong', 500);`} />
                 </Table>
             </TableContainer>
 
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Streaming Responses
+            </Typography>
+
+            <Typography>
+                For real-time data streaming (Server-Sent Events, chunked transfer encoding), use the <code>StreamedResponse</code> class:
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+use BaseApi\\Http\\StreamedResponse;
+
+class StreamController extends Controller
+{
+    public string $prompt = '';
+    
+    public function get(): StreamedResponse
+    {
+        // Server-Sent Events (SSE) streaming
+        return StreamedResponse::sse(function() {
+            foreach ($this->generateData() as $chunk) {
+                echo "data: " . json_encode($chunk) . "\\n\\n";
+                flush();
+            }
+        });
+    }
+}
+
+// Chunked transfer encoding
+return StreamedResponse::chunked(function() {
+    foreach ($largeDataset as $chunk) {
+        echo $chunk;
+        flush();
+    }
+});
+
+// Custom streaming response
+return new StreamedResponse(function() {
+    // Your streaming logic here
+}, 200, [
+    'Content-Type' => 'text/plain',
+    'Cache-Control' => 'no-cache',
+]);`} />
+
+            <Alert severity="info" sx={{ my: 3 }}>
+                <strong>StreamedResponse Features:</strong>
+                <br />• <code>StreamedResponse::sse()</code> - Server-Sent Events with proper headers
+                <br />• <code>StreamedResponse::chunked()</code> - Chunked transfer encoding
+                <br />• Custom callback for streaming logic
+                <br />• Automatic header management
+                <br />• Perfect for AI streaming, large file downloads, and real-time data
+            </Alert>
+
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Best Practices:</strong>
                 <br />• Use appropriate status codes for each scenario
                 <br />• Include descriptive error messages
                 <br />• Return consistent response formats
                 <br />• Use JsonResponse helpers for automatic formatting
+                <br />• Use StreamedResponse for real-time or large data transfers
             </Alert>
         </Box>
     );
