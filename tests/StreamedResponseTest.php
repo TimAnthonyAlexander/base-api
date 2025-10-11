@@ -105,8 +105,8 @@ class StreamedResponseTest extends TestCase
         $this->assertEquals(200, $response->status);
         $this->assertEquals('text/event-stream', $response->headers['Content-Type']);
         $this->assertEquals('no-cache', $response->headers['Cache-Control']);
-        $this->assertEquals('keep-alive', $response->headers['Connection']);
         $this->assertEquals('no', $response->headers['X-Accel-Buffering']);
+        $this->assertArrayNotHasKey('Connection', $response->headers);
     }
 
     public function test_sse_factory_with_custom_status(): void

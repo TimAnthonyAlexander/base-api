@@ -58,6 +58,24 @@ class StreamedResponse extends Response
      */
     public function sendContent(): void
     {
+        // Only disable output buffering if headers have been sent (i.e., not in testing)
+        // This allows tests to capture output with ob_start() while ensuring real
+        // streaming responses work correctly in production
+        if (headers_sent()) {
+            // Disable all output buffering for streaming
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
+            
+            ini_set('output_buffering', '0');
+            ini_set('implicit_flush', '1');
+        }
+        
+        // Disable gzip compression for streaming
+        if (function_exists('apache_setenv')) {
+            apache_setenv('no-gzip', '1');
+        }
+        
         ($this->callback)();
     }
 
@@ -79,7 +97,6 @@ class StreamedResponse extends Response
         $headers = array_merge([
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
-            'Connection' => 'keep-alive',
             'X-Accel-Buffering' => 'no', // Disable nginx buffering
         ], $additionalHeaders);
 

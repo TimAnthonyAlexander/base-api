@@ -81,7 +81,8 @@ final class OpenAI
         do {
             $status = curl_multi_exec($mh, $running);
             if ($status === CURLM_OK) {
-                curl_multi_select($mh, 0.1);
+                // Use shorter timeout for more responsive streaming
+                curl_multi_select($mh, 0.01);
             }
 
             fflush($sink);

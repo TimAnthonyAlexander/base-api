@@ -267,7 +267,7 @@ class Kernel
 
         // Set headers
         foreach ($response->headers as $name => $value) {
-            header(sprintf('%s: %s', $name, $value));
+            header(sprintf('%s: %s', $name, $value), true);
         }
 
         // Handle streamed responses
