@@ -140,11 +140,16 @@ class StreamController extends Controller
         
         return StreamedResponse::sse(function() use ($ai) {
             foreach ($ai->stream($this->prompt) as $chunk) {
-                if (isset($chunk['delta'])) {
-                    echo "data: " . json_encode($chunk) . "\\n\\n";
+                // Extract only the text content
+                if (isset($chunk['delta']) && is_string($chunk['delta'])) {
+                    echo "data: " . json_encode(['content' => $chunk['delta']]) . "\\n\\n";
                     flush();
                 }
             }
+            
+            // Send completion marker
+            echo "data: [DONE]\\n\\n";
+            flush();
         });
     }
 }`} />
