@@ -171,11 +171,11 @@ export default function Installation() {
 
                     <Button
                         component={Link}
-                        to="/fundamentals/overview"
+                        to="/fundamentals/routing"
                         variant="text"
                         endIcon={<ArrowIcon />}
                     >
-                        Learn the Architecture
+                        How to build Routes
                     </Button>
                 </Box>
             </Box>

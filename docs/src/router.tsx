@@ -11,7 +11,6 @@ const FirstApi = lazy(() => import('./pages/GettingStarted/FirstApi'));
 const ProjectStructure = lazy(() => import('./pages/GettingStarted/ProjectStructure'));
 
 // Fundamentals
-const FundamentalsOverview = lazy(() => import('./pages/Fundamentals/Overview'));
 const Routing = lazy(() => import('./pages/Fundamentals/Routing'));
 const Controllers = lazy(() => import('./pages/Fundamentals/Controllers'));
 const Validation = lazy(() => import('./pages/Fundamentals/Validation'));
@@ -69,7 +68,6 @@ const router = createBrowserRouter([
             { path: 'getting-started/first-api', element: <FirstApi /> },
 
             // Fundamentals
-            { path: 'fundamentals/overview', element: <FundamentalsOverview /> },
             { path: 'fundamentals/routing', element: <Routing /> },
             { path: 'fundamentals/controllers', element: <Controllers /> },
             { path: 'fundamentals/validation', element: <Validation /> },

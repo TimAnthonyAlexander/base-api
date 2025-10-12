@@ -4,7 +4,6 @@ import {
     Download,
     Api,
     Folder,
-    Visibility,
     Route,
     SettingsInputComponent,
     Verified,
@@ -68,7 +67,6 @@ export const NAV: NavNode[] = [
         title: 'Fundamentals',
         icon: Category,
         children: [
-            { title: 'Overview', path: '/fundamentals/overview', icon: Visibility },
             { title: 'Routing', path: '/fundamentals/routing', icon: Route },
             { title: 'Controllers', path: '/fundamentals/controllers', icon: SettingsInputComponent },
             { title: 'Validation', path: '/fundamentals/validation', icon: Verified },

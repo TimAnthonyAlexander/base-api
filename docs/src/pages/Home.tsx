@@ -153,7 +153,7 @@ export default function Home() {
                         </Button>
                         <Button
                             component={Link}
-                            to="/fundamentals/overview"
+                            to="/fundamentals/routing"
                             variant="outlined"
                             size="large"
                             sx={{
@@ -168,7 +168,7 @@ export default function Home() {
                                 },
                             }}
                         >
-                            Learn More
+                            Routing
                         </Button>
                     </Stack>
                 </Box>
