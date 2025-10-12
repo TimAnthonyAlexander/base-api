@@ -43,13 +43,19 @@ class RouteListCommand implements Command
 
             echo ColorHelper::info("📋 Registered Routes") . "\n";
             echo str_repeat('─', 120) . "\n";
-            echo sprintf(
-                "%-8s %-40s %-50s %s\n",
-                ColorHelper::colorize('METHOD', ColorHelper::BRIGHT_WHITE),
-                ColorHelper::colorize('PATH', ColorHelper::BRIGHT_WHITE),
-                ColorHelper::colorize('CONTROLLER', ColorHelper::BRIGHT_WHITE),
-                ColorHelper::colorize('MIDDLEWARE', ColorHelper::BRIGHT_WHITE)
-            );
+            
+            // Header without color codes interfering with padding
+            $headerMethod = str_pad('METHOD', 8);
+            $headerPath = str_pad('PATH', 40);
+            $headerController = str_pad('CONTROLLER', 50);
+            $headerMiddleware = 'MIDDLEWARE';
+            
+            echo ColorHelper::colorize($headerMethod, ColorHelper::BRIGHT_WHITE);
+            echo ColorHelper::colorize($headerPath, ColorHelper::BRIGHT_WHITE);
+            echo ColorHelper::colorize($headerController, ColorHelper::BRIGHT_WHITE);
+            echo ColorHelper::colorize($headerMiddleware, ColorHelper::BRIGHT_WHITE);
+            echo "\n";
+            
             echo str_repeat('─', 120) . "\n";
 
             $totalRoutes = 0;
@@ -76,14 +82,16 @@ class RouteListCommand implements Command
                         default => "\033[37m", // White
                     };
 
-                    printf(
-                        "%s%-8s\033[0m %-40s %-50s %s\n",
-                        $methodColor,
-                        $method,
-                        $this->truncate($route->path(), 40),
-                        $this->truncate($this->formatController($route->controllerClass()), 50),
-                        ColorHelper::comment($middlewareStr)
-                    );
+                    // Pad first, then apply colors
+                    $paddedMethod = str_pad($method, 8);
+                    $paddedPath = str_pad($this->truncate($route->path(), 40), 40);
+                    $paddedController = str_pad($this->truncate($this->formatController($route->controllerClass()), 50), 50);
+
+                    echo $methodColor . $paddedMethod . "\033[0m";
+                    echo $paddedPath;
+                    echo $paddedController;
+                    echo ColorHelper::comment($middlewareStr);
+                    echo "\n";
                 }
             }
 
