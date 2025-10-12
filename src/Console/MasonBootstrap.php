@@ -39,6 +39,7 @@ use BaseApi\Console\Commands\PermUserSetRoleCommand;
 use BaseApi\Console\Commands\PermCheckCommand;
 use BaseApi\Console\Commands\PermTraceCommand;
 use BaseApi\Console\Commands\PermValidateCommand;
+use BaseApi\Console\Commands\TestCommand;
 use Dotenv\Dotenv;
 
 /**
@@ -90,6 +91,7 @@ class MasonBootstrap
     {
         // Core commands
         $app->register('serve', new ServeCommand());
+        $app->register('test', new TestCommand());
         $app->register('make:controller', new MakeControllerCommand());
         $app->register('make:model', new MakeModelCommand());
         $app->register('migrate:generate', new MigrateGenerateCommand());
