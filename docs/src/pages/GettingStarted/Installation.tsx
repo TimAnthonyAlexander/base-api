@@ -162,7 +162,7 @@ export default function Installation() {
 
                     <Button
                         component={Link}
-                        to="/getting-started/project-structure"
+                        to="/fundamentals/project-structure"
                         variant="outlined"
                         endIcon={<ArrowIcon />}
                     >

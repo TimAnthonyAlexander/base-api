@@ -62,7 +62,6 @@ export const NAV: NavNode[] = [
         children: [
             { title: 'Installation', path: '/getting-started/installation', icon: Download },
             { title: 'First API', path: '/getting-started/first-api', icon: Api },
-            { title: 'Project Structure', path: '/getting-started/project-structure', icon: Folder },
         ]
     },
     {
@@ -74,6 +73,7 @@ export const NAV: NavNode[] = [
             { title: 'Controllers', path: '/fundamentals/controllers', icon: SettingsInputComponent },
             { title: 'Validation', path: '/fundamentals/validation', icon: Verified },
             { title: 'HTTP Responses', path: '/fundamentals/http-responses', icon: Public },
+            { title: 'Project Structure', path: '/fundamentals/project-structure', icon: Folder },
         ]
     },
     {

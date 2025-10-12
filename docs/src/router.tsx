@@ -67,7 +67,6 @@ const router = createBrowserRouter([
             // Getting Started
             { path: 'getting-started/installation', element: <Installation /> },
             { path: 'getting-started/first-api', element: <FirstApi /> },
-            { path: 'getting-started/project-structure', element: <ProjectStructure /> },
 
             // Fundamentals
             { path: 'fundamentals/overview', element: <FundamentalsOverview /> },
@@ -75,6 +74,7 @@ const router = createBrowserRouter([
             { path: 'fundamentals/controllers', element: <Controllers /> },
             { path: 'fundamentals/validation', element: <Validation /> },
             { path: 'fundamentals/http-responses', element: <HttpResponses /> },
+            { path: 'fundamentals/project-structure', element: <ProjectStructure /> },
 
             // Database & Models
             { path: 'database/models-orm', element: <ModelsOrm /> },
