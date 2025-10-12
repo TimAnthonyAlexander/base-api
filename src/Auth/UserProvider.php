@@ -15,4 +15,8 @@ interface UserProvider
      * @return array<string, mixed>|null Simple associative array like ['id' => '...', 'email' => '...'] or null
      */
     public function byId(string $id): ?array;
+
+    public function getRole(string $id): ?string;
+
+    public function setRole(string $id, string $role): void;
 }
