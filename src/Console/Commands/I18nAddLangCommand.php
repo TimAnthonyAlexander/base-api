@@ -29,7 +29,8 @@ class I18nAddLangCommand implements Command
     public function execute(array $args, ?Application $app = null): int
     {
         if ($args === []) {
-            echo ColorHelper::error("❌ Usage: ./mason i18n:add-lang <lang1> [lang2] [lang3] [options]") . "\n";
+            echo ColorHelper::error("❌ Error: Language code(s) required") . "\n";
+            echo ColorHelper::info("Usage: ./mason i18n:add-lang <lang1> [lang2] [lang3] [options]") . "\n";
             echo ColorHelper::info("Options:") . "\n";
             echo ColorHelper::comment("  --seed    Copy default locale values to aid translators") . "\n";
             echo ColorHelper::comment("  --auto    Auto-translate using configured provider") . "\n";
