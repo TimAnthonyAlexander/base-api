@@ -14,6 +14,7 @@ final class SecurityHeadersMiddleware implements Middleware
         $response = $next($request);
 
         $security = [
+            'Connection'             => 'keep-alive',
             'X-Content-Type-Options' => 'nosniff',
             'Referrer-Policy'        => 'no-referrer',
             'X-Frame-Options'        => 'DENY',
