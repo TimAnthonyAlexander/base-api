@@ -45,8 +45,7 @@ class Application
                 $commandName = $matches[0];
                 echo ColorHelper::comment('Running: ' . $commandName) . "\n\n";
             } elseif (count($matches) > 1) {
-                echo ColorHelper::error(sprintf('Command "%s" is ambiguous.', $commandName)) . "\n";
-                echo ColorHelper::info("Did you mean one of these?") . "\n";
+                echo ColorHelper::info(sprintf('Commands for %s:', $commandName)) . "\n";
                 foreach ($matches as $match) {
                     $command = $this->commands[$match];
                     $padding = str_repeat(' ', max(0, 20 - strlen((string) $match)));
@@ -102,17 +101,13 @@ class Application
 
     private function showUsage(): void
     {
-        echo ColorHelper::header("Mason | BaseAPI Cli | by Tim Anthony Alexander") . "\n\n";
-        echo ColorHelper::info("Usage:") . "\n";
-        echo "  " . ColorHelper::colorize("./mason", ColorHelper::BRIGHT_WHITE) . " " .
-            ColorHelper::colorize("<command>", ColorHelper::YELLOW) . " " .
-            ColorHelper::colorize("[arguments]", ColorHelper::BRIGHT_BLACK) . "\n\n";
+        echo ColorHelper::header("Mason | BaseAPI CLI | by Tim Anthony Alexander") . "\n\n";
 
         $groupedCommands = $this->groupCommands();
 
-        // Define representative commands to show for each namespace (max 3-4 per group)
+        // Define representative commands to show for each namespace (max 3 per group)
         $representativeCommands = [
-            'general' => ['help', 'serve'],
+            'general' => ['serve'],
             'make' => ['make:controller', 'make:model', 'make:job'],
             'migrate' => ['migrate:generate', 'migrate:apply'],
             'types' => ['types:generate'],
@@ -125,17 +120,9 @@ class Application
         ];
 
         foreach ($groupedCommands as $group => $commands) {
-            // Group header
-            if ($group === 'general') {
-                echo ColorHelper::success("Available commands:") . "\n";
-            } else {
+            if ($group !== 'general') {
                 $totalCommands = count($commands);
-                $header = $group;
-                if ($totalCommands > 1) {
-                    $header .= ColorHelper::colorize(sprintf(' (%d commands)', $totalCommands), ColorHelper::BRIGHT_BLACK);
-                }
-
-                echo ColorHelper::success($header) . "\n";
+                echo ColorHelper::success(sprintf('%s (%d)', $group, $totalCommands)) . "\n";
             }
 
             // Show only representative commands
@@ -145,8 +132,10 @@ class Application
 
             foreach ($commands as $name => $command) {
                 // Only show representative commands or first 3 if not specified
-                if (in_array($name, $commandsToShow) || 
-                    (empty($representativeCommands[$group]) && $shownCount < 3)) {
+                if (
+                    in_array($name, $commandsToShow) ||
+                    (empty($representativeCommands[$group]) && $shownCount < 3)
+                ) {
                     $padding = str_repeat(' ', max(0, 20 - strlen((string) $name)));
                     echo "  " . ColorHelper::colorize($name, ColorHelper::BRIGHT_CYAN) .
                         $padding . ColorHelper::comment($command->description()) . "\n";
@@ -159,16 +148,14 @@ class Application
             // Show hint if there are more commands
             if ($hasMore && $group !== 'general') {
                 $remaining = count($commands) - $shownCount;
-                echo "  " . ColorHelper::colorize("...", ColorHelper::BRIGHT_BLACK) . 
-                    ColorHelper::comment(sprintf(' and %d more. Run ', $remaining)) .
-                    ColorHelper::colorize('./mason ' . $group, ColorHelper::YELLOW) .
-                    ColorHelper::comment(" to see all.") . "\n";
+                echo "  " . ColorHelper::colorize("...", ColorHelper::BRIGHT_BLACK) .
+                    ColorHelper::comment(sprintf(' and %d more', $remaining)) . "\n";
             }
 
-            echo "\n";
+            $isFirst = false;
         }
-        
-        echo ColorHelper::comment("💡 Tip: Use namespace prefixes (e.g., ./mason perm) to see all commands in a group.") . "\n";
+
+        echo "\n" . ColorHelper::comment('Tip: Run "./mason <namespace>" to view all commands in that group.') . "\n";
     }
 
     private function groupCommands(): array
