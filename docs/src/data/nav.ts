@@ -86,6 +86,25 @@ export const NAV: NavNode[] = [
         ]
     },
     {
+        title: 'Security',
+        icon: Security,
+        children: [
+            { title: 'Overview', path: '/security/overview', icon: Lock },
+            { title: 'Authentication', path: '/security/authentication', icon: Password },
+        ]
+    },
+    {
+        title: 'Developer Tools',
+        icon: Build,
+        children: [
+            { title: 'CLI Reference', path: '/tools/cli', icon: Terminal },
+            { title: 'OpenAPI Generation', path: '/tools/openapi-types', icon: Api },
+            { title: 'TypeScript SDK', path: '/tools/typescript-sdk', icon: Code },
+            { title: 'Debugging', path: '/tools/debugging', icon: BugReport },
+            { title: 'Dependency Injection', path: '/tools/dependency-injection', icon: Hub },
+        ]
+    },
+    {
         title: 'Advanced Features',
         icon: Extension,
         children: [
@@ -99,30 +118,11 @@ export const NAV: NavNode[] = [
         ]
     },
     {
-        title: 'Security',
-        icon: Security,
-        children: [
-            { title: 'Overview', path: '/security/overview', icon: Lock },
-            { title: 'Authentication', path: '/security/authentication', icon: Password },
-        ]
-    },
-    {
         title: 'Deployment',
         icon: RocketLaunch,
         children: [
             { title: 'Configuration', path: '/deployment/configuration', icon: Settings },
             { title: 'Production Setup', path: '/deployment/production', icon: Publish },
-        ]
-    },
-    {
-        title: 'Developer Tools',
-        icon: Build,
-        children: [
-            { title: 'CLI Reference', path: '/tools/cli', icon: Terminal },
-            { title: 'Debugging', path: '/tools/debugging', icon: BugReport },
-            { title: 'OpenAPI & Types', path: '/tools/openapi-types', icon: Api },
-            { title: 'TypeScript SDK', path: '/tools/typescript-sdk', icon: Code },
-            { title: 'Dependency Injection', path: '/tools/dependency-injection', icon: Hub },
         ]
     },
     {
