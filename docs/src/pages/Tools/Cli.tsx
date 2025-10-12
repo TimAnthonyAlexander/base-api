@@ -98,6 +98,15 @@ export default function CLIOverview() {
                             </TableCell>
                         </TableRow>
                         <TableRow>
+                            <TableCell><code>test</code></TableCell>
+                            <TableCell>Run tests with beautiful TUI using paratest</TableCell>
+                            <TableCell>
+                                <code>./mason test</code><br />
+                                <code>./mason test --parallel=8</code><br />
+                                <code>./mason test --filter=UserTest</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
                             <TableCell><code>make:controller</code></TableCell>
                             <TableCell>Generate a new controller class</TableCell>
                             <TableCell>

@@ -98,6 +98,7 @@ export const NAV: NavNode[] = [
         icon: Build,
         children: [
             { title: 'CLI Reference', path: '/tools/cli', icon: Terminal },
+            { title: 'Testing', path: '/tools/testing', icon: BugReport },
             { title: 'OpenAPI Generation', path: '/tools/openapi-types', icon: Api },
             { title: 'TypeScript SDK', path: '/tools/typescript-sdk', icon: Code },
             { title: 'Debugging', path: '/tools/debugging', icon: BugReport },
