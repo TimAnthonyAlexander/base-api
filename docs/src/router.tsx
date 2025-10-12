@@ -33,6 +33,7 @@ const I18n = lazy(() => import('./pages/Advanced/I18n'));
 // Security
 const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
 const Authentication = lazy(() => import('./pages/Security/ApiTokenAuth'));
+const Permissions = lazy(() => import('./pages/Security/Permissions'));
 
 // Deployment
 const Configuration = lazy(() => import('./pages/Deployment/Configuration'));
@@ -91,6 +92,7 @@ const router = createBrowserRouter([
             // Security
             { path: 'security/overview', element: <SecurityOverview /> },
             { path: 'security/authentication', element: <Authentication /> },
+            { path: 'security/permissions', element: <Permissions /> },
 
             // Deployment
             { path: 'deployment/configuration', element: <Configuration /> },

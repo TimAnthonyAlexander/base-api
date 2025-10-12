@@ -14,6 +14,7 @@ use BaseApi\Http\ControllerInvoker;
 use BaseApi\Http\Binding\ControllerBinder;
 use BaseApi\Cache\CacheManager;
 use BaseApi\Storage\StorageServiceProvider;
+use BaseApi\Permissions\PermissionsServiceProvider;
 
 /**
  * Core service provider for BaseAPI framework services.
@@ -51,6 +52,10 @@ class CoreServiceProvider extends ServiceProvider
         // Register Storage services
         $storageProvider = new StorageServiceProvider();
         $storageProvider->register($container);
+
+        // Register Permissions services
+        $permissionsProvider = new PermissionsServiceProvider();
+        $permissionsProvider->register($container);
 
         // Register HTTP components
         $container->singleton(ControllerBinder::class);
