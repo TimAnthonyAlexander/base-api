@@ -18,5 +18,5 @@ interface UserProvider
 
     public function getRole(string $id): ?string;
 
-    public function setRole(string $id, string $role): void;
+    public function setRole(string $id, string $role): bool;
 }
