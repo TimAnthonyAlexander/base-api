@@ -1,7 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import CodeBlock from '../../components/CodeBlock';
 import Callout from '../../components/Callout';
-import EnvTable from '../../components/EnvTable';
 
 export default function Permissions() {
     return (
