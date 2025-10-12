@@ -41,6 +41,7 @@ const ProductionSetup = lazy(() => import('./pages/Deployment/Production'));
 
 // Developer Tools
 const CLIReference = lazy(() => import('./pages/Tools/Cli'));
+const Testing = lazy(() => import('./pages/Tools/Testing'));
 const Debugging = lazy(() => import('./pages/Tools/Debugging'));
 const OpenApiTypes = lazy(() => import('./pages/Tools/OpenApiTypes'));
 const TypeScriptSdk = lazy(() => import('./pages/Tools/TypeScriptSdk'));
@@ -100,6 +101,7 @@ const router = createBrowserRouter([
 
             // Developer Tools
             { path: 'tools/cli', element: <CLIReference /> },
+            { path: 'tools/testing', element: <Testing /> },
             { path: 'tools/debugging', element: <Debugging /> },
             { path: 'tools/openapi-types', element: <OpenApiTypes /> },
             { path: 'tools/typescript-sdk', element: <TypeScriptSdk /> },

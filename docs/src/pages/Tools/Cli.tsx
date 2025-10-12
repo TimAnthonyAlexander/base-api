@@ -63,7 +63,10 @@ export default function CLIOverview() {
 # 5. Apply migrations to database
 ./mason migrate:apply
 
-# 6. Generate API documentation
+# 6. Run tests
+./mason test
+
+# 7. Generate API documentation
 ./mason types:generate`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
