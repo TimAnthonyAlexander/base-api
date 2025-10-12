@@ -6,7 +6,7 @@ A tiny, KISS-first PHP 8.4+ framework for building production-ready REST APIs.
 
 BaseAPI gets out of your way and lets you build APIs in minutes, not hours. Define your models with typed properties, write minimal controllers, and let the framework handle migrations, validation, caching, and documentation automatically.
 
-**[Read the Documentation](https://baseapi.timanthonyalexander.de)**
+**[Read the Documentation](https://base-api.de)**
 
 ---
 
@@ -183,7 +183,7 @@ BaseAPI maintains high standards with:
 
 Everything you need to know:
 
-**[Full Documentation](https://baseapi.timanthonyalexander.de)**
+**[Full Documentation](https://base-api.de)**
 
 Topics covered:
 - Getting started guide
@@ -223,7 +223,7 @@ BaseAPI is open-source software licensed under the [MIT license](LICENSE).
 
 ## Links
 
-- **[Documentation](https://baseapi.timanthonyalexander.de)** The full documentation for BaseAPI
+- **[Documentation](https://base-api.de)** The full documentation for BaseAPI
 - **[Template Repository](https://github.com/timanthonyalexander/base-api-template)** This is the project you start with when building your own API
 - **[Hotel Comparison Project](https://hotel.timanthonyalexander.de)** This is a Hotel Comparison API + Frontend UI ontop of BaseAPI
 - **[Webshop w/ Stripe Project](https://shop.timanthonyalexander.de)** This is a WebShop API + Frontend UI ontop of BaseAPI
