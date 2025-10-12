@@ -253,23 +253,212 @@ $router->get('/api/user/{id}', [
             </Typography>
 
             <Typography>
-                BaseAPI provides CLI commands for cache management:
+                BaseAPI provides powerful CLI commands for cache management and monitoring:
             </Typography>
 
-            <CodeBlock language="bash" code={`# Clear all cache entries
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                cache:stats - Cache Statistics
+            </Typography>
+
+            <Typography>
+                Display detailed statistics for all configured cache drivers:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Show stats for all drivers
+./mason cache:stats
+
+# Show stats for specific driver
+./mason cache:stats redis
+./mason cache:stats file`} />
+
+            <Typography sx={{ mt: 2 }}>
+                The command provides driver-specific metrics:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Array Driver"
+                        secondary="Total/Active/Expired items count, estimated memory usage (calculated by serializing all items)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="File Driver"
+                        secondary="Total/Active/Expired file count, total disk size in bytes, scan of cache directory"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Redis Driver"
+                        secondary="Connected clients, memory usage, cache hit rate (hits vs misses), total commands processed"
+                    />
+                </ListItem>
+            </List>
+
+            <Callout type="info" title="Use Cases for cache:stats">
+                Monitor cache memory consumption • Identify expired entries needing cleanup • 
+                Debug cache hit rates in production • Verify Redis connection health • 
+                Performance tuning based on actual usage patterns
+            </Callout>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                cache:clear - Flush Cache
+            </Typography>
+
+            <Typography>
+                Completely empty cache stores, removing all entries regardless of expiration:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Clear all configured cache drivers
 ./mason cache:clear
 
-# Clear specific driver cache
+# Clear specific driver only
+./mason cache:clear array
 ./mason cache:clear file
 ./mason cache:clear redis
 
-# Show cache statistics
-./mason cache:stats
-./mason cache:stats redis
+# Clear by tags (tagged cache entries only)
+./mason cache:clear --tags=users,posts`} />
 
-# Clean up expired entries (file driver only)
+            <Typography sx={{ mt: 2 }}>
+                Important behaviors:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Error Resilience"
+                        secondary="The command continues processing all drivers even if one fails, tracking successes and failures"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Driver-Specific Clearing"
+                        secondary="Array: instant memory clear • File: glob + unlink (can be slow with many files) • Redis: KEYS pattern + DEL or FLUSHDB"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Redis Safety"
+                        secondary="If prefix is set, only keys matching prefix are deleted. Without prefix, FLUSHDB drops the entire Redis database"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Exit Codes"
+                        secondary="Returns exit code 1 if any driver fails, useful for CI/CD pipelines"
+                    />
+                </ListItem>
+            </List>
+
+            <Alert severity="warning" sx={{ my: 3 }}>
+                <strong>Production Warning:</strong> cache:clear removes ALL cache entries, forcing expensive 
+                recomputations. Use cache:cleanup instead to remove only expired entries, or use tagged clearing 
+                for selective invalidation.
+            </Alert>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                cache:cleanup - Garbage Collection
+            </Typography>
+
+            <Typography>
+                Remove only expired cache entries, preserving valid cached data:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Clean up all drivers
 ./mason cache:cleanup
-./mason cache:cleanup file`} />
+
+# Clean up specific driver
+./mason cache:cleanup file
+./mason cache:cleanup array
+
+# Schedule automatic cleanup (crontab example)
+0 */6 * * * cd /path/to/app && ./mason cache:cleanup`} />
+
+            <Typography sx={{ mt: 2 }}>
+                Understanding lazy expiration:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Lazy Expiration Model"
+                        secondary="Cache entries aren't automatically removed when TTL expires. On get(), expired entries return null and are deleted. cleanup() proactively removes all expired entries."
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Array Store Cleanup"
+                        secondary="Iterates in-memory storage, compares expires_at timestamp with current time, unsets expired entries"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="File Store Cleanup"
+                        secondary="Uses glob() to find cache files, reads and deserializes each, checks expiration, unlinks expired files. Also removes corrupted files."
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Redis Store Cleanup"
+                        secondary="Redis handles expiration automatically via EXPIRE/SETEX. Expired keys are purged by Redis background job. Returns 0 (no manual cleanup needed)."
+                    />
+                </ListItem>
+            </List>
+
+            <Callout type="success" title="Cleanup vs Clear">
+                <strong>cache:cleanup</strong> is selective and non-destructive - only removes expired entries, 
+                keeps valid cache, safe for production cron jobs.
+                <br /><br />
+                <strong>cache:clear</strong> is complete flush - removes everything, requires cache rebuilding, 
+                use for deployments or data structure changes.
+            </Callout>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Production Recommendations
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Add to crontab for automatic maintenance
+# Cleanup expired entries every 6 hours
+0 */6 * * * cd /var/www/api && ./mason cache:cleanup
+
+# Clear all cache on deployment (after code update)
+./mason cache:clear
+
+# Monitor cache health daily
+0 9 * * * cd /var/www/api && ./mason cache:stats > /var/log/cache-stats.log`} />
+
+            <Typography sx={{ mt: 2 }}>
+                Command best practices:
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Development"
+                        secondary="Run cache:clear between tests to ensure fresh state"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Staging"
+                        secondary="Use cache:stats to monitor hit rates and tune TTL values before production"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Production"
+                        secondary="Schedule cache:cleanup as cron job to prevent disk/memory bloat. Run cache:clear after deployments."
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="CI/CD Pipeline"
+                        secondary="Clear cache as part of deployment script: ./mason cache:clear || true (ignore failures)"
+                    />
+                </ListItem>
+            </List>
 
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>

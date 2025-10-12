@@ -10,41 +10,41 @@ const Installation = lazy(() => import('./pages/GettingStarted/Installation'));
 const FirstApi = lazy(() => import('./pages/GettingStarted/FirstApi'));
 const ProjectStructure = lazy(() => import('./pages/GettingStarted/ProjectStructure'));
 
-// Fundamentals (renamed from Architecture)
-const FundamentalsOverview = lazy(() => import('./pages/Architecture/Overview'));
-const Routing = lazy(() => import('./pages/Architecture/Routing'));
-const Controllers = lazy(() => import('./pages/Architecture/Controllers'));
-const Validation = lazy(() => import('./pages/Architecture/Validation'));
-const HttpResponses = lazy(() => import('./pages/Reference/HttpResponses'));
+// Fundamentals
+const FundamentalsOverview = lazy(() => import('./pages/Fundamentals/Overview'));
+const Routing = lazy(() => import('./pages/Fundamentals/Routing'));
+const Controllers = lazy(() => import('./pages/Fundamentals/Controllers'));
+const Validation = lazy(() => import('./pages/Fundamentals/Validation'));
+const HttpResponses = lazy(() => import('./pages/Fundamentals/HttpResponses'));
 
 // Database & Models
-const ModelsOrm = lazy(() => import('./pages/Architecture/ModelsOrm'));
-const Migrations = lazy(() => import('./pages/Architecture/Migrations'));
+const ModelsOrm = lazy(() => import('./pages/Database/ModelsOrm'));
+const Migrations = lazy(() => import('./pages/Database/Migrations'));
 const DatabaseDrivers = lazy(() => import('./pages/Database/Drivers'));
 
 // Advanced Features
-const FileStorage = lazy(() => import('./pages/Architecture/FileStorage'));
-const Caching = lazy(() => import('./pages/Caching/Configuration'));
-const QueueSystem = lazy(() => import('./pages/Queue/Overview'));
-const I18n = lazy(() => import('./pages/I18n/Overview'));
+const FileStorage = lazy(() => import('./pages/Advanced/FileStorage'));
+const Caching = lazy(() => import('./pages/Advanced/Caching'));
+const QueueSystem = lazy(() => import('./pages/Advanced/Queue'));
+const I18n = lazy(() => import('./pages/Advanced/I18n'));
 
 // Security
 const SecurityOverview = lazy(() => import('./pages/Security/Overview'));
 const Authentication = lazy(() => import('./pages/Security/ApiTokenAuth'));
 
 // Deployment
-const Configuration = lazy(() => import('./pages/Configuration/Env'));
+const Configuration = lazy(() => import('./pages/Deployment/Configuration'));
 const ProductionSetup = lazy(() => import('./pages/Deployment/Production'));
 
 // Developer Tools
-const CLIReference = lazy(() => import('./pages/CLI/Overview'));
-const Debugging = lazy(() => import('./pages/Development/Debugging'));
-const OpenApiTypes = lazy(() => import('./pages/Reference/OpenApi'));
-const DependencyInjection = lazy(() => import('./pages/DI/Container'));
+const CLIReference = lazy(() => import('./pages/Tools/Cli'));
+const Debugging = lazy(() => import('./pages/Tools/Debugging'));
+const OpenApiTypes = lazy(() => import('./pages/Tools/OpenApiTypes'));
+const DependencyInjection = lazy(() => import('./pages/Tools/DependencyInjection'));
 
 // Guides
 const CrudApi = lazy(() => import('./pages/Guides/CrudApi'));
-const OpenAiIntegration = lazy(() => import('./pages/Reference/OpenAiApi'));
+const OpenAiIntegration = lazy(() => import('./pages/Guides/OpenAi'));
 
 // Troubleshooting
 const CommonErrors = lazy(() => import('./pages/Troubleshooting/CommonErrors'));

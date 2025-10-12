@@ -168,3 +168,4 @@ class UserController extends Controller
         </Box>
     );
 }
+
