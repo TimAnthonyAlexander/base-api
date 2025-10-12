@@ -135,7 +135,8 @@ class Application
             'queue' => [],
             'route' => [],
             'cache' => [],
-            'storage' => []
+            'storage' => [],
+            'perm' => []
         ];
 
         foreach ($this->commands as $name => $command) {

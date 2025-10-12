@@ -25,6 +25,20 @@ use BaseApi\Console\Commands\CacheStatsCommand;
 use BaseApi\Console\Commands\RouteCacheCommand;
 use BaseApi\Console\Commands\RouteClearCommand;
 use BaseApi\Console\Commands\RouteListCommand;
+use BaseApi\Console\Commands\PermGroupListCommand;
+use BaseApi\Console\Commands\PermGroupShowCommand;
+use BaseApi\Console\Commands\PermGroupCreateCommand;
+use BaseApi\Console\Commands\PermGroupDeleteCommand;
+use BaseApi\Console\Commands\PermGroupSetWeightCommand;
+use BaseApi\Console\Commands\PermGroupAddParentCommand;
+use BaseApi\Console\Commands\PermGroupRemoveParentCommand;
+use BaseApi\Console\Commands\PermGrantCommand;
+use BaseApi\Console\Commands\PermRevokeCommand;
+use BaseApi\Console\Commands\PermUserGetRoleCommand;
+use BaseApi\Console\Commands\PermUserSetRoleCommand;
+use BaseApi\Console\Commands\PermCheckCommand;
+use BaseApi\Console\Commands\PermTraceCommand;
+use BaseApi\Console\Commands\PermValidateCommand;
 use Dotenv\Dotenv;
 
 /**
@@ -108,6 +122,22 @@ class MasonBootstrap
         $app->register('route:cache', new RouteCacheCommand());
         $app->register('route:clear', new RouteClearCommand());
         $app->register('route:list', new RouteListCommand());
+        
+        // Permission commands
+        $app->register('perm:group:list', new PermGroupListCommand());
+        $app->register('perm:group:show', new PermGroupShowCommand());
+        $app->register('perm:group:create', new PermGroupCreateCommand());
+        $app->register('perm:group:delete', new PermGroupDeleteCommand());
+        $app->register('perm:group:set-weight', new PermGroupSetWeightCommand());
+        $app->register('perm:group:add-parent', new PermGroupAddParentCommand());
+        $app->register('perm:group:remove-parent', new PermGroupRemoveParentCommand());
+        $app->register('perm:grant', new PermGrantCommand());
+        $app->register('perm:revoke', new PermRevokeCommand());
+        $app->register('perm:user:get-role', new PermUserGetRoleCommand());
+        $app->register('perm:user:set-role', new PermUserSetRoleCommand());
+        $app->register('perm:check', new PermCheckCommand());
+        $app->register('perm:trace', new PermTraceCommand());
+        $app->register('perm:validate', new PermValidateCommand());
     }
     
     /**
