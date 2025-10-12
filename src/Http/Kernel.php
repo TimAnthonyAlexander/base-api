@@ -265,6 +265,15 @@ class Kernel
         // Set status code
         http_response_code($response->status);
 
+        // Explicitly remove Connection header if we're setting our own
+        // This ensures PHP built-in server's Connection: close is overridden
+        foreach (array_keys($response->headers) as $headerName) {
+            if (strcasecmp($headerName, 'Connection') === 0) {
+                header_remove('Connection');
+                break;
+            }
+        }
+
         // Set headers
         foreach ($response->headers as $name => $value) {
             header(sprintf('%s: %s', $name, $value), true);
