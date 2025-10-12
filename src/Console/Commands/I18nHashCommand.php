@@ -87,7 +87,8 @@ class I18nHashCommand implements Command
     
     private function showAllHashes(array $locales): void
     {
-        echo ColorHelper::header("🏷️  Translation bundle hashes") . "\n\n";
+        echo ColorHelper::header("🏷️  Translation Bundle Hashes") . "\n";
+        echo str_repeat('─', 80) . "\n\n";
         
         foreach ($locales as $locale) {
             $namespaces = I18n::getAvailableNamespaces($locale);

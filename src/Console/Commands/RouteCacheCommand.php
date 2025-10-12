@@ -69,17 +69,15 @@ class RouteCacheCommand implements Command
 
             $dynamicRoutes = $totalRoutes - $staticRoutes;
 
-            echo ColorHelper::success("✓ Routes compiled successfully!") . "\n";
-            echo "\n";
-            echo "  📊 Statistics:\n";
-            echo "     Total routes:    " . ColorHelper::colorize((string) $totalRoutes, ColorHelper::BRIGHT_CYAN) . "\n";
-            echo "     Static routes:   " . ColorHelper::colorize((string) $staticRoutes, ColorHelper::BRIGHT_CYAN) . " (O(1) lookup)\n";
-            echo "     Dynamic routes:  " . ColorHelper::colorize((string) $dynamicRoutes, ColorHelper::BRIGHT_CYAN) . " (segment-based)\n";
-            echo "\n";
-            echo "  📁 Cache file: " . ColorHelper::comment($cachePath) . "\n";
-            echo "  💾 File size:  " . ColorHelper::comment($this->formatBytes(filesize($cachePath))) . "\n";
-            echo "\n";
-            echo ColorHelper::comment("Tip: Routes will be loaded from cache on next request for maximum performance.") . "\n";
+            echo ColorHelper::success("✓ Routes compiled successfully!") . "\n\n";
+            echo ColorHelper::header("📊 Statistics") . "\n";
+            echo str_repeat('─', 80) . "\n";
+            echo ColorHelper::info("  Total routes:    ") . ColorHelper::colorize((string) $totalRoutes, ColorHelper::BRIGHT_CYAN) . "\n";
+            echo ColorHelper::info("  Static routes:   ") . ColorHelper::colorize((string) $staticRoutes, ColorHelper::BRIGHT_CYAN) . " (O(1) lookup)\n";
+            echo ColorHelper::info("  Dynamic routes:  ") . ColorHelper::colorize((string) $dynamicRoutes, ColorHelper::BRIGHT_CYAN) . " (segment-based)\n";
+            echo ColorHelper::info("  Cache file:      ") . ColorHelper::comment($cachePath) . "\n";
+            echo ColorHelper::info("  File size:       ") . ColorHelper::comment($this->formatBytes(filesize($cachePath))) . "\n\n";
+            echo ColorHelper::comment("💡 Tip: Routes will be loaded from cache on next request for maximum performance.") . "\n";
 
             return 0;
         } catch (Throwable $throwable) {

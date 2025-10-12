@@ -102,7 +102,8 @@ class TypesGenerateCommand implements Command
             echo ColorHelper::success("✨ Type generation completed!") . "\n";
             
             // Print summary table
-            echo "\n" . ColorHelper::header("Generated Files:") . "\n";
+            echo "\n" . ColorHelper::header("📄 Generated Files") . "\n";
+            echo str_repeat('─', 80) . "\n";
             $this->printFileSummary($options);
             
             return 0;

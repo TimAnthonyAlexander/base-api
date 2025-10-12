@@ -107,7 +107,7 @@ class MigrateApplyCommand implements Command
     private function showExecutionPlan(array $migrations, bool $safeMode): void
     {
         echo ColorHelper::header("📋 Execution Plan" . ($safeMode ? " (Safe Mode)" : "")) . "\n";
-        echo ColorHelper::colorize("==========================================", ColorHelper::BRIGHT_CYAN) . "\n";
+        echo str_repeat('─', 80) . "\n";
 
         foreach ($migrations as $i => $migration) {
             $num = $i + 1;

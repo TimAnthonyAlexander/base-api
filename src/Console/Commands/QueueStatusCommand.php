@@ -38,7 +38,7 @@ class QueueStatusCommand implements Command
             $queues = ['default', 'high', 'low', 'emails', 'processing'];
 
             echo ColorHelper::header("📊 Queue Status") . "\n";
-            echo ColorHelper::colorize("============", ColorHelper::BRIGHT_CYAN) . "\n\n";
+            echo str_repeat('─', 80) . "\n\n";
 
             $totalJobs = 0;
             foreach ($queues as $queue) {
@@ -82,7 +82,7 @@ class QueueStatusCommand implements Command
 
             if ($stats !== []) {
                 echo "\n" . ColorHelper::header("📊 Job Status Statistics") . "\n";
-                echo ColorHelper::colorize("---------------------", ColorHelper::BRIGHT_CYAN) . "\n";
+                echo str_repeat('─', 80) . "\n";
 
                 foreach ($stats as $stat) {
                     $status = ucfirst((string) $stat['status']);

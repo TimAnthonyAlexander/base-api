@@ -133,7 +133,8 @@ class I18nScanCommand implements Command
 
     private function displayResults(array $foundTokens, array $newTokens, array $missingInDefault, array $orphanTokens, bool $showOrphans): void
     {
-        echo ColorHelper::header("📊 Scan Results") . "\n";
+        echo "\n" . ColorHelper::header("📊 Scan Results") . "\n";
+        echo str_repeat('─', 80) . "\n";
         echo ColorHelper::info("  Total tokens found in code: ") . ColorHelper::colorize((string)count($foundTokens), ColorHelper::CYAN) . "\n";
         echo ColorHelper::info("  New tokens: ") . ColorHelper::colorize((string)count($newTokens), ColorHelper::GREEN) . "\n";
         echo ColorHelper::info("  Missing in default locale: ") . ColorHelper::colorize((string)count($missingInDefault), ColorHelper::YELLOW) . "\n";

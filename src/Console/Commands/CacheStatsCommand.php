@@ -43,6 +43,7 @@ class CacheStatsCommand implements Command
                 $defaultDriver = $config->get('cache.default', 'array');
                 
                 echo ColorHelper::header("📊 Cache Configuration") . "\n";
+                echo str_repeat('─', 80) . "\n";
                 echo ColorHelper::info("Default driver: ") . ColorHelper::colorize($defaultDriver, ColorHelper::YELLOW) . "\n";
                 echo ColorHelper::info("Configured stores: ") . ColorHelper::colorize(implode(', ', array_keys($stores)), ColorHelper::YELLOW) . "\n";
                 echo "\n";

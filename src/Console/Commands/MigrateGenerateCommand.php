@@ -141,7 +141,7 @@ class MigrateGenerateCommand implements Command
         }
 
         echo "\n" . ColorHelper::header("📊 Migration Summary") . "\n";
-        echo ColorHelper::colorize("==================", ColorHelper::BRIGHT_CYAN) . "\n";
+        echo str_repeat('─', 80) . "\n";
 
         foreach ($counts as $operation => $count) {
             $displayName = ucwords(str_replace('_', ' ', $operation));
