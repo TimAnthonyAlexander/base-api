@@ -6,7 +6,6 @@ use Override;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\Console\ColorHelper;
-use BaseApi\App;
 
 class TestCommand implements Command
 {
@@ -64,8 +63,9 @@ class TestCommand implements Command
     private function parseOptions(array $args): array
     {
         $options = [];
+        $counter = count($args);
         
-        for ($i = 0; $i < count($args); $i++) {
+        for ($i = 0; $i < $counter; $i++) {
             $arg = $args[$i];
             
             if (str_starts_with((string) $arg, '--')) {
@@ -184,19 +184,19 @@ class TestCommand implements Command
         while (true) {
             $stdout = fgets($pipes[1]);
             $stderr = fgets($pipes[2]);
-            
+
             if ($stdout !== false) {
                 $output .= $stdout;
                 echo $this->enhanceLine($stdout);
                 flush();
             }
-            
+
             if ($stderr !== false) {
                 $errorOutput .= $stderr;
                 echo $this->enhanceLine($stderr, true);
                 flush();
             }
-            
+
             // Check if process has finished
             $status = proc_get_status($process);
             if (!$status['running']) {
@@ -204,12 +204,14 @@ class TestCommand implements Command
                 while ($stdout = fgets($pipes[1])) {
                     echo $this->enhanceLine($stdout);
                 }
+
                 while ($stderr = fgets($pipes[2])) {
                     echo $this->enhanceLine($stderr, true);
                 }
+
                 break;
             }
-            
+
             usleep(10000); // 10ms
         }
         

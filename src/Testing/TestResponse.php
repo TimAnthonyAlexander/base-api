@@ -10,13 +10,11 @@ use PHPUnit\Framework\Assert;
  */
 class TestResponse
 {
-    private JsonResponse $response;
-    private array $decodedJson;
+    private readonly array $decodedJson;
     
-    public function __construct(JsonResponse $response)
+    public function __construct(private readonly JsonResponse $response)
     {
-        $this->response = $response;
-        $this->decodedJson = $response->getData();
+        $this->decodedJson = json_decode((string) $this->response->body, true) ?? [];
     }
     
     /**
@@ -26,8 +24,8 @@ class TestResponse
     {
         Assert::assertEquals(
             $expectedStatus,
-            $this->response->getStatusCode(),
-            "Expected status code {$expectedStatus}, got {$this->response->getStatusCode()}"
+            $this->response->status,
+            sprintf('Expected status code %d, got %d', $expectedStatus, $this->response->status)
         );
         
         return $this;
@@ -102,7 +100,7 @@ class TestResponse
      */
     public function assertJsonStructure(array $structure, ?array $data = null): self
     {
-        $data = $data ?? $this->decodedJson;
+        $data ??= $this->decodedJson;
         
         foreach ($structure as $key => $value) {
             if (is_array($value)) {
@@ -115,12 +113,12 @@ class TestResponse
                     }
                 } else {
                     // Nested structure check
-                    Assert::assertArrayHasKey($key, $data, "Missing key '{$key}' in JSON");
+                    Assert::assertArrayHasKey($key, $data, sprintf("Missing key '%s' in JSON", $key));
                     $this->assertJsonStructure($value, $data[$key]);
                 }
             } else {
                 // Simple key check
-                Assert::assertArrayHasKey($value, $data, "Missing key '{$value}' in JSON");
+                Assert::assertArrayHasKey($value, $data, sprintf("Missing key '%s' in JSON", $value));
             }
         }
         
@@ -151,7 +149,7 @@ class TestResponse
     public function assertJsonPath(string $path, mixed $expectedValue): self
     {
         $value = $this->getJsonPath($path);
-        Assert::assertEquals($expectedValue, $value, "JSON path '{$path}' does not match expected value");
+        Assert::assertEquals($expectedValue, $value, sprintf("JSON path '%s' does not match expected value", $path));
         return $this;
     }
     
@@ -160,7 +158,7 @@ class TestResponse
      */
     public function assertJsonHas(string $key): self
     {
-        Assert::assertArrayHasKey($key, $this->decodedJson, "JSON does not have key '{$key}'");
+        Assert::assertArrayHasKey($key, $this->decodedJson, sprintf("JSON does not have key '%s'", $key));
         return $this;
     }
     
@@ -169,7 +167,7 @@ class TestResponse
      */
     public function assertJsonMissing(string $key): self
     {
-        Assert::assertArrayNotHasKey($key, $this->decodedJson, "JSON unexpectedly has key '{$key}'");
+        Assert::assertArrayNotHasKey($key, $this->decodedJson, sprintf("JSON unexpectedly has key '%s'", $key));
         return $this;
     }
     
@@ -181,7 +179,7 @@ class TestResponse
         $data = $key ? $this->getJsonPath($key) : $this->decodedJson;
         
         Assert::assertIsArray($data, "JSON data is not an array");
-        Assert::assertCount($expectedCount, $data, "Expected {$expectedCount} items, got " . count($data));
+        Assert::assertCount($expectedCount, $data, sprintf('Expected %d items, got ', $expectedCount) . count($data));
         
         return $this;
     }
@@ -200,12 +198,12 @@ class TestResponse
      */
     public function assertHeader(string $headerName, ?string $expectedValue = null): self
     {
-        $headers = $this->response->getHeaders();
+        $headers = $this->response->headers;
         
-        Assert::assertArrayHasKey($headerName, $headers, "Header '{$headerName}' not found");
+        Assert::assertArrayHasKey($headerName, $headers, sprintf("Header '%s' not found", $headerName));
         
         if ($expectedValue !== null) {
-            Assert::assertEquals($expectedValue, $headers[$headerName], "Header '{$headerName}' value does not match");
+            Assert::assertEquals($expectedValue, $headers[$headerName], sprintf("Header '%s' value does not match", $headerName));
         }
         
         return $this;
@@ -216,8 +214,8 @@ class TestResponse
      */
     public function assertHeaderMissing(string $headerName): self
     {
-        $headers = $this->response->getHeaders();
-        Assert::assertArrayNotHasKey($headerName, $headers, "Header '{$headerName}' should not be present");
+        $headers = $this->response->headers;
+        Assert::assertArrayNotHasKey($headerName, $headers, sprintf("Header '%s' should not be present", $headerName));
         return $this;
     }
     
@@ -238,38 +236,20 @@ class TestResponse
     }
     
     /**
-     * Dump the JSON response and continue
-     */
-    public function dump(): self
-    {
-        var_dump($this->decodedJson);
-        return $this;
-    }
-    
-    /**
-     * Dump the JSON response and die
-     */
-    public function dd(): void
-    {
-        var_dump($this->decodedJson);
-        die(1);
-    }
-    
-    /**
      * Recursively check if expected data is contained in actual data
      */
     private function assertJsonContains(array $expected, array $actual, string $path = ''): void
     {
         foreach ($expected as $key => $value) {
-            $currentPath = $path ? "{$path}.{$key}" : $key;
+            $currentPath = $path !== '' && $path !== '0' ? sprintf('%s.%s', $path, $key) : $key;
             
-            Assert::assertArrayHasKey($key, $actual, "Missing key '{$currentPath}' in JSON");
+            Assert::assertArrayHasKey($key, $actual, sprintf("Missing key '%s' in JSON", $currentPath));
             
             if (is_array($value)) {
-                Assert::assertIsArray($actual[$key], "Expected array at '{$currentPath}'");
+                Assert::assertIsArray($actual[$key], sprintf("Expected array at '%s'", $currentPath));
                 $this->assertJsonContains($value, $actual[$key], $currentPath);
             } else {
-                Assert::assertEquals($value, $actual[$key], "Value mismatch at '{$currentPath}'");
+                Assert::assertEquals($value, $actual[$key], sprintf("Value mismatch at '%s'", $currentPath));
             }
         }
     }
@@ -284,8 +264,9 @@ class TestResponse
         
         foreach ($segments as $segment) {
             if (!is_array($data) || !array_key_exists($segment, $data)) {
-                Assert::fail("JSON path '{$path}' not found");
+                Assert::fail(sprintf("JSON path '%s' not found", $path));
             }
+
             $data = $data[$segment];
         }
         

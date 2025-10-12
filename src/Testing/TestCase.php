@@ -2,6 +2,12 @@
 
 namespace BaseApi\Testing;
 
+use Override;
+use RuntimeException;
+use Exception;
+use ReflectionClass;
+use ReflectionProperty;
+use ReflectionNamedType;
 use BaseApi\App;
 use BaseApi\Http\Request;
 use BaseApi\Http\JsonResponse;
@@ -18,6 +24,7 @@ abstract class TestCase extends PHPUnitTestCase
     /**
      * Boot the application before tests
      */
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -35,9 +42,8 @@ abstract class TestCase extends PHPUnitTestCase
     {
         $basePath = $this->getBasePath();
         
-        if (!App::isBooted()) {
-            App::boot($basePath);
-        }
+        // App::boot() handles already-booted state internally
+        App::boot($basePath);
     }
     
     /**
@@ -136,7 +142,7 @@ abstract class TestCase extends PHPUnitTestCase
             $headers,
             $query,
             $body,
-            !empty($body) ? json_encode($body) : null,
+            $body === [] ? null : json_encode($body),
             [],
             [],
             [],
@@ -154,11 +160,7 @@ abstract class TestCase extends PHPUnitTestCase
         
         if (!$matchResult) {
             // Return 404 response
-            return new TestResponse(JsonResponse::notFound([
-                'error' => 'Route not found',
-                'path' => $path,
-                'method' => $method
-            ]));
+            return new TestResponse(JsonResponse::notFound('Route not found'));
         }
         
         [$route, $pathParams] = $matchResult;
@@ -171,7 +173,7 @@ abstract class TestCase extends PHPUnitTestCase
         $controller = new $controllerClass();
         
         if (!$controller instanceof Controller) {
-            throw new \RuntimeException("Controller must extend BaseApi\\Controllers\\Controller");
+            throw new RuntimeException("Controller must extend BaseApi\\Controllers\\Controller");
         }
         
         // Inject request data into controller properties
@@ -181,10 +183,7 @@ abstract class TestCase extends PHPUnitTestCase
         $handlerMethod = strtolower($method);
         
         if (!method_exists($controller, $handlerMethod)) {
-            return new TestResponse(JsonResponse::error([
-                'error' => 'Method not allowed',
-                'method' => $method
-            ], 405));
+            return new TestResponse(JsonResponse::error('Method not allowed', 405));
         }
         
         // Execute the handler
@@ -192,16 +191,12 @@ abstract class TestCase extends PHPUnitTestCase
             $response = $controller->$handlerMethod();
             
             if (!$response instanceof JsonResponse) {
-                throw new \RuntimeException("Controller method must return JsonResponse");
+                throw new RuntimeException("Controller method must return JsonResponse");
             }
             
             return new TestResponse($response);
-        } catch (\Exception $e) {
-            return new TestResponse(JsonResponse::error([
-                'error' => 'Internal server error',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ], 500));
+        } catch (Exception $exception) {
+            return new TestResponse(JsonResponse::error('Internal server error: ' . $exception->getMessage(), 500));
         }
     }
     
@@ -210,8 +205,8 @@ abstract class TestCase extends PHPUnitTestCase
      */
     private function injectRequestData(Controller $controller, Request $request, array $pathParams): void
     {
-        $reflection = new \ReflectionClass($controller);
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $reflection = new ReflectionClass($controller);
+        $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
         
         foreach ($properties as $property) {
             $propertyName = $property->getName();
@@ -244,11 +239,11 @@ abstract class TestCase extends PHPUnitTestCase
     /**
      * Set property value with type coercion
      */
-    private function setPropertyValue(Controller $controller, \ReflectionProperty $property, mixed $value): void
+    private function setPropertyValue(Controller $controller, ReflectionProperty $property, mixed $value): void
     {
         $type = $property->getType();
         
-        if ($type instanceof \ReflectionNamedType) {
+        if ($type instanceof ReflectionNamedType) {
             $typeName = $type->getName();
             
             // Type coercion
