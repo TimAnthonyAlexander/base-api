@@ -144,6 +144,30 @@ dispatch_later(new SendWelcomeEmailJob('user@example.com', 'John'))
             </TableContainer>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Configuration
+            </Typography>
+
+            <Typography>
+                Configure the queue system using environment variables in your <code>.env</code> file:
+            </Typography>
+
+            <CodeBlock language="bash" code={`# Development (default)
+QUEUE_DRIVER=sync
+
+# Production  
+QUEUE_DRIVER=database`} />
+
+            <Typography>
+                The sync driver executes jobs immediately during the request (perfect for testing).
+                The database driver stores jobs persistently for background processing.
+            </Typography>
+
+            <Callout type="info" title="Queue Installation">
+                Run <code>./mason queue:install</code> to create the jobs table required for the database driver.
+                Then apply migrations with <code>./mason migrate:apply</code>.
+            </Callout>
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Available Commands
             </Typography>
 

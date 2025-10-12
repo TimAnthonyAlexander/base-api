@@ -63,7 +63,8 @@ Cache::decrement('page_views', 2);
 // Additional operations
 Cache::add('unique_key', 'value', 300); // Store only if key doesn't exist
 $value = Cache::pull('temp_data'); // Get and remove
-Cache::putMany(['key1' => 'value1', 'key2' => 'value2'], 300); // Store multiple`} />
+Cache::putMany(['key1' => 'value1', 'key2' => 'value2'], 300); // Store multiple
+$values = Cache::many(['key1', 'key2', 'key3']); // Get multiple values`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Tagged Caching
@@ -164,6 +165,32 @@ Cache::extend('custom', function($config) {
     return new CustomCacheDriver($config);
 });`} />
 
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Utility Methods
+            </Typography>
+
+            <Typography>
+                Additional utility methods for cache management:
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+// Generate consistent cache keys from components
+$key = Cache::key('user', $userId, 'profile');
+// Result: "user:123:profile"
+
+// Get cache statistics (driver-specific)
+$stats = Cache::stats();
+// Returns array with metrics like memory usage, hit rate, etc.
+
+// Clean up expired cache entries
+$removed = Cache::cleanup();
+// Returns number of expired entries removed
+
+// Access specific cache driver
+$redisCache = Cache::driver('redis');
+$fileCache = Cache::driver('file');`} />
+
             <Alert severity="success" sx={{ mt: 4 }}>
                 <strong>Best Practices:</strong>
                 <br />• Use the <code>Cache</code> facade for simple operations
@@ -171,6 +198,8 @@ Cache::extend('custom', function($config) {
                 <br />• Use tagged caching for related data that should be invalidated together
                 <br />• Set appropriate TTL values based on data freshness requirements
                 <br />• Use model caching with <code>Model::cached()</code> for database queries
+                <br />• Monitor cache hit rates with <code>Cache::stats()</code>
+                <br />• Run <code>Cache::cleanup()</code> periodically to remove expired entries
                 <br />• Handle cache failures gracefully with fallback logic
             </Alert>
         </Box>

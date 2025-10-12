@@ -25,7 +25,10 @@ const DatabaseDrivers = lazy(() => import('./pages/Database/Drivers'));
 // Advanced Features
 const FileStorage = lazy(() => import('./pages/Advanced/FileStorage'));
 const Caching = lazy(() => import('./pages/Advanced/Caching'));
+const CachingApi = lazy(() => import('./pages/Advanced/CachingApi'));
 const QueueSystem = lazy(() => import('./pages/Advanced/Queue'));
+const QueueCreatingJobs = lazy(() => import('./pages/Advanced/QueueCreatingJobs'));
+const QueueProcessingJobs = lazy(() => import('./pages/Advanced/QueueProcessingJobs'));
 const I18n = lazy(() => import('./pages/Advanced/I18n'));
 
 // Security
@@ -40,6 +43,7 @@ const ProductionSetup = lazy(() => import('./pages/Deployment/Production'));
 const CLIReference = lazy(() => import('./pages/Tools/Cli'));
 const Debugging = lazy(() => import('./pages/Tools/Debugging'));
 const OpenApiTypes = lazy(() => import('./pages/Tools/OpenApiTypes'));
+const TypeScriptSdk = lazy(() => import('./pages/Tools/TypeScriptSdk'));
 const DependencyInjection = lazy(() => import('./pages/Tools/DependencyInjection'));
 
 // Guides
@@ -80,7 +84,10 @@ const router = createBrowserRouter([
             // Advanced Features
             { path: 'advanced/file-storage', element: <FileStorage /> },
             { path: 'advanced/caching', element: <Caching /> },
+            { path: 'advanced/caching-api', element: <CachingApi /> },
             { path: 'advanced/queue', element: <QueueSystem /> },
+            { path: 'advanced/queue-creating-jobs', element: <QueueCreatingJobs /> },
+            { path: 'advanced/queue-processing-jobs', element: <QueueProcessingJobs /> },
             { path: 'advanced/i18n', element: <I18n /> },
 
             // Security
@@ -95,6 +102,7 @@ const router = createBrowserRouter([
             { path: 'tools/cli', element: <CLIReference /> },
             { path: 'tools/debugging', element: <Debugging /> },
             { path: 'tools/openapi-types', element: <OpenApiTypes /> },
+            { path: 'tools/typescript-sdk', element: <TypeScriptSdk /> },
             { path: 'tools/dependency-injection', element: <DependencyInjection /> },
 
             // Guides

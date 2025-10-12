@@ -34,6 +34,9 @@ import {
     Quiz,
     People,
     Category,
+    Code,
+    PlayArrow,
+    AddTask,
 } from '@mui/icons-material';
 import { type SvgIconTypeMap } from '@mui/material/SvgIcon';
 import { type OverridableComponent } from '@mui/types';
@@ -88,7 +91,10 @@ export const NAV: NavNode[] = [
         children: [
             { title: 'File Storage', path: '/advanced/file-storage', icon: CloudUpload },
             { title: 'Caching', path: '/advanced/caching', icon: Cached },
+            { title: 'Cache API Reference', path: '/advanced/caching-api', icon: Code },
             { title: 'Queue System', path: '/advanced/queue', icon: Queue },
+            { title: 'Creating Jobs', path: '/advanced/queue-creating-jobs', icon: AddTask },
+            { title: 'Processing Jobs', path: '/advanced/queue-processing-jobs', icon: PlayArrow },
             { title: 'Internationalization', path: '/advanced/i18n', icon: Language },
         ]
     },
@@ -115,6 +121,7 @@ export const NAV: NavNode[] = [
             { title: 'CLI Reference', path: '/tools/cli', icon: Terminal },
             { title: 'Debugging', path: '/tools/debugging', icon: BugReport },
             { title: 'OpenAPI & Types', path: '/tools/openapi-types', icon: Api },
+            { title: 'TypeScript SDK', path: '/tools/typescript-sdk', icon: Code },
             { title: 'Dependency Injection', path: '/tools/dependency-injection', icon: Hub },
         ]
     },

@@ -38,6 +38,11 @@ export default function TypeScriptSdk() {
 # - hooks.ts         → React hooks (e.g., useGetUserById)
 # - openapi.json     → OpenAPI 3.0 specification`} />
 
+            <Callout type="info" title="OpenAPI Specification">
+                The type generation also creates OpenAPI specs for Swagger UI, API testing, and general code generation.
+                See <a href="/tools/openapi-types" style={{ color: 'inherit' }}>OpenAPI & Types</a> for more details.
+            </Callout>
+
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Architecture Overview
             </Typography>

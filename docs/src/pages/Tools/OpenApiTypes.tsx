@@ -46,7 +46,7 @@ export default function OpenAPI() {
 
             <Callout type="info" title="TypeScript SDK Generation">
                 BaseAPI can generate a complete TypeScript SDK with React hooks.
-                See <a href="/reference/typescript-sdk" style={{ color: 'inherit' }}>TypeScript SDK Generation</a> for details.
+                See <a href="/tools/typescript-sdk" style={{ color: 'inherit' }}>TypeScript SDK Generation</a> for details.
             </Callout>
 
             <Typography>
