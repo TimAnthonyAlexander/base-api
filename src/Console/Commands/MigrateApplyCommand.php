@@ -94,7 +94,7 @@ class MigrateApplyCommand implements Command
 
             if ($safeMode && count($executedIds) < count($pendingMigrations)) {
                 $remaining = count($pendingMigrations) - count($executedIds);
-                echo ColorHelper::warning(sprintf('⚠️  Note: %d destructive migration(s) remain. Run without --safe to apply them.', $remaining)) . "\n";
+                echo ColorHelper::warning(sprintf('💡 Note: %d destructive migration(s) remain. Run without --safe to apply them.', $remaining)) . "\n";
             }
 
             return 0;
