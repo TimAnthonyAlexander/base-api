@@ -278,7 +278,7 @@ class PermissionsServiceTest extends TestCase
     public function testSpecificityMatching(): void
     {
         // Create a test scenario with overlapping permissions
-        $this->service->grant('user', 'content.*', true);
+        $this->service->grant('user', 'content.*', true, true); // force=true for wildcard
         $this->service->grant('user', 'content.delete', false);
 
         // More specific permission (content.delete) should win
@@ -365,8 +365,11 @@ class PermissionsServiceTest extends TestCase
         $this->service->grant('user', 'a', true);
         $this->service->grant('user', 'a.b.c.d', true);
         $this->service->grant('user', 'test123', true);
-        $this->service->grant('user', '*', true);
-        $this->service->grant('user', 'a.b.*', true);
+        
+        // Create admin group with high weight for wildcards
+        $this->service->createGroup('superadmin', 100);
+        $this->service->grant('superadmin', '*', true, true); // force=true for universal wildcard
+        $this->service->grant('superadmin', 'a.b.*', true, true); // force=true for wildcard
 
         $errors = $this->service->validate();
         $this->assertEmpty($errors);

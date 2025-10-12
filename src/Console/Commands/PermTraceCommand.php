@@ -57,26 +57,71 @@ class PermTraceCommand implements Command
             echo ColorHelper::info("User ID: ") . ColorHelper::colorize($trace['userId'], ColorHelper::CYAN) . "\n";
             echo ColorHelper::info("Role: ") . ColorHelper::colorize($trace['role'], ColorHelper::CYAN) . "\n";
             echo ColorHelper::info("Node: ") . ColorHelper::colorize($trace['node'], ColorHelper::YELLOW) . "\n";
-            
+
             $resultColor = $trace['result'] === 'allow' ? ColorHelper::GREEN : ColorHelper::RED;
             echo ColorHelper::info("Result: ") . ColorHelper::colorize(strtoupper((string) $trace['result']), $resultColor) . "\n\n";
 
             // Inheritance chain
             echo ColorHelper::header("Inheritance Chain") . "\n";
-            echo "  " . implode(' → ', $trace['inheritanceChain']) . "\n\n";
+            $chainWithWeights = [];
+            foreach ($trace['inheritanceChain'] as $groupId) {
+                $groupData = $permissions->getGroup($groupId);
+                $weight = $groupData ? $groupData['weight'] : 0;
+                $chainWithWeights[] = sprintf('%s (w:%d)', $groupId, $weight);
+            }
+
+            echo "  " . implode(' → ', $chainWithWeights) . "\n\n";
 
             // Matching patterns
             echo ColorHelper::header("Matching Patterns") . "\n";
             if (empty($trace['matches'])) {
-                echo ColorHelper::comment("  No matching patterns found (implicit deny)") . "\n";
+                if ($trace['implicitDeny']) {
+                    echo ColorHelper::comment("  No matching patterns found (implicit deny)") . "\n";
+                } else {
+                    echo ColorHelper::comment("  No patterns found") . "\n";
+                }
             } else {
                 foreach ($trace['matches'] as $match) {
                     $icon = $match['value'] ? '✓' : '✗';
                     $color = $match['value'] ? ColorHelper::GREEN : ColorHelper::RED;
-                    $specificity = $match['specificity'];
-                    
+                    $isWinner = $trace['winner'] && $trace['winner']['pattern'] === $match['pattern'] && $trace['winner']['group'] === $match['group'];
+                    $winnerMark = $isWinner ? ' ← CHOSEN' : '';
+
                     echo ColorHelper::colorize(sprintf("  %s ", $icon), $color);
-                    echo sprintf("%-40s (specificity: %d)", $match['pattern'], $specificity) . "\n";
+                    echo sprintf(
+                        "%-30s [%s] (spec:%d, weight:%d)%s",
+                        $match['pattern'],
+                        $match['group'],
+                        $match['specificity'],
+                        $match['weight'],
+                        $winnerMark
+                    ) . "\n";
+                }
+            }
+
+            // Tie-break explanation
+            if (!empty($trace['tieBreakExplanation'])) {
+                echo "\n" . ColorHelper::header("Resolution") . "\n";
+                echo "  " . ColorHelper::colorize($trace['tieBreakExplanation'], ColorHelper::YELLOW) . "\n";
+            }
+
+            // Show all candidates for debugging (if multiple groups)
+            if (count($trace['inheritanceChain']) > 1) {
+                $nonMatches = array_filter($trace['allCandidates'], fn($c): bool => !$c['matches']);
+                if ($nonMatches !== []) {
+                    echo "\n" . ColorHelper::header("Non-Matching Patterns (for reference)") . "\n";
+                    foreach (array_slice($nonMatches, 0, 5) as $candidate) {
+                        echo ColorHelper::comment(sprintf(
+                            "    %-30s [%s] (spec:%d)",
+                            $candidate['pattern'],
+                            $candidate['group'],
+                            $candidate['specificity']
+                        )) . "\n";
+                    }
+
+                    if (count($nonMatches) > 5) {
+                        echo ColorHelper::comment(sprintf("    ... and %d more", count($nonMatches) - 5)) . "\n";
+                    }
                 }
             }
 

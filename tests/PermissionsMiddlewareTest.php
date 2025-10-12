@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use BaseApi\Auth\UserProvider;
 use Override;
 use Exception;
 use PHPUnit\Framework\TestCase;
@@ -41,6 +42,26 @@ class PermissionsMiddlewareTest extends TestCase
 
     public function testMiddlewareAllowsWithPermission(): void
     {
+        // Set up user provider for role resolution
+        $userProvider = new class implements UserProvider {
+            public function byId(string $id): ?array
+            {
+                return ['id' => $id, 'role' => 'admin'];
+            }
+
+            public function getRole(string $id): ?string
+            {
+                return 'admin';
+            }
+
+            public function setRole(string $id, string $role): bool
+            {
+                return true;
+            }
+        };
+        
+        $this->service->setUserProvider($userProvider);
+        
         // Create a mock request with user who has admin role
         $request = new Request(
             method: 'GET',
@@ -163,6 +184,26 @@ class PermissionsMiddlewareTest extends TestCase
 
     public function testMiddlewareHandlesObjectUser(): void
     {
+        // Set up user provider for role resolution
+        $userProvider = new class implements UserProvider {
+            public function byId(string $id): ?array
+            {
+                return ['id' => $id, 'role' => 'admin'];
+            }
+
+            public function getRole(string $id): ?string
+            {
+                return 'admin';
+            }
+
+            public function setRole(string $id, string $role): bool
+            {
+                return true;
+            }
+        };
+        
+        $this->service->setUserProvider($userProvider);
+        
         $request = new Request(
             method: 'GET',
             path: '/test',
@@ -175,13 +216,6 @@ class PermissionsMiddlewareTest extends TestCase
             session: [],
             requestId: 'test-123'
         );
-
-        // User as object (but we need to set it as array since that's what the property type allows)
-        $userObject = new class {
-            public string $id = 'user-123';
-
-            public string $role = 'admin';
-        };
 
         // Since Request::$user is typed as ?array, we can't test with an object
         // Instead, let's test with a user array that has the required fields

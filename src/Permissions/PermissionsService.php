@@ -93,6 +93,8 @@ class PermissionsService
      */
     public function createGroup(string $id, int $weight = 0, array $inherits = []): void
     {
+        $this->validateGroupId($id);
+
         if ($this->groupExists($id)) {
             throw new InvalidArgumentException(sprintf('Group "%s" already exists', $id));
         }
@@ -102,6 +104,38 @@ class PermissionsService
             'weight' => $weight,
             'permissions' => []
         ];
+
+        $this->save();
+    }
+
+    /**
+     * Rename a group and update all parent references.
+     */
+    public function renameGroup(string $oldId, string $newId): void
+    {
+        if (!$this->groupExists($oldId)) {
+            throw new InvalidArgumentException(sprintf('Group "%s" does not exist', $oldId));
+        }
+
+        $this->validateGroupId($newId);
+
+        if ($this->groupExists($newId)) {
+            throw new InvalidArgumentException(sprintf('Group "%s" already exists', $newId));
+        }
+
+        // Copy the group with new ID
+        $this->config['groups'][$newId] = $this->config['groups'][$oldId];
+
+        // Update all groups that inherit from this one
+        foreach ($this->config['groups'] as &$group) {
+            $inheritsIndex = array_search($oldId, $group['inherits'], true);
+            if ($inheritsIndex !== false) {
+                $group['inherits'][$inheritsIndex] = $newId;
+            }
+        }
+
+        // Remove old group
+        unset($this->config['groups'][$oldId]);
 
         $this->save();
     }
@@ -190,14 +224,27 @@ class PermissionsService
 
     /**
      * Grant a permission to a group.
+     * 
+     * @param string $group Group ID
+     * @param string $node Permission node
+     * @param bool $allow True to allow, false to deny
+     * @param bool $force Skip dangerous operation check for wildcards
      */
-    public function grant(string $group, string $node, bool $allow = true): void
+    public function grant(string $group, string $node, bool $allow = true, bool $force = false): void
     {
         if (!$this->groupExists($group)) {
             throw new InvalidArgumentException(sprintf('Group "%s" does not exist', $group));
         }
 
         $this->validatePermissionNode($node);
+
+        // Warn about dangerous wildcard grants on low-weight groups
+        $groupData = $this->getGroup($group);
+        if (!$force && $allow && ($node === '*' || str_ends_with($node, '.*')) && $groupData['weight'] < 50) {
+            throw new InvalidArgumentException(
+                sprintf('DANGEROUS: Granting wildcard permission "%s" to low-weight group "%s". Use --force to confirm.', $node, $group)
+            );
+        }
 
         $this->config['groups'][$group]['permissions'][$node] = $allow;
         $this->save();
@@ -274,20 +321,77 @@ class PermissionsService
     {
         $role = $this->resolveRole($userId);
         $permissions = $this->getFlatPermissions($role);
+        $chain = $this->getInheritanceChain($role);
 
         $matches = [];
-        foreach ($permissions as $pattern => $value) {
-            if ($this->nodeMatches($pattern, $node)) {
-                $matches[] = [
+        $allCandidates = [];
+
+        // Collect all matching patterns with their source groups
+        foreach ($chain as $groupId) {
+            $group = $this->getGroup($groupId);
+            if ($group === null) {
+                continue;
+            }
+
+            foreach ($group['permissions'] as $pattern => $value) {
+                $candidate = [
                     'pattern' => $pattern,
                     'value' => $value,
-                    'specificity' => $this->getSpecificity($pattern)
+                    'group' => $groupId,
+                    'weight' => $group['weight'],
+                    'specificity' => $this->getSpecificity($pattern),
+                    'matches' => $this->nodeMatches($pattern, $node)
                 ];
+
+                $allCandidates[] = $candidate;
+
+                if ($candidate['matches']) {
+                    $matches[] = $candidate;
+                }
             }
         }
 
-        // Sort by specificity
+        // Sort matches by specificity (highest first)
         usort($matches, fn($a, $b): int => $b['specificity'] <=> $a['specificity']);
+
+        // Determine the winning rule and explain tie-breaking
+        $winner = null;
+        $tieBreakExplanation = '';
+
+        if ($matches !== []) {
+            $topSpecificity = $matches[0]['specificity'];
+            $topMatches = array_filter($matches, fn($m): bool => $m['specificity'] === $topSpecificity);
+
+            if (count($topMatches) === 1) {
+                $winner = $topMatches[0];
+                $tieBreakExplanation = 'Unique match by specificity';
+            } else {
+                // Multiple matches with same specificity - use weight
+                $topWeight = max(array_column($topMatches, 'weight'));
+                $weightFiltered = array_filter($topMatches, fn($m): bool => $m['weight'] === $topWeight);
+
+                if (count($weightFiltered) === 1) {
+                    $winner = array_values($weightFiltered)[0];
+                    $tieBreakExplanation = sprintf('Tie-break by weight (%d)', $topWeight);
+                } else {
+                    // Same specificity and weight - deny takes precedence
+                    $denyMatch = null;
+                    $allowMatch = null;
+
+                    foreach ($weightFiltered as $match) {
+                        if (!$match['value']) {
+                            $denyMatch = $match;
+                            break;
+                        }
+
+                        $allowMatch = $match;
+                    }
+
+                    $winner = $denyMatch ?? $allowMatch;
+                    $tieBreakExplanation = sprintf('Tie-break by weight (%d), deny precedence', $topWeight);
+                }
+            }
+        }
 
         $result = $this->resolveNode($permissions, $node);
 
@@ -297,7 +401,11 @@ class PermissionsService
             'node' => $node,
             'result' => $result ? 'allow' : 'deny',
             'matches' => $matches,
-            'inheritanceChain' => $this->getInheritanceChain($role)
+            'allCandidates' => $allCandidates,
+            'winner' => $winner,
+            'tieBreakExplanation' => $tieBreakExplanation,
+            'inheritanceChain' => $chain,
+            'implicitDeny' => $matches === []
         ];
     }
 
@@ -376,12 +484,27 @@ class PermissionsService
     }
 
     /**
-     * Load permissions from file.
+     * Load permissions from file with shared lock.
      */
     private function load(): void
     {
         try {
-            $content = file_get_contents($this->filePath);
+            $handle = fopen($this->filePath, 'r');
+            if ($handle === false) {
+                throw new Exception('Failed to open permissions file');
+            }
+
+            // Acquire shared lock for reading
+            if (!flock($handle, LOCK_SH)) {
+                fclose($handle);
+                throw new Exception('Failed to acquire read lock');
+            }
+
+            $content = stream_get_contents($handle);
+
+            flock($handle, LOCK_UN);
+            fclose($handle);
+
             if ($content === false) {
                 throw new Exception('Failed to read permissions file');
             }
@@ -412,17 +535,47 @@ class PermissionsService
     }
 
     /**
-     * Write config to file atomically.
+     * Write config to file atomically with exclusive lock and fsync.
      */
     private function writeFile(array $config): void
     {
         $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-        $tempFile = $this->filePath . '.tmp';
-        if (file_put_contents($tempFile, $json) === false) {
+        // Create temp file in same directory to ensure same filesystem
+        $dir = dirname($this->filePath);
+        $tempFile = $dir . '/.permissions.' . uniqid() . '.tmp';
+
+        $handle = fopen($tempFile, 'w');
+        if ($handle === false) {
+            throw new Exception('Failed to create temporary permissions file');
+        }
+
+        // Acquire exclusive lock
+        if (!flock($handle, LOCK_EX)) {
+            fclose($handle);
+            @unlink($tempFile);
+            throw new Exception('Failed to acquire write lock');
+        }
+
+        if (fwrite($handle, $json) === false) {
+            flock($handle, LOCK_UN);
+            fclose($handle);
+            @unlink($tempFile);
             throw new Exception('Failed to write permissions file');
         }
 
+        // Force sync to disk before rename
+        if (!fsync($handle)) {
+            flock($handle, LOCK_UN);
+            fclose($handle);
+            @unlink($tempFile);
+            throw new Exception('Failed to sync permissions file to disk');
+        }
+
+        flock($handle, LOCK_UN);
+        fclose($handle);
+
+        // Atomic rename (within same filesystem)
         if (!rename($tempFile, $this->filePath)) {
             @unlink($tempFile);
             throw new Exception('Failed to save permissions file');
@@ -654,13 +807,109 @@ class PermissionsService
     }
 
     /**
+     * Validate group ID format.
+     * Group IDs must be lowercase alphanumeric with hyphens/underscores.
+     * Reserved words: '*', 'all', 'any'
+     */
+    private function validateGroupId(string $id): void
+    {
+        // Check for reserved words
+        if (in_array($id, ['*', 'all', 'any'])) {
+            throw new InvalidArgumentException(
+                sprintf('Group ID "%s" is reserved', $id)
+            );
+        }
+
+        // Only lowercase alphanumeric, hyphens, and underscores
+        // Must start with a letter
+        if (!preg_match('/^[a-z][a-z0-9_-]*$/', $id)) {
+            throw new InvalidArgumentException(
+                sprintf('Invalid group ID "%s". Must start with a letter and contain only lowercase letters, numbers, hyphens, and underscores', $id)
+            );
+        }
+
+        // Prevent dots in group IDs to avoid confusion with permission nodes
+        if (str_contains($id, '.')) {
+            throw new InvalidArgumentException(
+                sprintf('Group ID "%s" cannot contain dots', $id)
+            );
+        }
+
+        // Reasonable length limit
+        if (strlen($id) > 64) {
+            throw new InvalidArgumentException(
+                sprintf('Group ID "%s" exceeds maximum length of 64 characters', $id)
+            );
+        }
+    }
+
+    /**
      * Validate permission node format.
+     * Nodes must be lowercase alphanumeric segments separated by dots.
+     * Wildcard (*) can only appear as full segment or entire node.
      */
     private function validatePermissionNode(string $node): void
     {
-        if (!preg_match('/^[a-z0-9]+(\.[a-z0-9*]+)*|\*$/', $node)) {
+        // Universal wildcard is allowed
+        if ($node === '*') {
+            return;
+        }
+
+        // Check if node is empty
+        if ($node === '' || $node === '0') {
+            throw new InvalidArgumentException('Permission node cannot be empty');
+        }
+
+        // Split into segments
+        $segments = explode('.', $node);
+
+        foreach ($segments as $i => $segment) {
+            // Each segment must be non-empty
+            if ($segment === '' || $segment === '0') {
+                throw new InvalidArgumentException(
+                    sprintf('Invalid permission node "%s". Segments cannot be empty (found at position %d)', $node, $i)
+                );
+            }
+
+            // Wildcard must be entire segment, not partial
+            if (str_contains($segment, '*') && $segment !== '*') {
+                throw new InvalidArgumentException(
+                    sprintf('Invalid permission node "%s". Wildcard must be entire segment, not "%s"', $node, $segment)
+                );
+            }
+
+            // Only lowercase alphanumeric or wildcard
+            if (!preg_match('/^([a-z0-9]+|\*)$/', $segment)) {
+                throw new InvalidArgumentException(
+                    sprintf('Invalid permission node "%s". Segment "%s" contains invalid characters. Use only lowercase letters, numbers, dots, and * for wildcards', $node, $segment)
+                );
+            }
+        }
+
+        // Wildcard can only appear as last segment (except for universal *)
+        $wildcardCount = 0;
+        foreach ($segments as $i => $segment) {
+            if ($segment === '*') {
+                $wildcardCount++;
+                if ($i !== count($segments) - 1) {
+                    throw new InvalidArgumentException(
+                        sprintf('Invalid permission node "%s". Wildcard can only appear as the last segment', $node)
+                    );
+                }
+            }
+        }
+
+        // Maximum of one wildcard
+        if ($wildcardCount > 1) {
             throw new InvalidArgumentException(
-                sprintf('Invalid permission node "%s". Must match pattern: ^[a-z0-9]+(\.[a-z0-9*]+)*|\*$', $node)
+                sprintf('Invalid permission node "%s". Only one wildcard allowed per node', $node)
+            );
+        }
+
+        // Reasonable total length
+        if (strlen($node) > 128) {
+            throw new InvalidArgumentException(
+                sprintf('Permission node "%s" exceeds maximum length of 128 characters', $node)
             );
         }
     }

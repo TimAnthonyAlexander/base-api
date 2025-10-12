@@ -12,7 +12,14 @@ use Override;
  * Middleware to protect routes requiring specific permissions.
  * 
  * Usage in routes:
+ *   // Single permission
  *   PermissionsMiddleware::class => ['node' => 'content.create']
+ * 
+ *   // Require ALL permissions
+ *   PermissionsMiddleware::class => ['requiresAll' => ['content.create', 'content.publish']]
+ * 
+ *   // Require ANY permission (at least one)
+ *   PermissionsMiddleware::class => ['requiresAny' => ['content.create', 'admin.content']]
  */
 class PermissionsMiddleware implements Middleware
 {
@@ -37,19 +44,48 @@ class PermissionsMiddleware implements Middleware
             return JsonResponse::error('Unauthorized', 401);
         }
 
-        // Get required permission node from middleware options
-        $node = $request->middlewareOptions[self::class]['node'] ?? null;
-        
-        if ($node === null) {
-            // No specific permission required, just authentication
+        $options = $request->middlewareOptions[self::class] ?? [];
+
+        // Handle single node (backward compatible)
+        if (isset($options['node'])) {
+            if (!$this->permissions->check($userId, $options['node'])) {
+                return JsonResponse::error('Forbidden', 403);
+            }
+
             return $next($request);
         }
 
-        // Check permission
-        if (!$this->permissions->check($userId, $node)) {
-            return JsonResponse::error('Forbidden', 403);
+        // Handle requiresAll (must have all listed permissions)
+        if (isset($options['requiresAll'])) {
+            $nodes = is_array($options['requiresAll']) ? $options['requiresAll'] : [$options['requiresAll']];
+            foreach ($nodes as $node) {
+                if (!$this->permissions->check($userId, $node)) {
+                    return JsonResponse::error('Forbidden', 403);
+                }
+            }
+
+            return $next($request);
         }
 
+        // Handle requiresAny (must have at least one listed permission)
+        if (isset($options['requiresAny'])) {
+            $nodes = is_array($options['requiresAny']) ? $options['requiresAny'] : [$options['requiresAny']];
+            $hasAny = false;
+            foreach ($nodes as $node) {
+                if ($this->permissions->check($userId, $node)) {
+                    $hasAny = true;
+                    break;
+                }
+            }
+
+            if (!$hasAny) {
+                return JsonResponse::error('Forbidden', 403);
+            }
+
+            return $next($request);
+        }
+
+        // No specific permission required, just authentication
         return $next($request);
     }
 }
