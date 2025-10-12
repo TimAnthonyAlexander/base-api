@@ -91,10 +91,10 @@ export default function CLIOverview() {
                     <TableBody>
                         <TableRow>
                             <TableCell><code>serve</code></TableCell>
-                            <TableCell>Start the development server</TableCell>
+                            <TableCell>Start the development server (configure host/port via APP_HOST and APP_PORT in .env)</TableCell>
                             <TableCell>
                                 <code>./mason serve</code><br />
-                                <code>./mason serve --host=0.0.0.0 --port=8080</code>
+                                <code>./mason serve --screen</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
@@ -110,7 +110,7 @@ export default function CLIOverview() {
                             <TableCell>Generate a new model class</TableCell>
                             <TableCell>
                                 <code>./mason make:model User</code><br />
-                                <code>./mason make:model Product --with-controller</code>
+                                <code>./mason make:model Product</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -136,8 +136,7 @@ export default function CLIOverview() {
                             <TableCell><code>migrate:generate</code></TableCell>
                             <TableCell>Generate migrations from model definitions</TableCell>
                             <TableCell>
-                                <code>./mason migrate:generate</code><br />
-                                <code>./mason migrate:generate --dry-run</code>
+                                <code>./mason migrate:generate</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
@@ -145,7 +144,7 @@ export default function CLIOverview() {
                             <TableCell>Apply pending migrations to database</TableCell>
                             <TableCell>
                                 <code>./mason migrate:apply</code><br />
-                                <code>./mason migrate:apply --force</code>
+                                <code>./mason migrate:apply --safe</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -172,7 +171,7 @@ export default function CLIOverview() {
                             <TableCell>Clear all or specific cache entries</TableCell>
                             <TableCell>
                                 <code>./mason cache:clear</code><br />
-                                <code>./mason cache:clear --driver=redis</code><br />
+                                <code>./mason cache:clear redis</code><br />
                                 <code>./mason cache:clear --tags=users,products</code>
                             </TableCell>
                         </TableRow>
@@ -181,7 +180,7 @@ export default function CLIOverview() {
                             <TableCell>Display cache statistics and hit rates</TableCell>
                             <TableCell>
                                 <code>./mason cache:stats</code><br />
-                                <code>./mason cache:stats --driver=file</code>
+                                <code>./mason cache:stats file</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
@@ -189,7 +188,7 @@ export default function CLIOverview() {
                             <TableCell>Remove expired cache entries</TableCell>
                             <TableCell>
                                 <code>./mason cache:cleanup</code><br />
-                                <code>./mason cache:cleanup --force</code>
+                                <code>./mason cache:cleanup redis</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
@@ -253,8 +252,8 @@ export default function CLIOverview() {
                             <TableCell>Scan codebase for translation tokens</TableCell>
                             <TableCell>
                                 <code>./mason i18n:scan</code><br />
-                                <code>./mason i18n:scan --update</code><br />
-                                <code>./mason i18n:scan --path=app/Controllers</code>
+                                <code>./mason i18n:scan --write</code><br />
+                                <code>./mason i18n:scan --show-orphans</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
@@ -262,16 +261,17 @@ export default function CLIOverview() {
                             <TableCell>Add a new language to the project</TableCell>
                             <TableCell>
                                 <code>./mason i18n:add-lang fr</code><br />
-                                <code>./mason i18n:add-lang de --copy-from=en</code>
+                                <code>./mason i18n:add-lang de --seed</code><br />
+                                <code>./mason i18n:add-lang es --auto</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
                             <TableCell><code>i18n:fill</code></TableCell>
-                            <TableCell>Fill missing translations using AI providers</TableCell>
+                            <TableCell>Fill missing translations using configured translation provider (set I18N_PROVIDER in .env)</TableCell>
                             <TableCell>
                                 <code>./mason i18n:fill</code><br />
-                                <code>./mason i18n:fill --provider=openai --locale=fr</code><br />
-                                <code>./mason i18n:fill --provider=deepl --all</code>
+                                <code>./mason i18n:fill --to=fr,de</code><br />
+                                <code>./mason i18n:fill --force</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
@@ -279,8 +279,8 @@ export default function CLIOverview() {
                             <TableCell>Validate translation files</TableCell>
                             <TableCell>
                                 <code>./mason i18n:lint</code><br />
-                                <code>./mason i18n:lint --locale=fr</code><br />
-                                <code>./mason i18n:lint --fix</code>
+                                <code>./mason i18n:lint --fail-on-orphans</code><br />
+                                <code>./mason i18n:lint --allow-empty</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
