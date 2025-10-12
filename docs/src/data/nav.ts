@@ -19,6 +19,7 @@ import {
     Security,
     Lock,
     Password,
+    VpnKey,
     Settings,
     Publish,
     Build,
@@ -89,6 +90,7 @@ export const NAV: NavNode[] = [
         children: [
             { title: 'Overview', path: '/security/overview', icon: Lock },
             { title: 'Authentication', path: '/security/authentication', icon: Password },
+            { title: 'Permissions', path: '/security/permissions', icon: VpnKey },
         ]
     },
     {
