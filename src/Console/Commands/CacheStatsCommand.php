@@ -64,6 +64,7 @@ class CacheStatsCommand implements Command
     private function showDriverStats(string $driver): void
     {
         echo ColorHelper::header(sprintf('📊 Cache Driver: %s', $driver)) . "\n";
+        echo str_repeat('─', 80) . "\n";
         
         try {
             $cache = Cache::manager();
