@@ -237,7 +237,8 @@ HELP;
         foreach ($files as $label => $path) {
             if ($path) {
                 $absolutePath = realpath($path) ?: $path;
-                echo sprintf("  %-10s %s\n", $label . ':', ColorHelper::success($absolutePath));
+                $paddedLabel = str_pad($label . ':', 11);
+                echo '  ' . $paddedLabel . ColorHelper::success($absolutePath) . "\n";
             }
         }
     }
