@@ -20,6 +20,14 @@ class Response
     public function withHeader(string $name, string $value): self
     {
         $new = clone $this;
+        
+        // Remove any existing header with the same name (case-insensitive)
+        foreach (array_keys($new->headers) as $existingName) {
+            if (strcasecmp($existingName, $name) === 0) {
+                unset($new->headers[$existingName]);
+            }
+        }
+        
         $new->headers[$name] = $value;
         return $new;
     }
