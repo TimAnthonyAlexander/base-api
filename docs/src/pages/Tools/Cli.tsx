@@ -102,11 +102,14 @@ export default function CLIOverview() {
                         </TableRow>
                         <TableRow>
                             <TableCell><code>test</code></TableCell>
-                            <TableCell>Run tests with beautiful TUI using paratest</TableCell>
+                            <TableCell>Run tests with beautiful TUI using paratest (requires brianium/paratest package)</TableCell>
                             <TableCell>
                                 <code>./mason test</code><br />
                                 <code>./mason test --parallel=8</code><br />
-                                <code>./mason test --filter=UserTest</code>
+                                <code>./mason test --filter=UserTest</code><br />
+                                <code>./mason test --testsuite=Feature</code><br />
+                                <code>./mason test --coverage</code><br />
+                                <code>./mason test --verbose</code>
                             </TableCell>
                         </TableRow>
                         <TableRow>
@@ -355,6 +358,133 @@ export default function CLIOverview() {
                             <TableCell>Generate a new job class</TableCell>
                             <TableCell>
                                 <code>./mason make:job SendEmailJob</code>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            {/* Permissions Commands */}
+            <Typography variant="h3" gutterBottom sx={{ mt: 4 }}>
+                Permissions Commands
+            </Typography>
+
+            <TableContainer component={Paper} sx={{ my: 3 }} elevation={0}>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell><strong>Command</strong></TableCell>
+                            <TableCell><strong>Description</strong></TableCell>
+                            <TableCell><strong>Examples</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell><code>perm:grant</code></TableCell>
+                            <TableCell>Grant a permission to a group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:grant admin admin.*</code><br />
+                                <code>./mason perm:grant user content.read</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:revoke</code></TableCell>
+                            <TableCell>Revoke a permission from a group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:revoke user admin.delete</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:check</code></TableCell>
+                            <TableCell>Check if a user has a specific permission</TableCell>
+                            <TableCell>
+                                <code>./mason perm:check --user-id=1 --node=admin.delete</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:trace</code></TableCell>
+                            <TableCell>Trace permission resolution for debugging</TableCell>
+                            <TableCell>
+                                <code>./mason perm:trace --user-id=1 --node=admin.delete</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:validate</code></TableCell>
+                            <TableCell>Validate permissions configuration file</TableCell>
+                            <TableCell>
+                                <code>./mason perm:validate</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:list</code></TableCell>
+                            <TableCell>List all permission groups</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:list</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:show</code></TableCell>
+                            <TableCell>Show details for a specific permission group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:show admin</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:create</code></TableCell>
+                            <TableCell>Create a new permission group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:create moderator --weight=30</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:delete</code></TableCell>
+                            <TableCell>Delete a permission group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:delete moderator</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:rename</code></TableCell>
+                            <TableCell>Rename a permission group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:rename oldname newname</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:set-weight</code></TableCell>
+                            <TableCell>Set the weight for a permission group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:set-weight admin 100</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:add-parent</code></TableCell>
+                            <TableCell>Add a parent group for inheritance</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:add-parent premium user</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:group:remove-parent</code></TableCell>
+                            <TableCell>Remove a parent group</TableCell>
+                            <TableCell>
+                                <code>./mason perm:group:remove-parent premium user</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:user:get-role</code></TableCell>
+                            <TableCell>Get the role/group for a user</TableCell>
+                            <TableCell>
+                                <code>./mason perm:user:get-role --user-id=1</code><br />
+                                <code>./mason perm:user:get-role --email=user@example.com</code>
+                            </TableCell>
+                        </TableRow>
+                        <TableRow>
+                            <TableCell><code>perm:user:set-role</code></TableCell>
+                            <TableCell>Set the role/group for a user</TableCell>
+                            <TableCell>
+                                <code>./mason perm:user:set-role --user-id=1 --role=admin</code><br />
+                                <code>./mason perm:user:set-role --email=user@example.com --role=premium</code>
                             </TableCell>
                         </TableRow>
                     </TableBody>
