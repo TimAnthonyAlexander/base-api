@@ -11,7 +11,6 @@ use Exception;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Database\Connection;
 use BaseApi\Database\Drivers\DatabaseDriverInterface;
-use BaseApi\App;
 
 class ConnectionTest extends TestCase
 {

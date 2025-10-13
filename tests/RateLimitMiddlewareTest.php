@@ -22,7 +22,16 @@ class RateLimitMiddlewareTest extends TestCase
     protected function setUp(): void
     {
         // Create a temporary directory for rate limit files with more entropy for parallel tests
-        $this->tempDir = sys_get_temp_dir() . '/ratelimit-test-' . uniqid(getmypid() . '-', true);
+        // Include test name to ensure complete isolation between different tests
+        $testName = $this->name();
+        $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $testName);
+        $this->tempDir = sys_get_temp_dir() . '/ratelimit-test-' . $safeName . '-' . uniqid(getmypid() . '-', true);
+        
+        // Clean up any existing directory with the same base name (shouldn't happen, but be safe)
+        if (is_dir($this->tempDir)) {
+            $this->rmdirRecursive($this->tempDir);
+        }
+        
         mkdir($this->tempDir, 0755, true);
 
         // Set environment variable for rate limit directory BEFORE creating mock
@@ -104,12 +113,13 @@ class RateLimitMiddlewareTest extends TestCase
     {
         $this->middleware->setOptions(['limit' => '1/1m']);
 
-        $request = $this->createRequest();
+        // Use a unique path for this specific test to avoid conflicts
+        $request = $this->createRequestWithPath('/api/test-exceeds-limit-' . uniqid());
         $next = fn($req): Response => new Response(200, [], 'OK');
 
         // First request should pass
         $result1 = $this->middleware->handle($request, $next);
-        $this->assertEquals(200, $result1->status);
+        $this->assertEquals(200, $result1->status, 'First request should pass (200), but got ' . $result1->status);
 
         // Second request should be rate limited
         $result2 = $this->middleware->handle($request, $next);
@@ -300,25 +310,30 @@ class RateLimitMiddlewareTest extends TestCase
         ];
 
         $counter = 0;
+        $testId = uniqid(); // Unique ID for this entire test run
         foreach ($testCases as $limitString => [$expectedRequests]) {
             $counter++;
             $this->middleware->setOptions(['limit' => $limitString]);
 
-            // Create unique request for each test case to avoid rate limit collisions
-            $request = $this->createRequestWithPath('/api/test-' . $counter);
+            // Create truly unique request for each test case to avoid rate limit collisions
+            // Include test ID to prevent conflicts between parallel test runs
+            $request = $this->createRequestWithPath('/api/test-formats-' . $testId . '-' . $counter);
             $response = new Response(200, [], 'OK');
             $next = fn($req): Response => $response;
 
             $result = $this->middleware->handle($request, $next);
 
-            $this->assertEquals($expectedRequests, (int) $result->headers['X-RateLimit-Limit']);
-            $this->assertEquals($expectedRequests - 1, (int) $result->headers['X-RateLimit-Remaining']);
+            $this->assertEquals($expectedRequests, (int) $result->headers['X-RateLimit-Limit'], 
+                'Limit mismatch for ' . $limitString);
+            $this->assertEquals($expectedRequests - 1, (int) $result->headers['X-RateLimit-Remaining'],
+                sprintf('Remaining mismatch for %s - expected ', $limitString) . ($expectedRequests - 1) . " but got " . $result->headers['X-RateLimit-Remaining']);
         }
     }
 
     private function createRequest(): Request
     {
-        return $this->createRequestWithPath('/api/test');
+        // Each test should use a unique path to avoid rate limit collisions
+        return $this->createRequestWithPath('/api/test-' . $this->name() . '-' . uniqid());
     }
 
     private function createRequestWithPath(string $path): Request
