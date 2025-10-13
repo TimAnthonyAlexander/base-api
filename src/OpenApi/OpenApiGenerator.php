@@ -446,8 +446,9 @@ class OpenApiGenerator
         ];
 
         // Add server info if available
-        if (isset($_ENV['APP_URL'])) {
-            $spec['servers'] = [['url' => $_ENV['APP_URL']]];
+        $appUrl = App::config('app.url');
+        if ($appUrl) {
+            $spec['servers'] = [['url' => $appUrl]];
         }
 
         // Generate paths

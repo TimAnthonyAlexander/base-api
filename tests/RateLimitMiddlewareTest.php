@@ -21,14 +21,15 @@ class RateLimitMiddlewareTest extends TestCase
     #[Override]
     protected function setUp(): void
     {
-        // Create a temporary directory for rate limit files
-        $this->tempDir = sys_get_temp_dir() . '/ratelimit-test-' . uniqid();
+        // Create a temporary directory for rate limit files with more entropy for parallel tests
+        $this->tempDir = sys_get_temp_dir() . '/ratelimit-test-' . uniqid(getmypid() . '-', true);
         mkdir($this->tempDir, 0755, true);
 
-        // Set environment variable for rate limit directory
+        // Set environment variable for rate limit directory BEFORE creating mock
         $_ENV['RATE_LIMIT_DIR'] = $this->tempDir;
 
         // Mock App::basePath to avoid dependency on App being booted
+        // Only create mock if App doesn't exist at all
         if (!class_exists(App::class, false)) {
             $this->createMockAppClass();
         }
@@ -45,6 +46,11 @@ class RateLimitMiddlewareTest extends TestCase
 
         // Clean up environment
         unset($_ENV['RATE_LIMIT_DIR']);
+        
+        // Clean up session
+        if (isset($_SESSION['user_id'])) {
+            unset($_SESSION['user_id']);
+        }
     }
 
     public function testHandleWithoutLimitOption(): void
@@ -371,9 +377,18 @@ namespace BaseApi {
             return "/tmp" . ($path ? "/" . ltrim($path, "/") : ""); 
         }
         
-        public static function config(): MockConfig
+        public static function config(string $key = '', mixed $default = null): mixed
         {
-            return new MockConfig();
+            if ($key === '' || $key === '0') {
+                return new MockConfig();
+            }
+            
+            // Return values based on key
+            return match($key) {
+                'rate_limit.dir' => $_ENV['RATE_LIMIT_DIR'] ?? 'storage/ratelimits',
+                'rate_limit.trust_proxy' => false,
+                default => $default
+            };
         }
     }
 }
