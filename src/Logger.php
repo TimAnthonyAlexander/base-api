@@ -31,28 +31,14 @@ class Logger
             return;
         }
 
-        // Get logging configuration from environment or config
-        // Use $_ENV directly first to avoid circular dependencies
-        $this->channel = $_ENV['LOG_CHANNEL'] ?? 'file';
-        $this->minLevel = strtolower($_ENV['LOG_LEVEL'] ?? 'debug');
-
-        // If channel not in env, try config (but only after App is fully booted)
-        if (!isset($_ENV['LOG_CHANNEL']) && class_exists('\BaseApi\App')) {
-            $this->channel = App::config('logging.default', 'file');
-        }
-
-        if (!isset($_ENV['LOG_LEVEL']) && class_exists('\BaseApi\App')) {
-            $this->minLevel = strtolower((string) App::config('logging.level', 'debug'));
-        }
+        // Get logging configuration from config
+        // Config::get() safely handles env variables internally
+        $this->channel = App::config('logging.default', 'file');
+        $this->minLevel = strtolower((string) App::config('logging.level', 'debug'));
 
         // For file driver, set up the log path in application's storage directory
         if ($this->channel === 'file') {
-            $relativePath = $_ENV['LOG_FILE'] ?? 'storage/logs/baseapi.log';
-
-            // Try config if env not set
-            if (!isset($_ENV['LOG_FILE']) && class_exists('\BaseApi\App')) {
-                $relativePath = App::config('logging.path', 'storage/logs/baseapi.log');
-            }
+            $relativePath = App::config('logging.path', 'storage/logs/baseapi.log');
 
             // Resolve the absolute path
             if (str_starts_with((string) $relativePath, 'storage/')) {

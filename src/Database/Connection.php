@@ -27,7 +27,7 @@ class Connection
     public function getDriver(): DatabaseDriverInterface
     {
         if (!$this->driver instanceof DatabaseDriverInterface) {
-            $driverName = $_ENV['DB_DRIVER'] ?? 'mysql';
+            $driverName = App::config('database.driver', 'mysql');
             $this->driver = DatabaseDriverFactory::create($driverName);
         }
 
@@ -38,14 +38,16 @@ class Connection
     {
         $driver = $this->getDriver();
 
+        $defaultPort = $driver->getName() === 'mysql' ? 3306 : null;
+        
         $config = [
-            'host' => $_ENV['DB_HOST'] ?? '127.0.0.1',
-            'port' => $_ENV['DB_PORT'] ?? ($driver->getName() === 'mysql' ? '3306' : null),
-            'database' => $_ENV['DB_NAME'] ?? ($_ENV['DB_DATABASE'] ?? 'baseapi'),
-            'username' => $_ENV['DB_USER'] ?? ($_ENV['DB_USERNAME'] ?? 'root'),
-            'password' => $_ENV['DB_PASSWORD'] ?? ($_ENV['DB_PASS'] ?? ''),
-            'charset' => $_ENV['DB_CHARSET'] ?? 'utf8mb4',
-            'persistent' => ($_ENV['DB_PERSISTENT'] ?? 'false') === 'true',
+            'host' => App::config('database.host', '127.0.0.1'),
+            'port' => App::config('database.port', $defaultPort),
+            'database' => App::config('database.name', 'baseapi'),
+            'username' => App::config('database.user', 'root'),
+            'password' => App::config('database.password', ''),
+            'charset' => App::config('database.charset', 'utf8mb4'),
+            'persistent' => App::config('database.persistent', false),
         ];
 
         $this->pdo = $driver->createConnection($config);

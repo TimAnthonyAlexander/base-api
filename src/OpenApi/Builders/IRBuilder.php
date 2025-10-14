@@ -54,10 +54,10 @@ class IRBuilder
         }
 
         return new ApiIR(
-            title: $_ENV['APP_NAME'] ?? 'BaseApi',
+            title: App::config('app.name', 'BaseApi'),
             version: '1.0.0',
             description: 'Generated API documentation',
-            baseUrl: $_ENV['APP_URL'] ?? null,
+            baseUrl: App::config('app.url'),
             operations: $operations,
             models: $modelIRs,
             routes: $routeIRs,

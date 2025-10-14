@@ -456,8 +456,8 @@ class ModelScanner
                 }
             }
 
-            if (isset($override['null'])) {
-                $column->nullable = $override['null'];
+            if (isset($override['nullable'])) {
+                $column->nullable = $override['nullable'];
             }
 
             if (isset($override['default'])) {

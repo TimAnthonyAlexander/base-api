@@ -105,6 +105,10 @@ DB_PASSWORD=secure_random_password
                 Authentication & Authorization
             </Typography>
 
+            <Typography paragraph>
+                BaseAPI provides multiple authentication methods that all populate the request object consistently:
+            </Typography>
+
             <CodeBlock language="php" code={`<?php
 
 // Protect routes with authentication middleware
@@ -119,7 +123,41 @@ $router->delete('/users/{id}', [
     AuthMiddleware::class,
     RateLimitMiddleware::class => ['limit' => '5/1m'],
     UserController::class
+]);
+
+// Combined authentication (supports both session and API tokens)
+$router->get('/profile', [
+    App\\Middleware\\CombinedAuthMiddleware::class,
+    ProfileController::class
 ]);`} />
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3, mb: 2 }}>
+                Accessing Authenticated Users
+            </Typography>
+
+            <Alert severity="info" sx={{ my: 2 }}>
+                Always use <code>$this-&gt;request-&gt;user</code> to access authenticated user data. 
+                Never access <code>$_SESSION</code> directly as this bypasses the authentication 
+                abstraction and breaks compatibility with API token authentication.
+            </Alert>
+
+            <CodeBlock language="php" code={`<?php
+
+class SecureController extends Controller
+{
+    public function get(): JsonResponse
+    {
+        // ✅ CORRECT: Access authenticated user
+        $user = $this->request->user;
+        
+        // User is available regardless of auth method (session or token)
+        return JsonResponse::ok([
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email']
+        ]);
+    }
+}`} />
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 Rate Limiting
@@ -144,6 +182,7 @@ $router->post('/api/data', [
                 • Use HTTPS in production
                 • Keep dependencies updated
                 • Implement proper authentication
+                • Never access $_SESSION directly - use $this-&gt;request-&gt;user
                 • Apply rate limiting to public endpoints
                 • Use environment variables for secrets
                 • Enable security headers
@@ -154,6 +193,7 @@ $router->post('/api/data', [
                 <strong>Security Best Practices:</strong>
                 <br />• Never trust user input - always validate
                 <br />• Use BaseAPI's built-in validation and middleware
+                <br />• Never access $_SESSION directly - use $this-&gt;request-&gt;user and $this-&gt;request-&gt;session
                 <br />• Keep your environment variables secure
                 <br />• Apply rate limiting to prevent abuse
                 <br />• Use HTTPS and security headers in production

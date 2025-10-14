@@ -72,7 +72,7 @@ class QueueWorkCommand implements Command
         int $memoryLimit
     ): int {
         // Generate screen session name
-        $appName = App::config('app.name') ?? $_ENV['APP_NAME'] ?? 'baseapi';
+        $appName = App::config('app.name', 'baseapi');
         $screenName = strtolower((string) preg_replace('/[^a-zA-Z0-9-_]/', '-', (string) $appName)) . '-queue';
         
         // Check if screen is available

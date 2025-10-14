@@ -19,7 +19,7 @@ class RateLimitMiddleware implements Middleware, OptionedMiddleware
 
     public function __construct()
     {
-        $dir = $_ENV['RATE_LIMIT_DIR'] ?? 'storage/ratelimits';
+        $dir = App::config('rate_limit.dir', 'storage/ratelimits');
 
         // Convert to absolute path if relative
         if (!str_starts_with((string) $dir, '/')) {
@@ -135,7 +135,7 @@ class RateLimitMiddleware implements Middleware, OptionedMiddleware
             return 'user:' . $_SESSION['user_id'];
         }
 
-        $trustProxy = ($_ENV['APP_TRUST_PROXY'] ?? 'false') === 'true';
+        $trustProxy = App::config('rate_limit.trust_proxy', false);
         $ip = ClientIp::from($request, $trustProxy);
 
         return 'ip:' . $ip;

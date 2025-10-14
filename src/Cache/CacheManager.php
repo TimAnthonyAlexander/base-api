@@ -211,10 +211,10 @@ class CacheManager implements CacheInterface
     protected function createRedisStore(array $config): RedisStore
     {
         $redisConfig = [
-            'host' => $config['host'] ?? $_ENV['REDIS_HOST'] ?? '127.0.0.1',
-            'port' => $config['port'] ?? $_ENV['REDIS_PORT'] ?? 6379,
-            'password' => $config['password'] ?? $_ENV['REDIS_PASSWORD'] ?? null,
-            'database' => $config['database'] ?? $_ENV['REDIS_CACHE_DB'] ?? 0,
+            'host' => $config['host'] ?? '127.0.0.1',
+            'port' => $config['port'] ?? 6379,
+            'password' => $config['password'] ?? null,
+            'database' => $config['database'] ?? 0,
             'timeout' => $config['timeout'] ?? 5.0,
             'retry_interval' => $config['retry_interval'] ?? 100,
             'read_timeout' => $config['read_timeout'] ?? 60.0,

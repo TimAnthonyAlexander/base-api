@@ -167,11 +167,12 @@ curl -X DELETE http://localhost:8080/api-tokens/token-id \\
             </List>
 
             <Typography variant="h3" gutterBottom sx={{ mt: 3, mb: 2 }}>
-                Enhanced Request Object
+                Accessing Authenticated User Data
             </Typography>
 
             <Typography paragraph>
-                Both authentication methods populate the request with consistent user data:
+                Both authentication methods populate the request with consistent user data.
+                Always use <code>$this-&gt;request-&gt;user</code> to access the authenticated user:
             </Typography>
 
             <CodeBlock language="php" code={`<?php
@@ -185,11 +186,14 @@ class ExampleController extends Controller
 {
     public function get(): JsonResponse
     {
-        // User data is available regardless of auth method
+        // ✅ CORRECT: Access user via request object
         $user = $this->request->user;
         
-        // You can check which authentication method was used
+        // ✅ CORRECT: Check which authentication method was used
         $authMethod = $this->request->authMethod; // "session" or "api_token"
+        
+        // ✅ CORRECT: Access session data if needed
+        $sessionData = $this->request->session;
         
         return JsonResponse::ok([
             'user' => $user,
@@ -198,6 +202,23 @@ class ExampleController extends Controller
         ]);
     }
 }`} />
+
+            <Alert severity="error" sx={{ my: 2 }}>
+                <strong>Never access $_SESSION directly!</strong> Always use <code>$this-&gt;request-&gt;user</code> for 
+                authenticated user data and <code>$this-&gt;request-&gt;session</code> for session variables. 
+                Direct $_SESSION access bypasses the framework's authentication abstraction and breaks compatibility 
+                with both session-based and token-based authentication.
+            </Alert>
+
+            <CodeBlock language="php" code={`<?php
+
+// ❌ WRONG: Direct $_SESSION access
+$userId = $_SESSION['user_id'] ?? null;
+$_SESSION['user_id'] = $user->id;
+
+// ✅ CORRECT: Use request object
+$user = $this->request->user; // Works for both session and token auth
+$this->request->session['user_id'] = $user->id; // If you need to modify session`} />
 
             <Divider sx={{ my: 4 }} />
 

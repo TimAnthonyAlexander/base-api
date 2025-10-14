@@ -33,8 +33,8 @@ class ServeCommand implements Command
         // Check for --screen flag
         $useScreen = in_array('--screen', $args);
         
-        $host = App::config('app.host') ?? $_ENV['APP_HOST'] ?? 'localhost';
-        $port = App::config('app.port') ?? $_ENV['APP_PORT'] ?? '7879';
+        $host = App::config('app.host', 'localhost');
+        $port = App::config('app.port', '7879');
         
         $address = sprintf('%s:%s', $host, $port);
         
@@ -54,7 +54,7 @@ class ServeCommand implements Command
         
         if ($useScreen) {
             // Run in detached screen session
-            $appName = App::config('app.name') ?? $_ENV['APP_NAME'] ?? 'baseapi';
+            $appName = App::config('app.name', 'baseapi');
             $screenName = strtolower((string) preg_replace('/[^a-zA-Z0-9-_]/', '-', (string) $appName)) . '-api';
             
             // Check if screen is available

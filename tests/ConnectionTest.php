@@ -7,6 +7,7 @@ use PDOStatement;
 use Override;
 use ReflectionClass;
 use PDOException;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use BaseApi\Database\Connection;
 use BaseApi\Database\Drivers\DatabaseDriverInterface;
@@ -317,41 +318,138 @@ class ConnectionTest extends TestCase
         $connectMethod->invoke($this->connection);
     }
 
-    public function testConnectUsesEnvironmentVariables(): void
+    public function testConnectUsesConfigValues(): void
     {
-        $_ENV['DB_HOST'] = 'localhost';
-        $_ENV['DB_PORT'] = '5432';
-        $_ENV['DB_DATABASE'] = 'test_db';
-        $_ENV['DB_USERNAME'] = 'test_user';
-        $_ENV['DB_PASSWORD'] = 'test_pass';
-        $_ENV['DB_CHARSET'] = 'utf8';
-        $_ENV['DB_PERSISTENT'] = 'true';
+        // Note: This test validates that Connection uses App::config() 
+        // After refactoring to use Config::get() instead of direct $_ENV access,
+        // we test that the config system works correctly.
+        
+        // Check if real App is already loaded (from other tests in suite)
+        $appExists = class_exists('BaseApi\App', false);
+        $isRealApp = $appExists && method_exists('BaseApi\App', 'boot');
+        
+        if ($isRealApp) {
+            // Real App is loaded - test with default config values
+            // This happens when running full test suite where other tests load App
+            $expectedConfig = [
+                'host' => '127.0.0.1',
+                'port' => 3306,
+                'database' => 'baseapi',
+                'username' => 'root',
+                'password' => '',
+                'charset' => 'utf8mb4',
+                'persistent' => false,
+            ];
+        } else {
+            // Mock App - can test custom config values
+            $_ENV['database.host'] = 'localhost';
+            $_ENV['database.port'] = '5432';
+            $_ENV['database.name'] = 'test_db';
+            $_ENV['database.user'] = 'test_user';
+            $_ENV['database.password'] = 'test_pass';
+            $_ENV['database.charset'] = 'utf8';
+            $_ENV['database.persistent'] = 'true';
+            
+            // Only create mock if it doesn't exist
+            if (!class_exists('BaseApi\App', false)) {
+                $this->createMockAppClass();
+            }
+            
+            $expectedConfig = [
+                'host' => 'localhost',
+                'port' => '5432',
+                'database' => 'test_db',
+                'username' => 'test_user',
+                'password' => 'test_pass',
+                'charset' => 'utf8',
+                'persistent' => true,
+            ];
+        }
 
-        $expectedConfig = [
-            'host' => 'localhost',
-            'port' => '5432',
-            'database' => 'test_db',
-            'username' => 'test_user',
-            'password' => 'test_pass',
-            'charset' => 'utf8',
-            'persistent' => true,
-        ];
+        // Create a fresh Connection instance for this test
+        $connection = new Connection();
 
         $this->mockDriver->expects($this->once())
             ->method('createConnection')
             ->with($expectedConfig)
             ->willReturn($this->mockPdo);
 
-        $this->mockDriver->method('getName')->willReturn('postgresql');
+        $this->mockDriver->method('getName')->willReturn($isRealApp ? 'mysql' : 'postgresql');
 
         // Use reflection to inject mock driver and call connect
-        $reflection = new ReflectionClass($this->connection);
+        $reflection = new ReflectionClass($connection);
         $driverProperty = $reflection->getProperty('driver');
         $driverProperty->setAccessible(true);
-        $driverProperty->setValue($this->connection, $this->mockDriver);
+        $driverProperty->setValue($connection, $this->mockDriver);
 
         $connectMethod = $reflection->getMethod('connect');
         $connectMethod->setAccessible(true);
-        $connectMethod->invoke($this->connection);
+        $connectMethod->invoke($connection);
+
+        // Cleanup
+        if (!$isRealApp) {
+            unset($_ENV['database.host'], $_ENV['database.port'], $_ENV['database.name'], 
+                  $_ENV['database.user'], $_ENV['database.password'], $_ENV['database.charset'], 
+                  $_ENV['database.persistent']);
+        }
+    }
+
+    private function createMockAppClass(): void
+    {
+        $mockClassContent = <<<'PHP'
+<?php
+namespace BaseApi {
+    class App {
+        public static function config(string $key = '', mixed $default = null): mixed
+        {
+            // Return values based on key, checking $_ENV first
+            if ($key !== '' && isset($_ENV[$key])) {
+                $value = $_ENV[$key];
+                // Handle boolean conversion
+                if ($key === 'database.persistent' && is_string($value)) {
+                    return $value === 'true';
+                }
+                return $value;
+            }
+            
+            return match($key) {
+                'database.driver' => 'mysql',
+                'database.host' => '127.0.0.1',
+                'database.port' => 3306,
+                'database.name' => 'baseapi',
+                'database.user' => 'root',
+                'database.password' => '',
+                'database.charset' => 'utf8mb4',
+                'database.persistent' => false,
+                default => $default
+            };
+        }
+    }
+}
+PHP;
+
+        // Fix temp file leak: tempnam() creates a file, rename it to avoid leak
+        $tempFile = tempnam(sys_get_temp_dir(), 'mock_app_');
+        if ($tempFile === false) {
+            throw new Exception('Failed to create temporary file');
+        }
+
+        $phpTempFile = $tempFile . '.php';
+        if (!rename($tempFile, $phpTempFile)) {
+            @unlink($tempFile); // Clean up original if rename fails
+            throw new Exception('Failed to rename temporary file');
+        }
+        
+        if (file_put_contents($phpTempFile, $mockClassContent) === false) {
+            @unlink($phpTempFile);
+            throw new Exception('Failed to create mock App class file');
+        }
+
+        try {
+            require_once $phpTempFile;
+        } finally {
+            // Always clean up the temporary file
+            @unlink($phpTempFile);
+        }
     }
 }

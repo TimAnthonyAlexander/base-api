@@ -38,8 +38,9 @@ return [
     ],
 
     'database' => [
+        'driver' => 'mysql',
         'host' => '127.0.0.1',
-        'port' => 7878,
+        'port' => 3306,
         'name' => 'baseapi',
         'user' => 'root',
         'password' => '',
@@ -95,11 +96,11 @@ return [
     ],
 
     'openai' => [
-        'api_key' => $_ENV['OPENAI_API_KEY'] ?? '',
-        'default_model' => $_ENV['OPENAI_DEFAULT_MODEL'] ?? 'gpt-4.1-mini',
-        'temperature' => (float)($_ENV['OPENAI_TEMPERATURE'] ?? 1.0),
-        'max_output_tokens' => (int)($_ENV['OPENAI_MAX_TOKENS'] ?? 1000),
-        'timeout' => (int)($_ENV['OPENAI_TIMEOUT'] ?? 30),
-        'max_retries' => (int)($_ENV['OPENAI_MAX_RETRIES'] ?? 3),
+        'api_key' => '',
+        'default_model' => 'gpt-4.1-mini',
+        'temperature' => 1.0,
+        'max_output_tokens' => 1000,
+        'timeout' => 30,
+        'max_retries' => 3,
     ],
 ];
