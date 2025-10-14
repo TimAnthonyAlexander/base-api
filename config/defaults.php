@@ -5,6 +5,7 @@
 
 return [
     'app' => [
+        'name' => 'baseapi',
         'env' => 'local',
         'debug' => true,
         'url' => 'http://127.0.0.1:7879',
