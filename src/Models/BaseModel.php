@@ -612,13 +612,16 @@ abstract class BaseModel implements \JsonSerializable
                 if (!isset($instance->casts[$name])) {
                     $type = $property->getType();
                     if ($type instanceof \ReflectionNamedType) {
-                        $value = match ($type->getName()) {
-                            'int' => (int) $value,
-                            'float' => (float) $value,
-                            'bool' => (bool) $value,
-                            'string' => (string) $value,
-                            default => $value,
-                        };
+                        // Only cast non-null values, or if the type is not nullable
+                        if ($value !== null || !$type->allowsNull()) {
+                            $value = match ($type->getName()) {
+                                'int' => (int) $value,
+                                'float' => (float) $value,
+                                'bool' => (bool) $value,
+                                'string' => (string) $value,
+                                default => $value,
+                            };
+                        }
                     }
                 }
 
@@ -752,13 +755,13 @@ abstract class BaseModel implements \JsonSerializable
         foreach ($vars as $k => $v) {
             // Skip internals
             if ($this->isInternalKey($k)) continue;
-            
+
             // Skip relation objects
             if ($v instanceof self) continue;
-            
+
             // Skip relation arrays
             if (is_array($v) && $this->isRelationProperty($k)) continue;
-            
+
             // Include non-null values
             if ($v !== null) {
                 $snapshot[$k] = $v;
@@ -780,18 +783,18 @@ abstract class BaseModel implements \JsonSerializable
                 if ($this->isInternalKey($k)) continue;
                 if ($v instanceof self) continue;
                 if (is_array($v) && $this->isRelationProperty($k)) continue;
-                
+
                 if (array_key_exists($k, $this->__row) && $v !== $this->__row[$k]) {
                     return true;
                 }
             }
             return false;
         }
-        
+
         // Check specific property
-        return array_key_exists($property, $this->__row) && 
-               isset($this->$property) && 
-               $this->$property !== $this->__row[$property];
+        return array_key_exists($property, $this->__row) &&
+            isset($this->$property) &&
+            $this->$property !== $this->__row[$property];
     }
 
     /**
@@ -801,17 +804,17 @@ abstract class BaseModel implements \JsonSerializable
     {
         $dirty = [];
         $vars = get_object_vars($this);
-        
+
         foreach ($vars as $k => $v) {
             if ($this->isInternalKey($k)) continue;
             if ($v instanceof self) continue;
             if (is_array($v) && $this->isRelationProperty($k)) continue;
-            
+
             if (array_key_exists($k, $this->__row) && $v !== $this->__row[$k]) {
                 $dirty[] = $k;
             }
         }
-        
+
         return $dirty;
     }
 
@@ -883,7 +886,12 @@ abstract class BaseModel implements \JsonSerializable
             if ($this->isInternalKey($k)) continue;
             if ($k === 'id' || $k === 'created_at') continue;
             if ($v instanceof self) continue;
-            if ($v !== null) $data[$k] = $v;
+
+            // Include both non-null values AND null values for fields that exist in the snapshot
+            // This allows setting fields to NULL while avoiding uninitialized properties
+            if ($v !== null || array_key_exists($k, $this->__row)) {
+                $data[$k] = $v;
+            }
         }
 
         return $data;
