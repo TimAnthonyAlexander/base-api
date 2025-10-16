@@ -32,6 +32,12 @@ class MigrateApplyCommand implements Command
             // Check for --safe flag
             $safeMode = in_array('--safe', $args);
 
+            // Auto-confirm flags / CI detection
+            $autoYes = in_array('--yes', $args, true)
+                || in_array('-y', $args, true)
+                || getenv('CI') === 'true'
+                || getenv('GITHUB_ACTIONS') === 'true';
+
             // Get file paths
             $migrationsFile = App::config()->get('MIGRATIONS_FILE', 'storage/migrations.json');
             $executedMigrationsFile = App::config()->get('EXECUTED_MIGRATIONS_FILE', 'storage/executed-migrations.json');
@@ -77,8 +83,8 @@ class MigrateApplyCommand implements Command
             // Show what will be executed
             $this->showExecutionPlan($migrationsToApply, $safeMode);
 
-            // Confirm execution
-            if (!$this->confirmExecution()) {
+            // Confirm execution (unless auto-confirmed)
+            if (!$autoYes && !$this->confirmExecution()) {
                 echo ColorHelper::comment("❌ Migration cancelled.") . "\n";
                 return 0;
             }
@@ -170,8 +176,9 @@ class MigrateApplyCommand implements Command
             $operationMigrations = $operationGroups[$operation];
             $operationDisplay = ucwords(str_replace('_', ' ', $operation));
 
-            echo ColorHelper::info(sprintf('📋 Processing: %s (%d migration%s)', 
-                $operationDisplay, 
+            echo ColorHelper::info(sprintf(
+                '📋 Processing: %s (%d migration%s)',
+                $operationDisplay,
                 count($operationMigrations),
                 count($operationMigrations) === 1 ? '' : 's'
             )) . "\n";
