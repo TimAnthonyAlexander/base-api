@@ -343,6 +343,10 @@ class OpenApiGenerator
             return $this->dtoSchemas[$className];
         }
 
+        if ($className === 'object') {
+            return ['type' => 'object'];
+        }
+
         if (!class_exists($className)) {
             throw new Exception('DTO class not found: ' . $className);
         }

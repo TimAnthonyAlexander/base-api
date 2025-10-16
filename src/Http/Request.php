@@ -26,6 +26,12 @@ class Request
     
     public ?string $authMethod = null;
 
+    /**
+     * API token model instance (if authenticated via API token)
+     * @var mixed
+     */
+    public mixed $apiToken = null;
+
     public string $requestId;
 
     public array $pathParams = [];
