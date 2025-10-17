@@ -457,23 +457,7 @@ REDIS_PASSWORD=your-redis-password
 REDIS_CACHE_DB=1
 
 # CORS (restrict to your domains)
-CORS_ALLOWLIST=https://yourdomain.com,https://app.yourdomain.com
-
-# Security
-SECRET_KEY=your-very-long-random-secret-key-here
-
-# Logging
-LOG_LEVEL=warning
-LOG_CHANNEL=file
-
-# Optional: External services
-MAIL_DRIVER=smtp
-MAIL_HOST=smtp.yourdomain.com
-MAIL_USERNAME=api@yourdomain.com
-MAIL_PASSWORD=your-mail-password
-
-# Optional: Monitoring
-SENTRY_DSN=your-sentry-dsn-here`}
+CORS_ALLOWLIST=https://yourdomain.com,https://app.yourdomain.com`}
                     />
 
                     <Callout type="warning" title="Security Best Practices">
