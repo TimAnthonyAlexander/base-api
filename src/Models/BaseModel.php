@@ -870,7 +870,10 @@ abstract class BaseModel implements \JsonSerializable
             if ($this->isInternalKey($k)) continue;
             if ($k === 'created_at' || $k === 'updated_at') continue;
             if ($v instanceof self) continue;
-            if ($v !== null) $data[$k] = $v;
+            if ($v !== null) {
+                // Convert boolean to int for database compatibility
+                $data[$k] = is_bool($v) ? ($v ? 1 : 0) : $v;
+            }
         }
 
         return $data;
@@ -890,7 +893,8 @@ abstract class BaseModel implements \JsonSerializable
             // Include both non-null values AND null values for fields that exist in the snapshot
             // This allows setting fields to NULL while avoiding uninitialized properties
             if ($v !== null || array_key_exists($k, $this->__row)) {
-                $data[$k] = $v;
+                // Convert boolean to int for database compatibility
+                $data[$k] = is_bool($v) ? ($v ? 1 : 0) : $v;
             }
         }
 
