@@ -469,7 +469,13 @@ class MySqlDriver implements DatabaseDriverInterface
             } elseif ($column->default === 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
             } else {
-                $sql .= sprintf(" DEFAULT '%s'", $column->default);
+                // Normalize boolean values to string representation
+                $defaultValue = $column->default;
+                if (is_bool($defaultValue)) {
+                    $defaultValue = $defaultValue ? '1' : '0';
+                }
+
+                $sql .= sprintf(" DEFAULT '%s'", $defaultValue);
             }
         }
         

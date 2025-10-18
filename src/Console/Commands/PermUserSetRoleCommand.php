@@ -101,3 +101,4 @@ class PermUserSetRoleCommand implements Command
     }
 }
 
+

@@ -481,7 +481,13 @@ class PostgreSqlDriver implements DatabaseDriverInterface
                 // Handle SERIAL/BIGSERIAL defaults
                 $sql .= ' DEFAULT ' . $column->default;
             } else {
-                $sql .= sprintf(" DEFAULT '%s'", $column->default);
+                // Normalize boolean values to string representation
+                $defaultValue = $column->default;
+                if (is_bool($defaultValue)) {
+                    $defaultValue = $defaultValue ? '1' : '0';
+                }
+
+                $sql .= sprintf(" DEFAULT '%s'", $defaultValue);
             }
         }
         

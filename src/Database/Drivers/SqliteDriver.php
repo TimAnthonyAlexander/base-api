@@ -482,7 +482,13 @@ class SqliteDriver implements DatabaseDriverInterface
                 // SQLite doesn't support ON UPDATE, just use CURRENT_TIMESTAMP
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } else {
-                $sql .= sprintf(" DEFAULT '%s'", $column->default);
+                // Normalize boolean values to string representation
+                $defaultValue = $column->default;
+                if (is_bool($defaultValue)) {
+                    $defaultValue = $defaultValue ? '1' : '0';
+                }
+
+                $sql .= sprintf(" DEFAULT '%s'", $defaultValue);
             }
         }
         

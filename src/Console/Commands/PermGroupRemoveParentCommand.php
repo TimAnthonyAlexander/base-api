@@ -53,3 +53,4 @@ class PermGroupRemoveParentCommand implements Command
     }
 }
 
+

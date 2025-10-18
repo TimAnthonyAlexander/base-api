@@ -28,7 +28,6 @@ class Request
 
     /**
      * API token model instance (if authenticated via API token)
-     * @var mixed
      */
     public mixed $apiToken = null;
 

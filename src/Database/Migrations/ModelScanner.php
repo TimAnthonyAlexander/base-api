@@ -461,7 +461,13 @@ class ModelScanner
             }
 
             if (isset($override['default'])) {
-                $column->default = $override['default'];
+                // Normalize boolean defaults to string representation for SQL
+                $defaultValue = $override['default'];
+                if (is_bool($defaultValue)) {
+                    $column->default = $defaultValue ? '1' : '0';
+                } else {
+                    $column->default = $defaultValue;
+                }
             }
         }
     }

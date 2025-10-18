@@ -53,3 +53,4 @@ class PermGroupSetWeightCommand implements Command
     }
 }
 
+
