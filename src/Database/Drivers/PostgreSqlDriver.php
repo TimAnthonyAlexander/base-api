@@ -486,8 +486,13 @@ class PostgreSqlDriver implements DatabaseDriverInterface
                 if (is_bool($defaultValue)) {
                     $defaultValue = $defaultValue ? '1' : '0';
                 }
-
-                $sql .= sprintf(" DEFAULT '%s'", $defaultValue);
+                
+                // Don't quote numeric defaults
+                if (is_numeric($defaultValue)) {
+                    $sql .= sprintf(" DEFAULT %s", $defaultValue);
+                } else {
+                    $sql .= sprintf(" DEFAULT '%s'", $defaultValue);
+                }
             }
         }
         
