@@ -180,6 +180,7 @@ class DiffEngine
             if (is_string($index->column)) {
                 $columnDef = $modelTable->columns[$index->column] ?? null;
             }
+
             $plan->addOperation('add_index', [
                 'table' => $modelTable->name,
                 'index' => $index->toArray(),
@@ -200,12 +201,13 @@ class DiffEngine
                     'index' => $indexName,
                     'destructive' => false
                 ]);
-                
+
                 // Include column type information for proper index generation (single column only)
                 $columnDef = null;
                 if (is_string($modelIndex->column)) {
                     $columnDef = $modelTable->columns[$modelIndex->column] ?? null;
                 }
+
                 $plan->addOperation('add_index', [
                     'table' => $modelTable->name,
                     'index' => $modelIndex->toArray(),
@@ -341,9 +343,11 @@ class DiffEngine
         if (count($modelColumns) !== count($dbColumns)) {
             return true;
         }
+        // Compare columns (order matters for index optimization)
+        $counter = count($modelColumns);
         
         // Compare columns (order matters for index optimization)
-        for ($i = 0; $i < count($modelColumns); $i++) {
+        for ($i = 0; $i < $counter; $i++) {
             if ($modelColumns[$i] !== $dbColumns[$i]) {
                 return true;
             }
