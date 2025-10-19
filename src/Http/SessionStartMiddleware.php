@@ -10,11 +10,13 @@ class SessionStartMiddleware implements Middleware
     #[Override]
     public function handle(Request $req, callable $next): Response
     {
+        // Start a writable session
+        // Note: If SessionStartAndReadMiddleware ran first, the session will be
+        // in NONE status again after read_and_close, so this will start a new writable session
         if (session_status() === PHP_SESSION_NONE) {
             $this->configureSession();
             session_start();
         }
-
 
         // Attach session to request (will be updated by reference in controller if needed)
         $req->session = $_SESSION;
