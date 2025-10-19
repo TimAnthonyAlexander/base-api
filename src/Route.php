@@ -8,8 +8,12 @@ class Route
 
     private array $paramNames;
 
-    public function __construct(private readonly string $method, private readonly string $path, private array $pipeline)
-    {
+    public function __construct(
+        private readonly string $method,
+        private readonly string $path,
+        private array $pipeline,
+        private readonly bool $needsSession = false
+    ) {
         $this->compileRoute();
     }
 
@@ -31,6 +35,11 @@ class Route
     public function controllerClass(): string
     {
         return end($this->pipeline);
+    }
+
+    public function needsSession(): bool
+    {
+        return $this->needsSession;
     }
 
     public function match(string $path): ?array

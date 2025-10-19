@@ -35,9 +35,9 @@ class AuthMiddleware implements Middleware
             return JsonResponse::error('Unauthorized', 401);
         }
 
-        // Attach user to request for controller access
+        // Attach user and auth method to request for controller access
         $request->user = $user;
-
+        $request->authMethod = 'session';
 
         return $next($request);
     }

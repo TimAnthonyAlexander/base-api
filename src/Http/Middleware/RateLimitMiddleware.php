@@ -130,11 +130,25 @@ class RateLimitMiddleware implements Middleware, OptionedMiddleware
 
     private function getRateLimitKey(Request $request): string
     {
-        // Use session user_id if available, otherwise client IP
+        // Priority: API token ID > Session user ID > Client IP
+        
+        // 1. Prefer API token if present (most specific identity)
+        if ($request->authMethod !== null && $request->authMethod === 'api_token' && $request->apiToken !== null) {
+            $tokenId = is_object($request->apiToken) && isset($request->apiToken->id) 
+                ? $request->apiToken->id 
+                : (is_array($request->apiToken) && isset($request->apiToken['id']) ? $request->apiToken['id'] : null);
+            
+            if ($tokenId !== null) {
+                return 'token:' . $tokenId;
+            }
+        }
+        
+        // 2. Fall back to session user_id if available
         if (!empty($_SESSION['user_id'])) {
             return 'user:' . $_SESSION['user_id'];
         }
 
+        // 3. Fall back to client IP
         $trustProxy = App::config('rate_limit.trust_proxy', false);
         $ip = ClientIp::from($request, $trustProxy);
 

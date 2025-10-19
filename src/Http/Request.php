@@ -43,6 +43,8 @@ class Request
 
     public ?float $startTime = null;
 
+    public bool $needsSession = false;
+
     public function __construct(
         string $method,
         string $path,

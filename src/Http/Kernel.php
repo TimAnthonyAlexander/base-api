@@ -191,6 +191,7 @@ class Kernel
                 if ($route instanceof Route) {
                     $request->routePattern = $route->path();
                     $request->routeMethod = $route->method();
+                    $request->needsSession = $route->needsSession();
                 }
 
                 // Check if this is the controller (last in pipeline)
@@ -241,6 +242,8 @@ class Kernel
             return JsonResponse::notFound();
         }
 
+        $sessionWasActive = session_status() === PHP_SESSION_ACTIVE;
+        
         try {
             // Instantiate controller using container
             if (!$this->container instanceof ContainerInterface) {
@@ -253,10 +256,19 @@ class Kernel
             $this->getBinder()->bind($controller, $request, $pathParams);
 
             // Invoke the controller method
-            return $this->getInvoker()->invoke($controller, $request);
+            $response = $this->getInvoker()->invoke($controller, $request);
+            
+            return $response;
         } catch (ValidationException $validationException) {
             // Return 400 with validation errors
             return JsonResponse::badRequest('Validation failed.', $validationException->errors());
+        } finally {
+            // CRITICAL: Release session lock after controller execution
+            // This prevents head-of-line blocking under concurrent requests
+            // Even if an exception occurred, we must release the lock
+            if ($sessionWasActive && session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
         }
     }
 

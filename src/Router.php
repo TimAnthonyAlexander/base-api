@@ -34,39 +34,39 @@ class Router
 
     private const int CONSTRAINT_REGEX = 3;
 
-    public function get(string $path, array $pipeline): void
+    public function get(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('GET', $path, $pipeline);
+        $this->addRoute('GET', $path, $pipeline, $needsSession);
     }
 
-    public function post(string $path, array $pipeline): void
+    public function post(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('POST', $path, $pipeline);
+        $this->addRoute('POST', $path, $pipeline, $needsSession);
     }
 
-    public function delete(string $path, array $pipeline): void
+    public function delete(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('DELETE', $path, $pipeline);
+        $this->addRoute('DELETE', $path, $pipeline, $needsSession);
     }
 
-    public function put(string $path, array $pipeline): void
+    public function put(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('PUT', $path, $pipeline);
+        $this->addRoute('PUT', $path, $pipeline, $needsSession);
     }
 
-    public function patch(string $path, array $pipeline): void
+    public function patch(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('PATCH', $path, $pipeline);
+        $this->addRoute('PATCH', $path, $pipeline, $needsSession);
     }
 
-    public function options(string $path, array $pipeline): void
+    public function options(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('OPTIONS', $path, $pipeline);
+        $this->addRoute('OPTIONS', $path, $pipeline, $needsSession);
     }
 
-    public function head(string $path, array $pipeline): void
+    public function head(string $path, array $pipeline, bool $needsSession = false): void
     {
-        $this->addRoute('HEAD', $path, $pipeline);
+        $this->addRoute('HEAD', $path, $pipeline, $needsSession);
     }
 
     public function match(string $method, string $path): ?array
@@ -147,13 +147,13 @@ class Router
         return $this->routes;
     }
 
-    private function addRoute(string $method, string $path, array $pipeline): void
+    private function addRoute(string $method, string $path, array $pipeline, bool $needsSession = false): void
     {
         if (!isset($this->routes[$method])) {
             $this->routes[$method] = [];
         }
 
-        $this->routes[$method][] = new Route($method, $path, $pipeline);
+        $this->routes[$method][] = new Route($method, $path, $pipeline, $needsSession);
 
         // Invalidate compiled cache when routes change
         $this->compiled = null;
@@ -504,7 +504,8 @@ class Router
     {
         // Reconstruct pipeline from route data
         $pipeline = array_merge($routeData['middlewares'], [$routeData['controller']]);
+        $needsSession = $routeData['needsSession'] ?? false;
 
-        return new Route($routeData['method'], $routeData['path'], $pipeline);
+        return new Route($routeData['method'], $routeData['path'], $pipeline, $needsSession);
     }
 }
