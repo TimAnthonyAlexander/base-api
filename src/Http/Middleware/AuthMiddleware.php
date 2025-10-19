@@ -30,8 +30,9 @@ class AuthMiddleware implements Middleware
 
 
         if ($user === null) {
-            // User ID in session but user doesn't exist - clear invalid session
-            unset($_SESSION['user_id']);
+            // User ID in session but user doesn't exist
+            // Note: We don't unset the session here since we use read-only sessions
+            // The invalid session will be cleared on next login/logout
             return JsonResponse::error('Unauthorized', 401);
         }
 
