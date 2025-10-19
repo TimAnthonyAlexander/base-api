@@ -175,8 +175,11 @@ class DiffEngine
         // Add new indexes
         foreach ($indexesToAdd as $indexName) {
             $index = $modelTable->indexes[$indexName];
-            // Include column type information for proper index generation
-            $columnDef = $modelTable->columns[$index->column] ?? null;
+            // Include column type information for proper index generation (single column only)
+            $columnDef = null;
+            if (is_string($index->column)) {
+                $columnDef = $modelTable->columns[$index->column] ?? null;
+            }
             $plan->addOperation('add_index', [
                 'table' => $modelTable->name,
                 'index' => $index->toArray(),
@@ -198,8 +201,11 @@ class DiffEngine
                     'destructive' => false
                 ]);
                 
-                // Include column type information for proper index generation
-                $columnDef = $modelTable->columns[$modelIndex->column] ?? null;
+                // Include column type information for proper index generation (single column only)
+                $columnDef = null;
+                if (is_string($modelIndex->column)) {
+                    $columnDef = $modelTable->columns[$modelIndex->column] ?? null;
+                }
                 $plan->addOperation('add_index', [
                     'table' => $modelTable->name,
                     'index' => $modelIndex->toArray(),
@@ -326,26 +332,23 @@ class DiffEngine
         if ($modelIndex->type !== $dbIndex->type) {
             return true;
         }
-
+        
         // Normalize both to arrays for comparison
         $modelColumns = $modelIndex->getColumns();
         $dbColumns = $dbIndex->getColumns();
-
+        
         // Compare column count
         if (count($modelColumns) !== count($dbColumns)) {
             return true;
         }
-
+        
         // Compare columns (order matters for index optimization)
-        $counter = count($modelColumns);
-
-        // Compare columns (order matters for index optimization)
-        for ($i = 0; $i < $counter; $i++) {
+        for ($i = 0; $i < count($modelColumns); $i++) {
             if ($modelColumns[$i] !== $dbColumns[$i]) {
                 return true;
             }
         }
-
+        
         return false;
     }
 
