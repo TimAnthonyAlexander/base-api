@@ -76,7 +76,7 @@ class CoreServiceProvider extends ServiceProvider
             $kernel->addGlobal(\BaseApi\Http\ErrorHandler::class);
             $kernel->addGlobal(\BaseApi\Http\JsonBodyParserMiddleware::class);
             $kernel->addGlobal(\BaseApi\Http\FormBodyParserMiddleware::class);
-            $kernel->addGlobal(\BaseApi\Http\SessionStartMiddleware::class);
+            $kernel->addGlobal(\BaseApi\Http\SessionStartAndReadMiddleware::class);
 
             return $kernel;
         });
