@@ -24,8 +24,6 @@ class SessionStartMiddleware implements Middleware
             }
         }
 
-        // CRITICAL FIX: Attach session BY REFERENCE so writes persist to $_SESSION
-        // This fixes CSRF token persistence and other session writes
         $req->session = &$_SESSION;
 
         return $next($req);
@@ -105,27 +103,26 @@ class SessionStartMiddleware implements Middleware
         // Session name and cookie settings
         ini_set('session.name', $config->get('SESSION_NAME', 'BASEAPISESSID'));
         ini_set('session.cookie_httponly', '1');
-        
+
         // Validate SameSite=None requires Secure
         $sameSite = $config->get('SESSION_SAMESITE', 'Lax');
         $secure = $config->bool('SESSION_SECURE', false);
-        
+
         if ($sameSite === 'None' && !$secure) {
             throw new RuntimeException('SESSION_SAMESITE=None requires SESSION_SECURE=true. This combination is invalid and refused for security.');
         }
-        
+
         ini_set('session.cookie_secure', $secure ? '1' : '0');
         ini_set('session.cookie_samesite', $sameSite);
-        
+
         // Security settings
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
-        ini_set('session.sid_length', '48'); // High entropy
-        
+
         // Lifetime
         $lifetime = $config->int('SESSION_LIFETIME', 0); // 0 = session cookie
         ini_set('session.cookie_lifetime', (string) $lifetime);
-        
+
         // Cookie domain (optional, for cross-subdomain)
         $domain = $config->get('SESSION_COOKIE_DOMAIN', null);
         if ($domain !== null) {
@@ -133,4 +130,3 @@ class SessionStartMiddleware implements Middleware
         }
     }
 }
-
