@@ -389,9 +389,9 @@ class SqliteMigrationTest extends TestCase
         $statements = $driver->generateSql($plan);
         $this->assertCount(3, $statements);
         
-        // Test REAL column gets 0.0 default
+        // Test REAL column gets 0.0 default (unquoted for numeric types)
         $discountSql = $statements[0]['sql'];
-        $this->assertStringContainsString('ALTER TABLE "offers" ADD COLUMN "discount" REAL NOT NULL DEFAULT \'0.0\'', $discountSql);
+        $this->assertStringContainsString('ALTER TABLE "offers" ADD COLUMN "discount" REAL NOT NULL DEFAULT 0.0', $discountSql);
         $this->assertStringContainsString("Auto-generated default value '0.0'", $statements[0]['warning']);
         
         // Test TEXT column gets empty string default
@@ -399,9 +399,9 @@ class SqliteMigrationTest extends TestCase
         $this->assertStringContainsString('ALTER TABLE "offers" ADD COLUMN "category" TEXT NOT NULL DEFAULT \'\'', $categorySql);
         $this->assertStringContainsString("Auto-generated default value ''", $statements[1]['warning']);
         
-        // Test INTEGER column gets 0 default
+        // Test INTEGER column gets 0 default (unquoted for numeric types)
         $prioritySql = $statements[2]['sql'];
-        $this->assertStringContainsString('ALTER TABLE "offers" ADD COLUMN "priority" INTEGER NOT NULL DEFAULT \'0\'', $prioritySql);
+        $this->assertStringContainsString('ALTER TABLE "offers" ADD COLUMN "priority" INTEGER NOT NULL DEFAULT 0', $prioritySql);
         $this->assertStringContainsString("Auto-generated default value '0'", $statements[2]['warning']);
     }
     

@@ -53,8 +53,9 @@ class User extends BaseModel
     
     // Optional: Define indexes (used by migrations)
     public static array $indexes = [
-        'email' => 'unique',
-        'active' => 'index',
+        'email' => 'unique',                           // Single column unique index
+        'active' => 'index',                           // Single column index
+        ['workspace_id', 'email', 'type' => 'unique'], // Composite unique constraint
     ];
     
     // Helper method

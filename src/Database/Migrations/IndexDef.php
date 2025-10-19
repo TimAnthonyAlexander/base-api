@@ -6,7 +6,7 @@ class IndexDef
 {
     public function __construct(
         public string $name,
-        public string $column,
+        public string|array $column,
         public string $type = 'index' // 'index' or 'unique'
     ) {}
 
@@ -26,5 +26,14 @@ class IndexDef
             $data['column'],
             $data['type'] ?? 'index'
         );
+    }
+
+    /**
+     * Get columns as array (normalizes both string and array to array)
+     * @return array<string>
+     */
+    public function getColumns(): array
+    {
+        return is_array($this->column) ? $this->column : [$this->column];
     }
 }

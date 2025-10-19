@@ -404,9 +404,36 @@ class ModelScanner
             return;
         }
 
-        foreach ($indexes as $column => $type) {
-            $indexName = ($type === 'unique' ? 'uniq_' : 'idx_') . $table->name . '_' . $column;
-            $table->indexes[$indexName] = new IndexDef($indexName, $column, $type);
+        foreach ($indexes as $key => $value) {
+            // Determine if this is a composite or single-column index
+            // Format 1: 'column_name' => 'type' (single column, existing syntax)
+            // Format 2: ['col1', 'col2'] (numeric key, array value with columns and inferred type 'index')
+            // Format 3: ['col1', 'col2', 'type' => 'unique'] (numeric key, array with type specified)
+            
+            if (is_string($key)) {
+                // Single column index: 'column' => 'type'
+                $indexName = ($value === 'unique' ? 'uniq_' : 'idx_') . $table->name . '_' . $key;
+                $table->indexes[$indexName] = new IndexDef($indexName, $key, $value);
+            } elseif (is_array($value)) {
+                // Composite index: numeric key with array value
+                // Extract type if specified, otherwise default to 'index'
+                $type = 'index';
+                $columns = [];
+                
+                foreach ($value as $k => $v) {
+                    if ($k === 'type') {
+                        $type = $v;
+                    } elseif (is_int($k)) {
+                        $columns[] = $v;
+                    }
+                }
+                
+                if ($columns !== []) {
+                    $columnSuffix = implode('_', $columns);
+                    $indexName = ($type === 'unique' ? 'uniq_' : 'idx_') . $table->name . '_' . $columnSuffix;
+                    $table->indexes[$indexName] = new IndexDef($indexName, $columns, $type);
+                }
+            }
         }
     }
 

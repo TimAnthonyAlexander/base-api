@@ -322,8 +322,31 @@ class DiffEngine
 
     private function indexesDiffer(IndexDef $modelIndex, IndexDef $dbIndex): bool
     {
-        return $modelIndex->column !== $dbIndex->column ||
-               $modelIndex->type !== $dbIndex->type;
+        // Compare types first
+        if ($modelIndex->type !== $dbIndex->type) {
+            return true;
+        }
+
+        // Normalize both to arrays for comparison
+        $modelColumns = $modelIndex->getColumns();
+        $dbColumns = $dbIndex->getColumns();
+
+        // Compare column count
+        if (count($modelColumns) !== count($dbColumns)) {
+            return true;
+        }
+
+        // Compare columns (order matters for index optimization)
+        $counter = count($modelColumns);
+
+        // Compare columns (order matters for index optimization)
+        for ($i = 0; $i < $counter; $i++) {
+            if ($modelColumns[$i] !== $dbColumns[$i]) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function foreignKeysDiffer(ForeignKeyDef $modelFk, ForeignKeyDef $dbFk): bool

@@ -325,12 +325,95 @@ class User extends BaseModel
         'bio' => ['type' => 'TEXT', 'null' => true],
     ];
     
-    // Indexes
+    // Indexes (single column)
     public static array $indexes = [
         'email' => 'unique',
         'name' => 'index',
     ];
 }`} />
+
+            <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
+                Composite Indexes
+            </Typography>
+
+            <Typography>
+                For queries that filter on multiple columns, composite indexes can significantly improve performance.
+                Use array syntax to define multi-column indexes:
+            </Typography>
+
+            <CodeBlock language="php" code={`<?php
+
+class Task extends BaseModel
+{
+    public string $project_id = '';
+    public string $status = 'backlog';
+    public string $priority = 'medium';
+    public ?string $assignee_user_id = null;
+    public ?string $rank = null;
+    
+    public static array $indexes = [
+        // Single column indexes
+        'project_id' => 'index',
+        'status' => 'index',
+        
+        // Composite indexes for common query patterns
+        ['project_id', 'status'],                      // Board queries (defaults to 'index')
+        ['project_id', 'status', 'rank'],              // Ordered board columns
+        ['assignee_user_id', 'status'],                // User task lists
+        
+        // Composite unique constraint (explicit type)
+        ['project_id', 'external_id', 'type' => 'unique'],
+    ];
+}`} />
+
+            <Alert severity="info" sx={{ my: 3 }}>
+                <strong>Composite Index Syntax:</strong> Use array notation for composite indexes. By default, they create 
+                a regular index. To create a unique composite index, add <code>'type' =&gt; 'unique'</code> to the array:
+                <br />• <code>['col1', 'col2']</code> creates a regular composite index
+                <br />• <code>['col1', 'col2', 'type' =&gt; 'unique']</code> creates a unique composite index
+            </Alert>
+
+            <Alert severity="warning" sx={{ my: 2 }}>
+                <strong>Index Column Order Matters:</strong> Place the most selective columns first and columns
+                used in WHERE clauses before those only in ORDER BY. For example, <code>['project_id', 'status']</code>
+                works great for queries filtering on project_id (or both), but won't help queries filtering only on status.
+            </Alert>
+
+            <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
+                Common Composite Index Patterns
+            </Typography>
+
+            <List>
+                <ListItem>
+                    <ListItemText
+                        primary="Tenant + Status/Type"
+                        secondary="['workspace_id', 'status'] - Perfect for multi-tenant queries filtering by tenant and status"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Foreign Key + Timestamp"
+                        secondary="['channel_id', 'created_at'] - Chronological queries scoped to a parent (messages, activity logs)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Covering Indexes"
+                        secondary="['user_id', 'read_at', 'created_at'] - Include all columns needed by query (no table lookup required)"
+                    />
+                </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="Unique Constraints"
+                        secondary="['workspace_id', 'user_id'] - Enforce one membership per user per workspace"
+                    />
+                </ListItem>
+            </List>
+
+            <Alert severity="warning" sx={{ mt: 2 }}>
+                <strong>Index Overhead:</strong> While composite indexes improve read performance, they add overhead
+                to write operations and storage. Only create indexes for actual query patterns, not speculatively.
+            </Alert>
 
             <Typography variant="h2" gutterBottom sx={{ mt: 4 }}>
                 PHP Type to Database Column Mapping

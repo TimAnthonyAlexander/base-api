@@ -133,7 +133,8 @@ class MySqlDriver implements DatabaseDriverInterface
         ");
         $stmt->execute([$dbName, $tableName]);
 
-        $indexes = [];
+        // Group columns by index name for composite index support
+        $indexData = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Skip indexes that are auto-created for foreign keys
             // MySQL creates an index with the same name as the FK constraint
@@ -141,10 +142,27 @@ class MySqlDriver implements DatabaseDriverInterface
                 continue;
             }
 
-            $indexes[$row['INDEX_NAME']] = new IndexDef(
-                name: $row['INDEX_NAME'],
-                column: $row['COLUMN_NAME'],
-                type: $row['NON_UNIQUE'] ? 'index' : 'unique'
+            $indexName = $row['INDEX_NAME'];
+            if (!isset($indexData[$indexName])) {
+                $indexData[$indexName] = [
+                    'columns' => [],
+                    'type' => $row['NON_UNIQUE'] ? 'index' : 'unique'
+                ];
+            }
+
+            $indexData[$indexName]['columns'][] = $row['COLUMN_NAME'];
+        }
+
+        // Create IndexDef objects
+        $indexes = [];
+        foreach ($indexData as $indexName => $data) {
+            $columns = $data['columns'];
+            // Single column or composite based on array length
+            $columnSpec = count($columns) === 1 ? $columns[0] : $columns;
+            $indexes[$indexName] = new IndexDef(
+                name: $indexName,
+                column: $columnSpec,
+                type: $data['type']
             );
         }
 
@@ -324,16 +342,23 @@ class MySqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $index = IndexDef::fromArray($op['index']);
         $columnType = $op['column_type'] ?? null;
-        
-        // MySQL requires a key length for TEXT/BLOB columns
-        $columnSpec = $this->getIndexColumnSpec($index->column, $columnType);
-        
+
+        // Handle both single column and composite indexes
+        $columns = $index->getColumns();
+        $columnSpecs = [];
+        foreach ($columns as $columnName) {
+            // MySQL requires a key length for TEXT/BLOB columns
+            $columnSpecs[] = $this->getIndexColumnSpec($columnName, $columnType);
+        }
+
+        $columnSpec = implode(', ', $columnSpecs);
+
         if ($index->type === 'unique') {
             $sql = sprintf('ALTER TABLE `%s` ADD UNIQUE KEY `%s` (%s)', $tableName, $index->name, $columnSpec);
         } else {
             $sql = sprintf('ALTER TABLE `%s` ADD INDEX `%s` (%s)', $tableName, $index->name, $columnSpec);
         }
-        
+
         return [
             'sql' => $sql,
             'description' => sprintf('Add %s index %s to %s', $index->type, $index->name, $tableName),
@@ -469,13 +494,8 @@ class MySqlDriver implements DatabaseDriverInterface
             } elseif ($column->default === 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
             } else {
-                // Normalize boolean values to string representation
+                // Don't quote numeric defaults (boolean values are already normalized to '0'/'1' strings)
                 $defaultValue = $column->default;
-                if (is_bool($defaultValue)) {
-                    $defaultValue = $defaultValue ? '1' : '0';
-                }
-                
-                // Don't quote numeric defaults
                 if (is_numeric($defaultValue)) {
                     $sql .= sprintf(" DEFAULT %s", $defaultValue);
                 } else {

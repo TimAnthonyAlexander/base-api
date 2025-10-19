@@ -145,11 +145,13 @@ class PostgreSqlDriver implements DatabaseDriverInterface
             SELECT 
                 i.indexname as index_name,
                 a.attname as column_name,
+                a.attnum,
                 i.indexdef,
                 CASE 
                     WHEN i.indexdef LIKE '%UNIQUE%' THEN true 
                     ELSE false 
-                END as is_unique
+                END as is_unique,
+                idx.indkey
             FROM pg_indexes i
             JOIN pg_class c ON c.relname = i.tablename
             JOIN pg_index idx ON idx.indexrelid = (
@@ -159,16 +161,34 @@ class PostgreSqlDriver implements DatabaseDriverInterface
             WHERE i.schemaname = 'public' 
             AND i.tablename = ?
             AND i.indexname NOT LIKE '%_pkey'
-            ORDER BY i.indexname
+            ORDER BY i.indexname, a.attnum
         ");
         $stmt->execute([$tableName]);
         
-        $indexes = [];
+        // Group columns by index name for composite index support
+        $indexData = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $indexes[$row['index_name']] = new IndexDef(
-                name: $row['index_name'],
-                column: $row['column_name'],
-                type: $row['is_unique'] ? 'unique' : 'index'
+            $indexName = $row['index_name'];
+            if (!isset($indexData[$indexName])) {
+                $indexData[$indexName] = [
+                    'columns' => [],
+                    'type' => $row['is_unique'] ? 'unique' : 'index'
+                ];
+            }
+
+            $indexData[$indexName]['columns'][] = $row['column_name'];
+        }
+        
+        // Create IndexDef objects
+        $indexes = [];
+        foreach ($indexData as $indexName => $data) {
+            $columns = $data['columns'];
+            // Single column or composite based on array length
+            $columnSpec = count($columns) === 1 ? $columns[0] : $columns;
+            $indexes[$indexName] = new IndexDef(
+                name: $indexName,
+                column: $columnSpec,
+                type: $data['type']
             );
         }
         
@@ -376,10 +396,14 @@ class PostgreSqlDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $index = IndexDef::fromArray($op['index']);
         
+        // Handle both single column and composite indexes
+        $columns = $index->getColumns();
+        $columnList = implode('", "', $columns);
+        
         if ($index->type === 'unique') {
-            $sql = sprintf('CREATE UNIQUE INDEX "%s" ON "%s" ("%s")', $index->name, $tableName, $index->column);
+            $sql = sprintf('CREATE UNIQUE INDEX "%s" ON "%s" ("%s")', $index->name, $tableName, $columnList);
         } else {
-            $sql = sprintf('CREATE INDEX "%s" ON "%s" ("%s")', $index->name, $tableName, $index->column);
+            $sql = sprintf('CREATE INDEX "%s" ON "%s" ("%s")', $index->name, $tableName, $columnList);
         }
         
         return [
@@ -481,13 +505,8 @@ class PostgreSqlDriver implements DatabaseDriverInterface
                 // Handle SERIAL/BIGSERIAL defaults
                 $sql .= ' DEFAULT ' . $column->default;
             } else {
-                // Normalize boolean values to string representation
+                // Don't quote numeric defaults (boolean values are already normalized to '0'/'1' strings)
                 $defaultValue = $column->default;
-                if (is_bool($defaultValue)) {
-                    $defaultValue = $defaultValue ? '1' : '0';
-                }
-                
-                // Don't quote numeric defaults
                 if (is_numeric($defaultValue)) {
                     $sql .= sprintf(" DEFAULT %s", $defaultValue);
                 } else {

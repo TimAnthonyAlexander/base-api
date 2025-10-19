@@ -115,15 +115,21 @@ class SqliteDriver implements DatabaseDriverInterface
                 continue;
             }
             
-            // Get index info to find the column
+            // Get index info to find all columns (for composite index support)
             $infoStmt = $pdo->prepare(sprintf('PRAGMA index_info("%s")', $row['name']));
             $infoStmt->execute();
-            $info = $infoStmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($info) {
+            $columns = [];
+            while ($info = $infoStmt->fetch(PDO::FETCH_ASSOC)) {
+                $columns[] = $info['name'];
+            }
+            
+            if ($columns !== []) {
+                // Single column or composite based on array length
+                $columnSpec = count($columns) === 1 ? $columns[0] : $columns;
                 $indexes[$row['name']] = new IndexDef(
                     name: $row['name'],
-                    column: $info['name'],
+                    column: $columnSpec,
                     type: $row['unique'] ? 'unique' : 'index'
                 );
             }
@@ -356,8 +362,12 @@ class SqliteDriver implements DatabaseDriverInterface
         $tableName = $op['table'];
         $index = IndexDef::fromArray($op['index']);
         
+        // Handle both single column and composite indexes
+        $columns = $index->getColumns();
+        $columnList = implode('", "', $columns);
+        
         $unique = $index->type === 'unique' ? 'UNIQUE ' : '';
-        $sql = sprintf('CREATE %sINDEX "%s" ON "%s" ("%s")', $unique, $index->name, $tableName, $index->column);
+        $sql = sprintf('CREATE %sINDEX "%s" ON "%s" ("%s")', $unique, $index->name, $tableName, $columnList);
         
         return [
             'sql' => $sql,
@@ -482,13 +492,8 @@ class SqliteDriver implements DatabaseDriverInterface
                 // SQLite doesn't support ON UPDATE, just use CURRENT_TIMESTAMP
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
             } else {
-                // Normalize boolean values to string representation
+                // Don't quote numeric defaults (boolean values are already normalized to '0'/'1' strings)
                 $defaultValue = $column->default;
-                if (is_bool($defaultValue)) {
-                    $defaultValue = $defaultValue ? '1' : '0';
-                }
-                
-                // Don't quote numeric defaults
                 if (is_numeric($defaultValue)) {
                     $sql .= sprintf(" DEFAULT %s", $defaultValue);
                 } else {
