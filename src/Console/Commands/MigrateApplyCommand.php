@@ -202,7 +202,7 @@ class MigrateApplyCommand implements Command
                 $table = $migration['table'] ?? 'unknown';
                 
                 // Log how many migrations were successfully executed before the failure
-                if (count($executedIds) > 0) {
+                if ($executedIds !== []) {
                     echo ColorHelper::warning(sprintf("\n⚠️  %d migration(s) were successfully executed before failure.", count($executedIds))) . "\n";
                     echo ColorHelper::info("✓ These have been recorded and will not be re-executed.") . "\n";
                 }
