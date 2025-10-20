@@ -89,11 +89,8 @@ class MigrateApplyCommand implements Command
                 return 0;
             }
 
-            // Execute migrations
-            $executedIds = $this->executeMigrations($migrationsToApply);
-
-            // Update executed migrations file
-            ExecutedMigrationsFile::addMultipleExecuted($executedPath, $executedIds);
+            // Execute migrations (now saves each migration immediately after execution)
+            $executedIds = $this->executeMigrations($migrationsToApply, $executedPath);
 
             echo "\n" . ColorHelper::success("Migrations completed successfully!") . "\n";
             echo ColorHelper::info("Executed " . count($executedIds) . " migration(s).") . "\n";
@@ -139,7 +136,7 @@ class MigrateApplyCommand implements Command
         return strtolower(trim($line)) === 'y';
     }
 
-    private function executeMigrations(array $migrations): array
+    private function executeMigrations(array $migrations, string $executedPath): array
     {
         $pdo = App::db()->getConnection()->pdo();
         $executedIds = [];
@@ -192,6 +189,9 @@ class MigrateApplyCommand implements Command
 
                     // Execute DDL statements individually (they cause implicit commits in MySQL)
                     $pdo->exec($migration['sql']);
+                    
+                    // Immediately record this migration as executed to prevent re-execution on failure
+                    ExecutedMigrationsFile::addExecuted($executedPath, $migration['id']);
                     $executedIds[] = $migration['id'];
                 }
 
@@ -200,6 +200,13 @@ class MigrateApplyCommand implements Command
                 // Convert PDO error code to int since Exception constructor expects int
                 $code = is_numeric($e->getCode()) ? (int)$e->getCode() : 0;
                 $table = $migration['table'] ?? 'unknown';
+                
+                // Log how many migrations were successfully executed before the failure
+                if (count($executedIds) > 0) {
+                    echo ColorHelper::warning(sprintf("\n⚠️  %d migration(s) were successfully executed before failure.", count($executedIds))) . "\n";
+                    echo ColorHelper::info("✓ These have been recorded and will not be re-executed.") . "\n";
+                }
+                
                 throw new Exception(ColorHelper::error(sprintf('Failed to execute %s for table %s: ', $operation, $table)) . $e->getMessage(), $code, $e);
             }
         }
