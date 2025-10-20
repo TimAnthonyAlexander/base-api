@@ -78,8 +78,12 @@ class DiffEngine
         
         // Add indexes for the new table
         foreach ($table->indexes as $index) {
-            // Include column type information for proper index generation
-            $columnDef = $table->columns[$index->column] ?? null;
+            // Include column type information for proper index generation (single column only)
+            $columnDef = null;
+            if (is_string($index->column)) {
+                $columnDef = $table->columns[$index->column] ?? null;
+            }
+
             $plan->addOperation('add_index', [
                 'table' => $table->name,
                 'index' => $index->toArray(),
