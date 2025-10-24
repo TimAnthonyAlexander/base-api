@@ -177,6 +177,11 @@ abstract class BaseModel implements \JsonSerializable
         return static::whereConditions($conditions)->first();
     }
 
+    public static function count(): int
+    {
+        return static::query()->qb()->count();
+    }
+
     public static function countWhere(string $column, string $operator, mixed $value): int
     {
         return static::where($column, $operator, $value)->qb()->count();
