@@ -135,9 +135,11 @@ class StorageManager
             if (str_starts_with($relative, 'storage/')) {
                 $relative = substr($relative, strlen('storage/'));
             }
+
             if ($relative === '' || $relative === '0') {
                 $relative = 'app';
             }
+
             $root = storage_path($relative);
         }
 
@@ -153,10 +155,12 @@ class StorageManager
         if ($path === '') {
             return false;
         }
+
         // Unix absolute
         if ($path[0] === '/') {
             return true;
         }
+
         // Windows absolute like C:\ or C:/
         return strlen($path) >= 3
             && ctype_alpha($path[0])

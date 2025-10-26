@@ -201,16 +201,22 @@ class LocalDriver implements StorageInterface
         $parts = explode($ds, $path);
         $stack = [];
         foreach ($parts as $part) {
-            if ($part === '' || $part === '.') {
+            if ($part === '') {
                 continue;
             }
+            if ($part === '.') {
+                continue;
+            }
+
             if ($part === '..') {
-                if (!empty($stack)) {
+                if ($stack !== []) {
                     array_pop($stack);
                 }
+
                 // If stack empty, we are trying to escape root; keep stack empty
                 continue;
             }
+
             $stack[] = $part;
         }
 
