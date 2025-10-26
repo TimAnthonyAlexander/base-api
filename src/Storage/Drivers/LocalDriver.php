@@ -159,18 +159,64 @@ class LocalDriver implements StorageInterface
      */
     private function getFullPath(string $path): string
     {
-        $path = $this->normalizePath($path);
-        $fullPath = $this->root . DIRECTORY_SEPARATOR . $path;
+        $relative = $this->normalizePath($path);
 
-        // Security check: ensure the path is within the root directory
-        $realPath = realpath(dirname($fullPath));
         $realRoot = realpath($this->root);
-
-        if ($realPath === false || $realRoot === false || !str_starts_with($realPath, $realRoot)) {
-            throw new InvalidArgumentException('Path traversal detected: ' . $path);
+        if ($realRoot === false) {
+            throw new InvalidArgumentException('Invalid storage root');
         }
 
-        return $fullPath;
+        // Join root and relative path, then canonicalize without requiring directories to exist
+        $joined = $realRoot . DIRECTORY_SEPARATOR . $relative;
+        $canonical = $this->canonicalizeAbsolutePath($joined);
+
+        // Security check: ensure canonical path stays within root
+        $prefix = rtrim($realRoot, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if ($canonical !== $realRoot && !str_starts_with($canonical, $prefix)) {
+            throw new InvalidArgumentException('Path traversal detected: ' . $relative);
+        }
+
+        return $canonical;
+    }
+
+    /**
+     * Canonicalize an absolute path by resolving '.' and '..' segments
+     * without requiring the path to exist on disk.
+     */
+    private function canonicalizeAbsolutePath(string $absolutePath): string
+    {
+        $ds = DIRECTORY_SEPARATOR;
+        $path = str_replace(['/', '\\'], $ds, $absolutePath);
+
+        // Preserve Windows drive letter if present (e.g., C:) or leading separator for Unix
+        $prefix = '';
+        if (preg_match('/^[A-Za-z]:\\\\?/', $path) === 1) {
+            $prefix = substr($path, 0, 2); // e.g., C:
+            $path = substr($path, 2);
+        } elseif (str_starts_with($path, $ds)) {
+            $prefix = $ds;
+            $path = ltrim($path, $ds);
+        }
+
+        $parts = explode($ds, $path);
+        $stack = [];
+        foreach ($parts as $part) {
+            if ($part === '' || $part === '.') {
+                continue;
+            }
+            if ($part === '..') {
+                if (!empty($stack)) {
+                    array_pop($stack);
+                }
+                // If stack empty, we are trying to escape root; keep stack empty
+                continue;
+            }
+            $stack[] = $part;
+        }
+
+        $resolved = $prefix . implode($ds, $stack);
+        // Ensure no trailing separator unless root itself
+        return $resolved === '' ? $prefix : $resolved;
     }
 
     /**
@@ -222,4 +268,3 @@ class LocalDriver implements StorageInterface
         }
     }
 }
-

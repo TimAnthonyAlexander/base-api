@@ -15,9 +15,7 @@ class StorageManager
 
     private array $customDrivers = [];
 
-    public function __construct(private readonly Config $config)
-    {
-    }
+    public function __construct(private readonly Config $config) {}
 
     /**
      * Get a storage driver instance.
@@ -129,10 +127,18 @@ class StorageManager
      */
     protected function createLocalDriver(array $config): LocalDriver
     {
-        $root = $config['root'] ?? 'storage/app';
+        $root = (string) ($config['root'] ?? 'storage/app');
         // Convert relative path to absolute using storage_path helper
-        if (!str_starts_with((string) $root, '/')) {
-            $root = storage_path($root === 'storage/app' ? 'app' : $root);
+        // Accept roots like 'storage/app' or 'storage/app/public' and avoid double 'storage/'
+        if (!$this->isAbsolutePath($root)) {
+            $relative = ltrim($root, '/\\');
+            if (str_starts_with($relative, 'storage/')) {
+                $relative = substr($relative, strlen('storage/'));
+            }
+            if ($relative === '' || $relative === '0') {
+                $relative = 'app';
+            }
+            $root = storage_path($relative);
         }
 
         return new LocalDriver(
@@ -141,5 +147,9 @@ class StorageManager
             permissions: $config['permissions'] ?? []
         );
     }
-}
 
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\/]/', $path) === 1;
+    }
+}
