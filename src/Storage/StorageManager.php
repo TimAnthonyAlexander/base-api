@@ -150,6 +150,17 @@ class StorageManager
 
     private function isAbsolutePath(string $path): bool
     {
-        return str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\/]/', $path) === 1;
+        if ($path === '') {
+            return false;
+        }
+        // Unix absolute
+        if ($path[0] === '/') {
+            return true;
+        }
+        // Windows absolute like C:\ or C:/
+        return strlen($path) >= 3
+            && ctype_alpha($path[0])
+            && $path[1] === ':'
+            && ($path[2] === '/' || $path[2] === '\\');
     }
 }
