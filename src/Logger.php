@@ -86,6 +86,11 @@ class Logger
         $this->log('warn', $msg, $ctx);
     }
 
+    public function warning(string $msg, array $ctx = []): void
+    {
+        $this->warn($msg, $ctx);
+    }
+
     public function error(string $msg, array $ctx = []): void
     {
         $this->log('error', $msg, $ctx);
