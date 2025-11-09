@@ -21,6 +21,8 @@ final class OpenAI
 
     private array $options = [];
 
+    private int $streamTimeoutSeconds = 120;
+
     public function __construct(?string $apiKey = null, ?string $model = null)
     {
         $this->apiKey = $apiKey ?? App::config('openai.api_key', '');
@@ -57,11 +59,11 @@ final class OpenAI
         $buffer = '';
         $readPos = 0;
         $running = 0;
-        $startedAt = microtime(true);
+        $deadline = microtime(true) + $this->streamTimeoutSeconds;
+        $completed = false;
 
         do {
-            // Timeout guard: don't hang forever
-            if (microtime(true) - $startedAt > 120) {
+            if (microtime(true) > $deadline) {
                 break;
             }
 
@@ -89,56 +91,21 @@ final class OpenAI
 
                     $json = substr($line, 6);
                     if ($json === '[DONE]') {
-                        $running = 0;
-                        $buffer = '';
-                        break;
+                        $completed = true;
+                        break 2;
                     }
 
                     $decoded = json_decode($json, true);
                     if (is_array($decoded)) {
-                        $type = $decoded['type'] ?? '';
+                        $mapped = $this->mapStreamEvent($decoded);
+                        if ($mapped !== null) {
+                            if (isset($mapped['_completed']) && $mapped['_completed'] === true) {
+                                $completed = true;
+                                break 2;
+                            }
 
-                        // Completion: break out cleanly
-                        if ($type === 'response.completed') {
-                            $running = 0;
-                            $buffer = '';
-                            break 2; // break line loop and the outer do..while
+                            yield $mapped;
                         }
-
-                        // Text deltas
-                        if ($type === 'response.output_text.delta' && isset($decoded['delta'])) {
-                            yield ['delta' => (string)$decoded['delta']];
-                            continue;
-                        }
-
-                        // Optional: surface refusal as a separate channel or merge into delta
-                        if ($type === 'response.refusal.delta' && isset($decoded['delta'])) {
-                            yield ['refusal_delta' => (string)$decoded['delta']];
-                            continue;
-                        }
-
-                        // Optional: surface errors inline
-                        if ($type === 'response.error') {
-                            $msg = $decoded['error']['message'] ?? 'Unknown error';
-                            yield ['error' => $msg];
-                            continue;
-                        }
-
-                        // Fallback: unified text field (some wrappers expose 'text')
-                        if (isset($decoded['text']) && is_string($decoded['text']) && $decoded['text'] !== '') {
-                            yield ['delta' => $decoded['text']];
-                            continue;
-                        }
-
-                        // Rare older alias some libs emit
-                        if ($type === 'response.message.delta' && isset($decoded['delta'])) {
-                            yield ['delta' => (string)$decoded['delta']];
-                            continue;
-                        }
-
-                        // Ignore bookkeeping events:
-                        // - response.output_text.done
-                        // - tool_* events, etc., unless you need them
                     }
                 }
 
@@ -148,41 +115,21 @@ final class OpenAI
                     $buffer = '';
                     if (str_starts_with($line, 'data: ')) {
                         $json = substr($line, 6);
-                        if ($json !== '[DONE]') {
-                            $decoded = json_decode($json, true);
-                            if (is_array($decoded)) {
-                                $type = $decoded['type'] ?? '';
+                        if ($json === '[DONE]') {
+                            $completed = true;
+                            break;
+                        }
 
-                                // Completion: already done
-                                if ($type === 'response.completed') {
+                        $decoded = json_decode($json, true);
+                        if (is_array($decoded)) {
+                            $mapped = $this->mapStreamEvent($decoded);
+                            if ($mapped !== null) {
+                                if (isset($mapped['_completed']) && $mapped['_completed'] === true) {
+                                    $completed = true;
                                     break;
                                 }
 
-                                // Text deltas
-                                if ($type === 'response.output_text.delta' && isset($decoded['delta'])) {
-                                    yield ['delta' => (string)$decoded['delta']];
-                                }
-
-                                // Optional: surface refusal as a separate channel or merge into delta
-                                if ($type === 'response.refusal.delta' && isset($decoded['delta'])) {
-                                    yield ['refusal_delta' => (string)$decoded['delta']];
-                                }
-
-                                // Optional: surface errors inline
-                                if ($type === 'response.error') {
-                                    $msg = $decoded['error']['message'] ?? 'Unknown error';
-                                    yield ['error' => $msg];
-                                }
-
-                                // Fallback: unified text field
-                                if (isset($decoded['text']) && is_string($decoded['text']) && $decoded['text'] !== '') {
-                                    yield ['delta' => $decoded['text']];
-                                }
-
-                                // Rare older alias
-                                if ($type === 'response.message.delta' && isset($decoded['delta'])) {
-                                    yield ['delta' => (string)$decoded['delta']];
-                                }
+                                yield $mapped;
                             }
                         }
                     } else {
@@ -206,7 +153,7 @@ final class OpenAI
         curl_close($ch);
         fclose($sink);
 
-        if ($httpCode >= 400) {
+        if ($httpCode >= 400 && !$completed) {
             // Try to parse the error JSON
             $errorData = json_decode($errorBody, true);
             $errorMessage = 'HTTP ' . $httpCode;
@@ -221,6 +168,47 @@ final class OpenAI
 
             throw new RuntimeException('OpenAI API error: ' . $errorMessage . ' (HTTP ' . $httpCode . ')');
         }
+    }
+
+    /**
+     * Map OpenAI Responses streaming events to a single simple shape.
+     * Returns either:
+     *   ['delta' => '...']
+     *   ['refusal_delta' => '...']
+     *   ['error' => '...']
+     *   ['_completed' => true]
+     * or null to ignore.
+     */
+    private function mapStreamEvent(array $e): ?array
+    {
+        $type = $e['type'] ?? '';
+
+        if ($type === 'response.completed') {
+            return ['_completed' => true];
+        }
+
+        if ($type === 'response.output_text.delta' && isset($e['delta'])) {
+            return ['delta' => (string)$e['delta']];
+        }
+
+        if ($type === 'response.refusal.delta' && isset($e['delta'])) {
+            return ['refusal_delta' => (string)$e['delta']];
+        }
+
+        if ($type === 'response.error') {
+            $msg = $e['error']['message'] ?? 'Unknown error';
+            return ['error' => (string)$msg];
+        }
+
+        if (isset($e['text']) && is_string($e['text']) && $e['text'] !== '') {
+            return ['delta' => $e['text']];
+        }
+
+        if ($type === 'response.message.delta' && isset($e['delta'])) {
+            return ['delta' => (string)$e['delta']];
+        }
+
+        return null;
     }
 
     public function withTools(array $tools, string $toolChoice = 'auto'): self
