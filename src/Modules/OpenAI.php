@@ -21,8 +21,6 @@ final class OpenAI
 
     private array $options = [];
 
-    private int $streamTimeoutSeconds = 120;
-
     public function __construct(?string $apiKey = null, ?string $model = null)
     {
         $this->apiKey = $apiKey ?? App::config('openai.api_key', '');
@@ -43,6 +41,9 @@ final class OpenAI
     {
         $payload = $this->normalizePayload($input, $options, true);
 
+        // Log the request payload for debugging
+        error_log('[OpenAI] Stream request payload: ' . json_encode($payload, JSON_PRETTY_PRINT));
+
         $ch = $this->buildCurlHandle($payload, true);
 
         $sink = fopen('php://temp', 'w+');
@@ -59,20 +60,11 @@ final class OpenAI
         $buffer = '';
         $readPos = 0;
         $running = 0;
-        $deadline = microtime(true) + $this->streamTimeoutSeconds;
-        $completed = false;
 
         do {
-            if (microtime(true) > $deadline) {
-                break;
-            }
-
             $status = curl_multi_exec($mh, $running);
             if ($status === CURLM_OK) {
-                $sel = curl_multi_select($mh, 0.05);
-                if ($sel === -1) {
-                    usleep(50000);
-                }
+                curl_multi_select($mh, 0.01);
             }
 
             fflush($sink);
@@ -91,45 +83,24 @@ final class OpenAI
 
                     $json = substr($line, 6);
                     if ($json === '[DONE]') {
-                        $completed = true;
-                        break 2;
+                        continue;
                     }
 
                     $decoded = json_decode($json, true);
                     if (is_array($decoded)) {
-                        $mapped = $this->mapStreamEvent($decoded);
-                        if ($mapped !== null) {
-                            if (isset($mapped['_completed']) && $mapped['_completed'] === true) {
-                                $completed = true;
-                                break 2;
-                            }
-
-                            yield $mapped;
-                        }
+                        yield $decoded;
                     }
                 }
-
                 // If connection ended and buffer still has non-SSE content (likely JSON error), drain it.
                 if ($running === 0 && $buffer !== '') {
                     $line = rtrim($buffer, "\r");
                     $buffer = '';
                     if (str_starts_with($line, 'data: ')) {
                         $json = substr($line, 6);
-                        if ($json === '[DONE]') {
-                            $completed = true;
-                            break;
-                        }
-
-                        $decoded = json_decode($json, true);
-                        if (is_array($decoded)) {
-                            $mapped = $this->mapStreamEvent($decoded);
-                            if ($mapped !== null) {
-                                if (isset($mapped['_completed']) && $mapped['_completed'] === true) {
-                                    $completed = true;
-                                    break;
-                                }
-
-                                yield $mapped;
+                        if ($json !== '[DONE]') {
+                            $decoded = json_decode($json, true);
+                            if (is_array($decoded)) {
+                                yield $decoded;
                             }
                         }
                     } else {
@@ -153,7 +124,7 @@ final class OpenAI
         curl_close($ch);
         fclose($sink);
 
-        if ($httpCode >= 400 && !$completed) {
+        if ($httpCode >= 400) {
             // Try to parse the error JSON
             $errorData = json_decode($errorBody, true);
             $errorMessage = 'HTTP ' . $httpCode;
@@ -166,49 +137,11 @@ final class OpenAI
                 }
             }
 
+            // Log full error details
+            error_log('[OpenAI] Error ' . $httpCode . ': ' . $errorBody);
+
             throw new RuntimeException('OpenAI API error: ' . $errorMessage . ' (HTTP ' . $httpCode . ')');
         }
-    }
-
-    /**
-     * Map OpenAI Responses streaming events to a single simple shape.
-     * Returns either:
-     *   ['delta' => '...']
-     *   ['refusal_delta' => '...']
-     *   ['error' => '...']
-     *   ['_completed' => true]
-     * or null to ignore.
-     */
-    private function mapStreamEvent(array $e): ?array
-    {
-        $type = $e['type'] ?? '';
-
-        if ($type === 'response.completed') {
-            return ['_completed' => true];
-        }
-
-        if ($type === 'response.output_text.delta' && isset($e['delta'])) {
-            return ['delta' => (string)$e['delta']];
-        }
-
-        if ($type === 'response.refusal.delta' && isset($e['delta'])) {
-            return ['refusal_delta' => (string)$e['delta']];
-        }
-
-        if ($type === 'response.error') {
-            $msg = $e['error']['message'] ?? 'Unknown error';
-            return ['error' => (string)$msg];
-        }
-
-        if (isset($e['text']) && is_string($e['text']) && $e['text'] !== '') {
-            return ['delta' => $e['text']];
-        }
-
-        if ($type === 'response.message.delta' && isset($e['delta'])) {
-            return ['delta' => (string)$e['delta']];
-        }
-
-        return null;
     }
 
     public function withTools(array $tools, string $toolChoice = 'auto'): self
