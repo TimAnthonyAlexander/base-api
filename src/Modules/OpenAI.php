@@ -41,9 +41,6 @@ final class OpenAI
     {
         $payload = $this->normalizePayload($input, $options, true);
 
-        // Log the request payload for debugging
-        error_log('[OpenAI] Stream request payload: ' . json_encode($payload, JSON_PRETTY_PRINT));
-
         $ch = $this->buildCurlHandle($payload, true);
 
         $sink = fopen('php://temp', 'w+');
@@ -60,11 +57,20 @@ final class OpenAI
         $buffer = '';
         $readPos = 0;
         $running = 0;
+        $startedAt = microtime(true);
 
         do {
+            // Timeout guard: don't hang forever
+            if (microtime(true) - $startedAt > 120) {
+                break;
+            }
+
             $status = curl_multi_exec($mh, $running);
             if ($status === CURLM_OK) {
-                curl_multi_select($mh, 0.01);
+                $sel = curl_multi_select($mh, 0.05);
+                if ($sel === -1) {
+                    usleep(50000);
+                }
             }
 
             fflush($sink);
@@ -83,14 +89,59 @@ final class OpenAI
 
                     $json = substr($line, 6);
                     if ($json === '[DONE]') {
-                        continue;
+                        $running = 0;
+                        $buffer = '';
+                        break;
                     }
 
                     $decoded = json_decode($json, true);
                     if (is_array($decoded)) {
-                        yield $decoded;
+                        $type = $decoded['type'] ?? '';
+
+                        // Completion: break out cleanly
+                        if ($type === 'response.completed') {
+                            $running = 0;
+                            $buffer = '';
+                            break 2; // break line loop and the outer do..while
+                        }
+
+                        // Text deltas
+                        if ($type === 'response.output_text.delta' && isset($decoded['delta'])) {
+                            yield ['delta' => (string)$decoded['delta']];
+                            continue;
+                        }
+
+                        // Optional: surface refusal as a separate channel or merge into delta
+                        if ($type === 'response.refusal.delta' && isset($decoded['delta'])) {
+                            yield ['refusal_delta' => (string)$decoded['delta']];
+                            continue;
+                        }
+
+                        // Optional: surface errors inline
+                        if ($type === 'response.error') {
+                            $msg = $decoded['error']['message'] ?? 'Unknown error';
+                            yield ['error' => $msg];
+                            continue;
+                        }
+
+                        // Fallback: unified text field (some wrappers expose 'text')
+                        if (isset($decoded['text']) && is_string($decoded['text']) && $decoded['text'] !== '') {
+                            yield ['delta' => $decoded['text']];
+                            continue;
+                        }
+
+                        // Rare older alias some libs emit
+                        if ($type === 'response.message.delta' && isset($decoded['delta'])) {
+                            yield ['delta' => (string)$decoded['delta']];
+                            continue;
+                        }
+
+                        // Ignore bookkeeping events:
+                        // - response.output_text.done
+                        // - tool_* events, etc., unless you need them
                     }
                 }
+
                 // If connection ended and buffer still has non-SSE content (likely JSON error), drain it.
                 if ($running === 0 && $buffer !== '') {
                     $line = rtrim($buffer, "\r");
@@ -100,7 +151,38 @@ final class OpenAI
                         if ($json !== '[DONE]') {
                             $decoded = json_decode($json, true);
                             if (is_array($decoded)) {
-                                yield $decoded;
+                                $type = $decoded['type'] ?? '';
+
+                                // Completion: already done
+                                if ($type === 'response.completed') {
+                                    break;
+                                }
+
+                                // Text deltas
+                                if ($type === 'response.output_text.delta' && isset($decoded['delta'])) {
+                                    yield ['delta' => (string)$decoded['delta']];
+                                }
+
+                                // Optional: surface refusal as a separate channel or merge into delta
+                                if ($type === 'response.refusal.delta' && isset($decoded['delta'])) {
+                                    yield ['refusal_delta' => (string)$decoded['delta']];
+                                }
+
+                                // Optional: surface errors inline
+                                if ($type === 'response.error') {
+                                    $msg = $decoded['error']['message'] ?? 'Unknown error';
+                                    yield ['error' => $msg];
+                                }
+
+                                // Fallback: unified text field
+                                if (isset($decoded['text']) && is_string($decoded['text']) && $decoded['text'] !== '') {
+                                    yield ['delta' => $decoded['text']];
+                                }
+
+                                // Rare older alias
+                                if ($type === 'response.message.delta' && isset($decoded['delta'])) {
+                                    yield ['delta' => (string)$decoded['delta']];
+                                }
                             }
                         }
                     } else {
@@ -136,9 +218,6 @@ final class OpenAI
                     $errorMessage = is_string($errorData['error']) ? $errorData['error'] : json_encode($errorData['error']);
                 }
             }
-
-            // Log full error details
-            error_log('[OpenAI] Error ' . $httpCode . ': ' . $errorBody);
 
             throw new RuntimeException('OpenAI API error: ' . $errorMessage . ' (HTTP ' . $httpCode . ')');
         }
