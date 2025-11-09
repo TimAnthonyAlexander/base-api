@@ -204,6 +204,7 @@ class LocalDriver implements StorageInterface
             if ($part === '') {
                 continue;
             }
+
             if ($part === '.') {
                 continue;
             }

@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace BaseApi\Modules;
 
+use RecursiveIteratorIterator;
+use RecursiveArrayIterator;
 use Generator;
 use CurlHandle;
 use BaseApi\App;
 use RuntimeException;
 
-/**
- * OpenAI Responses API Client
- * 
- * A minimal wrapper for OpenAI's Responses API endpoint.
- * Supports text responses, streaming, tool calling, and structured JSON output.
- */
 final class OpenAI
 {
     private const string API_ENDPOINT = 'https://api.openai.com/v1/responses';
@@ -30,39 +26,22 @@ final class OpenAI
         $this->apiKey = $apiKey ?? App::config('openai.api_key', '');
         $this->model = $model ?? App::config('openai.default_model', 'gpt-4.1-mini');
 
-        if (empty($this->apiKey)) {
+        if ($this->apiKey === '') {
             throw new RuntimeException('OpenAI API key not configured. Set OPENAI_API_KEY in .env');
         }
     }
 
-    /**
-     * Send a simple text prompt and get a response
-     */
-    public function response(string $input, array $options = []): array
+    public function response(string|array $input, array $options = []): array
     {
-        $payload = array_merge([
-            'model' => $this->model,
-            'input' => $input,
-        ], $this->options, $options);
-
+        $payload = $this->normalizePayload($input, $options, false);
         return $this->request($payload);
     }
 
-    /**
-     * Stream a response with Server-Sent Events
-     * Returns a generator that yields chunks as they arrive
-     */
-    public function stream(string $input, array $options = []): Generator
+    public function stream(string|array $input, array $options = []): Generator
     {
-        $payload = array_merge([
-            'model'  => $this->model,
-            'input'  => $input,
-            'stream' => true,
-        ], $this->options, $options);
+        $payload = $this->normalizePayload($input, $options, true);
+        $ch = $this->buildCurlHandle($payload, true);
 
-        $ch = $this->buildCurlHandle($payload);
-
-        // Collect body into a seekable buffer we can read incrementally
         $sink = fopen('php://temp', 'w+');
         if ($sink === false) {
             throw new RuntimeException('Failed to open temp stream');
@@ -81,7 +60,6 @@ final class OpenAI
         do {
             $status = curl_multi_exec($mh, $running);
             if ($status === CURLM_OK) {
-                // Use shorter timeout for more responsive streaming
                 curl_multi_select($mh, 0.01);
             }
 
@@ -124,9 +102,6 @@ final class OpenAI
         }
     }
 
-    /**
-     * Enable function calling with tools
-     */
     public function withTools(array $tools, string $toolChoice = 'auto'): self
     {
         $clone = clone $this;
@@ -135,9 +110,6 @@ final class OpenAI
         return $clone;
     }
 
-    /**
-     * Enforce structured JSON output with a schema
-     */
     public function withJsonSchema(string $name, array $schema, bool $strict = true): self
     {
         $clone = clone $this;
@@ -152,9 +124,6 @@ final class OpenAI
         return $clone;
     }
 
-    /**
-     * Enable reasoning mode (for o-series models)
-     */
     public function withReasoning(string $effort = 'medium'): self
     {
         $clone = clone $this;
@@ -162,9 +131,6 @@ final class OpenAI
         return $clone;
     }
 
-    /**
-     * Set model-specific options (temperature, max_output_tokens, etc.)
-     */
     public function withOptions(array $options): self
     {
         $clone = clone $this;
@@ -172,9 +138,13 @@ final class OpenAI
         return $clone;
     }
 
-    /**
-     * Change the model for this request
-     */
+    public function withInstructions(string $instructions): self
+    {
+        $clone = clone $this;
+        $clone->options['instructions'] = $instructions;
+        return $clone;
+    }
+
     public function model(string $model): self
     {
         $clone = clone $this;
@@ -182,12 +152,9 @@ final class OpenAI
         return $clone;
     }
 
-    /**
-     * Execute the HTTP request to OpenAI
-     */
     private function request(array $payload): array
     {
-        $ch = $this->buildCurlHandle($payload);
+        $ch = $this->buildCurlHandle($payload, false);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -209,33 +176,157 @@ final class OpenAI
         return $decoded ?? [];
     }
 
-    /**
-     * Build a configured cURL handle
-     */
-    private function buildCurlHandle(array $payload): CurlHandle
+    private function buildCurlHandle(array $payload, bool $stream): CurlHandle
     {
         $ch = curl_init(self::API_ENDPOINT);
+
+        $headers = [
+            'Authorization: Bearer ' . $this->apiKey,
+            'Content-Type: application/json',
+        ];
+        if ($stream) {
+            $headers[] = 'Accept: text/event-stream';
+        }
 
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($payload),
-            CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $this->apiKey,
-                'Content-Type: application/json',
-            ],
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            CURLOPT_HTTPHEADER => $headers,
         ]);
 
         return $ch;
     }
 
-    /**
-     * Extract the text content from a response
-     */
+    private function normalizePayload(string|array $input, array $options, bool $stream): array
+    {
+        $payload = array_merge(['model' => $this->model], $this->options, $options);
+        if ($stream) {
+            $payload['stream'] = true;
+        }
+
+        if (is_string($input)) {
+            $payload['input'] = $input;
+            return $payload;
+        }
+
+        if (isset($input['messages']) && is_array($input['messages'])) {
+            [$messages, $extraInstructions] = $this->convertMessages($input['messages']);
+            $payload['input'] = $messages;
+            if ($extraInstructions !== '') {
+                $payload['instructions'] = trim(($payload['instructions'] ?? '') . "\n" . $extraInstructions);
+            }
+
+            return $payload;
+        }
+
+        if (is_array($input) && array_is_list($input) && isset($input[0]['role'])) {
+            [$messages, $extraInstructions] = $this->convertMessages($input);
+            $payload['input'] = $messages;
+            if ($extraInstructions !== '') {
+                $payload['instructions'] = trim(($payload['instructions'] ?? '') . "\n" . $extraInstructions);
+            }
+
+            return $payload;
+        }
+
+        $payload['input'] = $input;
+        return $payload;
+    }
+
+    private function convertMessages(array $messages): array
+    {
+        $out = [];
+        $system = [];
+
+        foreach ($messages as $m) {
+            $role = ($m['role'] ?? 'user');
+            $content = $m['content'] ?? '';
+
+            if ($role === 'system') {
+                if (is_string($content)) {
+                    $system[] = $content;
+                } elseif (is_array($content)) {
+                    $system[] = $this->collectText($content);
+                }
+
+                continue;
+            }
+
+            $parts = [];
+            if (is_string($content)) {
+                $parts[] = ['type' => 'input_text', 'text' => $content];
+            } elseif (is_array($content)) {
+                if ($this->isPartsArray($content)) {
+                    $parts = $this->normalizeParts($content);
+                } else {
+                    $parts[] = ['type' => 'input_text', 'text' => $this->collectText($content)];
+                }
+            }
+
+            $out[] = [
+                'role' => ($role === 'assistant') ? 'assistant' : 'user',
+                'content' => $parts,
+            ];
+        }
+
+        return [$out, trim(implode("\n", array_filter($system)))];
+    }
+
+    private function isPartsArray(array $content): bool
+    {
+        if (!array_is_list($content)) {
+            return false;
+        }
+
+        $first = $content[0] ?? null;
+        return is_array($first) && isset($first['type']);
+    }
+
+    private function normalizeParts(array $parts): array
+    {
+        $norm = [];
+        foreach ($parts as $p) {
+            if (isset($p['type'])) {
+                $norm[] = $p['type'] === 'text' && isset($p['text']) ? ['type' => 'input_text', 'text' => (string)$p['text']] : $p;
+            } else {
+                $norm[] = ['type' => 'input_text', 'text' => (string)$p];
+            }
+        }
+
+        return $norm;
+    }
+
+    private function collectText(array $content): string
+    {
+        if ($this->isPartsArray($content)) {
+            $texts = [];
+            foreach ($content as $p) {
+                if (($p['type'] ?? '') === 'input_text' && isset($p['text'])) {
+                    $texts[] = (string)$p['text'];
+                } elseif (($p['type'] ?? '') === 'text' && isset($p['text'])) {
+                    $texts[] = (string)$p['text'];
+                }
+            }
+
+            return trim(implode("\n", $texts));
+        }
+
+        $flat = [];
+        $it = new RecursiveIteratorIterator(new RecursiveArrayIterator($content));
+        foreach ($it as $v) {
+            if (is_string($v)) {
+                $flat[] = $v;
+            }
+        }
+
+        return trim(implode(' ', $flat));
+    }
+
     public static function extractText(array $response): string
     {
         foreach ($response['output'] ?? [] as $item) {
-            if ($item['type'] === 'output_text') {
+            if (($item['type'] ?? null) === 'output_text') {
                 return $item['text'] ?? $item['content'] ?? '';
             }
         }
@@ -243,15 +334,11 @@ final class OpenAI
         return '';
     }
 
-    /**
-     * Extract tool calls from a response
-     */
     public static function extractToolCalls(array $response): array
     {
         $tools = [];
-
         foreach ($response['output'] ?? [] as $item) {
-            if ($item['type'] === 'tool_call') {
+            if (($item['type'] ?? null) === 'tool_call') {
                 $tools[] = [
                     'id' => $item['call_id'] ?? '',
                     'name' => $item['tool_name'] ?? $item['name'] ?? '',
