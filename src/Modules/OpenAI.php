@@ -40,6 +40,10 @@ final class OpenAI
     public function stream(string|array $input, array $options = []): Generator
     {
         $payload = $this->normalizePayload($input, $options, true);
+
+        // Log the request payload for debugging
+        error_log('[OpenAI] Stream request payload: ' . json_encode($payload, JSON_PRETTY_PRINT));
+
         $ch = $this->buildCurlHandle($payload, true);
 
         $sink = fopen('php://temp', 'w+');
@@ -87,10 +91,33 @@ final class OpenAI
                         yield $decoded;
                     }
                 }
+                // If connection ended and buffer still has non-SSE content (likely JSON error), drain it.
+                if ($running === 0 && $buffer !== '') {
+                    $line = rtrim($buffer, "\r");
+                    $buffer = '';
+                    if (str_starts_with($line, 'data: ')) {
+                        $json = substr($line, 6);
+                        if ($json !== '[DONE]') {
+                            $decoded = json_decode($json, true);
+                            if (is_array($decoded)) {
+                                yield $decoded;
+                            }
+                        }
+                    } else {
+                        // leave it for HTTP code check below; prevents infinite loop
+                    }
+                }
             }
         } while ($running > 0 || $buffer !== '');
 
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        // If error, rewind sink and capture the full error body
+        $errorBody = '';
+        if ($httpCode >= 400) {
+            rewind($sink);
+            $errorBody = stream_get_contents($sink);
+        }
 
         curl_multi_remove_handle($mh, $ch);
         curl_multi_close($mh);
@@ -98,7 +125,22 @@ final class OpenAI
         fclose($sink);
 
         if ($httpCode >= 400) {
-            throw new RuntimeException('OpenAI API error: HTTP ' . $httpCode);
+            // Try to parse the error JSON
+            $errorData = json_decode($errorBody, true);
+            $errorMessage = 'HTTP ' . $httpCode;
+
+            if (is_array($errorData)) {
+                if (isset($errorData['error']['message'])) {
+                    $errorMessage = $errorData['error']['message'];
+                } elseif (isset($errorData['error'])) {
+                    $errorMessage = is_string($errorData['error']) ? $errorData['error'] : json_encode($errorData['error']);
+                }
+            }
+
+            // Log full error details
+            error_log('[OpenAI] Error ' . $httpCode . ': ' . $errorBody);
+
+            throw new RuntimeException('OpenAI API error: ' . $errorMessage . ' (HTTP ' . $httpCode . ')');
         }
     }
 
@@ -253,14 +295,17 @@ final class OpenAI
                 continue;
             }
 
+            // Map role to correct content type: assistant uses output_text, user uses input_text
+            $contentType = $role === 'assistant' ? 'output_text' : 'input_text';
+
             $parts = [];
             if (is_string($content)) {
-                $parts[] = ['type' => 'input_text', 'text' => $content];
+                $parts[] = ['type' => $contentType, 'text' => $content];
             } elseif (is_array($content)) {
                 if ($this->isPartsArray($content)) {
-                    $parts = $this->normalizeParts($content);
+                    $parts = $this->normalizeParts($content, $contentType);
                 } else {
-                    $parts[] = ['type' => 'input_text', 'text' => $this->collectText($content)];
+                    $parts[] = ['type' => $contentType, 'text' => $this->collectText($content)];
                 }
             }
 
@@ -283,14 +328,21 @@ final class OpenAI
         return is_array($first) && isset($first['type']);
     }
 
-    private function normalizeParts(array $parts): array
+    private function normalizeParts(array $parts, string $contentType = 'input_text'): array
     {
         $norm = [];
         foreach ($parts as $p) {
             if (isset($p['type'])) {
-                $norm[] = $p['type'] === 'text' && isset($p['text']) ? ['type' => 'input_text', 'text' => (string)$p['text']] : $p;
+                // If it's a generic 'text' type or already has input_text/output_text, normalize to the correct type
+                if ($p['type'] === 'text' && isset($p['text'])) {
+                    $norm[] = ['type' => $contentType, 'text' => (string)$p['text']];
+                } elseif (($p['type'] === 'input_text' || $p['type'] === 'output_text') && isset($p['text'])) {
+                    $norm[] = ['type' => $contentType, 'text' => (string)$p['text']];
+                } else {
+                    $norm[] = $p;
+                }
             } else {
-                $norm[] = ['type' => 'input_text', 'text' => (string)$p];
+                $norm[] = ['type' => $contentType, 'text' => (string)$p];
             }
         }
 
@@ -302,9 +354,8 @@ final class OpenAI
         if ($this->isPartsArray($content)) {
             $texts = [];
             foreach ($content as $p) {
-                if (($p['type'] ?? '') === 'input_text' && isset($p['text'])) {
-                    $texts[] = (string)$p['text'];
-                } elseif (($p['type'] ?? '') === 'text' && isset($p['text'])) {
+                $type = $p['type'] ?? '';
+                if (($type === 'input_text' || $type === 'output_text' || $type === 'text') && isset($p['text'])) {
                     $texts[] = (string)$p['text'];
                 }
             }
