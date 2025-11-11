@@ -38,6 +38,21 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /**
+     * Check if a column is generated (virtual or stored)
+     */
+    private function isGeneratedColumn(string $columnName): bool
+    {
+        // Check the static $columns array for this model
+        if (isset(static::$columns[$columnName])) {
+            $columnDef = static::$columns[$columnName];
+            // If the 'generated' key exists, it's a generated column
+            return isset($columnDef['generated']);
+        }
+        
+        return false;
+    }
+
+    /**
      * Check if a property is a relation property (has BaseModel[] docblock for hasMany)
      */
     protected function isRelationProperty(string $property): bool
@@ -874,6 +889,7 @@ abstract class BaseModel implements \JsonSerializable
         foreach ($vars as $k => $v) {
             if ($this->isInternalKey($k)) continue;
             if ($k === 'created_at' || $k === 'updated_at') continue;
+            if ($this->isGeneratedColumn($k)) continue; // Skip generated columns
             if ($v instanceof self) continue;
             if ($v !== null) {
                 // Convert boolean to int for database compatibility
@@ -893,6 +909,7 @@ abstract class BaseModel implements \JsonSerializable
         foreach ($vars as $k => $v) {
             if ($this->isInternalKey($k)) continue;
             if ($k === 'id' || $k === 'created_at') continue;
+            if ($this->isGeneratedColumn($k)) continue; // Skip generated columns
             if ($v instanceof self) continue;
 
             // Include both non-null values AND null values for fields that exist in the snapshot
