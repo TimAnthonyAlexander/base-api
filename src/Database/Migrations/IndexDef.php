@@ -7,7 +7,7 @@ class IndexDef
     public function __construct(
         public string $name,
         public string|array $column,
-        public string $type = 'index' // 'index' or 'unique'
+        public string $type = 'index' // 'index', 'unique', or 'fulltext'
     ) {}
 
     public function toArray(): array

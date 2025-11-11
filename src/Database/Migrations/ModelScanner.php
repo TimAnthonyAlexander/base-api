@@ -412,7 +412,12 @@ class ModelScanner
             
             if (is_string($key)) {
                 // Single column index: 'column' => 'type'
-                $indexName = ($value === 'unique' ? 'uniq_' : 'idx_') . $table->name . '_' . $key;
+                $prefix = match ($value) {
+                    'unique' => 'uniq_',
+                    'fulltext' => 'ft_',
+                    default => 'idx_'
+                };
+                $indexName = $prefix . $table->name . '_' . $key;
                 $table->indexes[$indexName] = new IndexDef($indexName, $key, $value);
             } elseif (is_array($value)) {
                 // Composite index: numeric key with array value
@@ -430,7 +435,12 @@ class ModelScanner
                 
                 if ($columns !== []) {
                     $columnSuffix = implode('_', $columns);
-                    $indexName = ($type === 'unique' ? 'uniq_' : 'idx_') . $table->name . '_' . $columnSuffix;
+                    $prefix = match ($type) {
+                        'unique' => 'uniq_',
+                        'fulltext' => 'ft_',
+                        default => 'idx_'
+                    };
+                    $indexName = $prefix . $table->name . '_' . $columnSuffix;
                     $table->indexes[$indexName] = new IndexDef($indexName, $columns, $type);
                 }
             }
@@ -495,6 +505,17 @@ class ModelScanner
                 } else {
                     $column->default = $defaultValue;
                 }
+            }
+
+            // Handle generated columns
+            if (isset($override['generated'])) {
+                $column->generated = $override['generated'];
+                $column->default = null; // Generated columns can't have defaults
+            }
+
+            // Handle stored flag
+            if (isset($override['stored'])) {
+                $column->stored = $override['stored'];
             }
         }
     }

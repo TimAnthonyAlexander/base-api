@@ -9,7 +9,9 @@ class ColumnDef
         public string $type,
         public bool $nullable = false,
         public ?string $default = null,
-        public bool $is_pk = false
+        public bool $is_pk = false,
+        public ?string $generated = null,
+        public bool $stored = false
     ) {}
 
     public function toArray(): array
@@ -20,6 +22,8 @@ class ColumnDef
             'nullable' => $this->nullable,
             'default' => $this->default,
             'is_pk' => $this->is_pk,
+            'generated' => $this->generated,
+            'stored' => $this->stored,
         ];
     }
 
@@ -30,7 +34,9 @@ class ColumnDef
             $data['type'],
             $data['nullable'] ?? false,
             $data['default'] ?? null,
-            $data['is_pk'] ?? false
+            $data['is_pk'] ?? false,
+            $data['generated'] ?? null,
+            $data['stored'] ?? false
         );
     }
 }

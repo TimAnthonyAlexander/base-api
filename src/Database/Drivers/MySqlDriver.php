@@ -84,7 +84,8 @@ class MySqlDriver implements DatabaseDriverInterface
                 IS_NULLABLE,
                 COLUMN_DEFAULT,
                 EXTRA,
-                COLUMN_KEY
+                COLUMN_KEY,
+                GENERATION_EXPRESSION
             FROM information_schema.COLUMNS 
             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
             ORDER BY ORDINAL_POSITION
@@ -93,12 +94,18 @@ class MySqlDriver implements DatabaseDriverInterface
         
         $columns = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $isStored = str_contains($row['EXTRA'] ?? '', 'STORED GENERATED');
+            $isVirtual = str_contains($row['EXTRA'] ?? '', 'VIRTUAL GENERATED');
+            $generated = ($isStored || $isVirtual) ? $row['GENERATION_EXPRESSION'] : null;
+            
             $columns[$row['COLUMN_NAME']] = new ColumnDef(
                 name: $row['COLUMN_NAME'],
                 type: $this->normalizeFullColumnType($row['COLUMN_TYPE']),
                 nullable: $row['IS_NULLABLE'] === 'YES',
                 default: $this->normalizeDefault($row['COLUMN_DEFAULT'], $row['EXTRA']),
-                is_pk: $row['COLUMN_KEY'] === 'PRI'
+                is_pk: $row['COLUMN_KEY'] === 'PRI',
+                generated: $generated,
+                stored: $isStored
             );
         }
         
@@ -125,7 +132,8 @@ class MySqlDriver implements DatabaseDriverInterface
             SELECT 
                 INDEX_NAME,
                 COLUMN_NAME,
-                NON_UNIQUE
+                NON_UNIQUE,
+                INDEX_TYPE
             FROM information_schema.STATISTICS
             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
             AND INDEX_NAME != 'PRIMARY'
@@ -144,9 +152,17 @@ class MySqlDriver implements DatabaseDriverInterface
 
             $indexName = $row['INDEX_NAME'];
             if (!isset($indexData[$indexName])) {
+                // Determine type based on INDEX_TYPE and NON_UNIQUE
+                $type = 'index';
+                if ($row['INDEX_TYPE'] === 'FULLTEXT') {
+                    $type = 'fulltext';
+                } elseif (!$row['NON_UNIQUE']) {
+                    $type = 'unique';
+                }
+                
                 $indexData[$indexName] = [
                     'columns' => [],
-                    'type' => $row['NON_UNIQUE'] ? 'index' : 'unique'
+                    'type' => $type
                 ];
             }
 
@@ -347,13 +363,22 @@ class MySqlDriver implements DatabaseDriverInterface
         $columns = $index->getColumns();
         $columnSpecs = [];
         foreach ($columns as $columnName) {
-            // MySQL requires a key length for TEXT/BLOB columns
-            $columnSpecs[] = $this->getIndexColumnSpec($columnName, $columnType);
+            // FULLTEXT doesn't need prefix length
+            if ($index->type === 'fulltext') {
+                $columnSpecs[] = sprintf('`%s`', $columnName);
+            } else {
+                // MySQL requires a key length for TEXT/BLOB columns
+                $columnSpecs[] = $this->getIndexColumnSpec($columnName, $columnType);
+            }
         }
 
         $columnSpec = implode(', ', $columnSpecs);
 
-        if ($index->type === 'unique') {
+        // Handle FULLTEXT
+        if ($index->type === 'fulltext') {
+            $sql = sprintf('ALTER TABLE `%s` ADD FULLTEXT INDEX `%s` (%s)', 
+                          $tableName, $index->name, $columnSpec);
+        } elseif ($index->type === 'unique') {
             $sql = sprintf('ALTER TABLE `%s` ADD UNIQUE KEY `%s` (%s)', $tableName, $index->name, $columnSpec);
         } else {
             $sql = sprintf('ALTER TABLE `%s` ADD INDEX `%s` (%s)', $tableName, $index->name, $columnSpec);
@@ -468,6 +493,13 @@ class MySqlDriver implements DatabaseDriverInterface
     private function generateColumnDefinition(ColumnDef $column): string
     {
         $sql = sprintf('`%s` %s', $column->name, $column->type);
+        
+        // Handle generated columns
+        if ($column->generated !== null) {
+            $storedKeyword = $column->stored ? 'STORED' : 'VIRTUAL';
+            $sql .= sprintf(' GENERATED ALWAYS AS (%s) %s', $column->generated, $storedKeyword);
+            return $sql; // Generated columns can't have NULL/DEFAULT clauses
+        }
         
         if (!$column->nullable) {
             $sql .= ' NOT NULL';
