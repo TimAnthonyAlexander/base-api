@@ -497,8 +497,7 @@ class MySqlDriver implements DatabaseDriverInterface
         // Handle generated columns
         if ($column->generated !== null) {
             $storedKeyword = $column->stored ? 'STORED' : 'VIRTUAL';
-            $sql .= sprintf(' GENERATED ALWAYS AS (%s) %s', $column->generated, $storedKeyword);
-            return $sql; // Generated columns can't have NULL/DEFAULT clauses
+            return $sql . sprintf(' GENERATED ALWAYS AS (%s) %s', $column->generated, $storedKeyword); // Generated columns can't have NULL/DEFAULT clauses
         }
         
         if (!$column->nullable) {

@@ -91,6 +91,7 @@ final class OpenAI
                         yield $decoded;
                     }
                 }
+
                 // If connection ended and buffer still has non-SSE content (likely JSON error), drain it.
                 if ($running === 0 && $buffer !== '') {
                     $line = rtrim($buffer, "\r");
