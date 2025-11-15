@@ -48,7 +48,7 @@ abstract class BaseModel implements \JsonSerializable
             // If the 'generated' key exists, it's a generated column
             return isset($columnDef['generated']);
         }
-        
+
         return false;
     }
 
@@ -581,8 +581,6 @@ abstract class BaseModel implements \JsonSerializable
                 }
                 continue;
             }
-
-            if ($v === null) continue;
 
             // If property value differs from snapshot, it was modified - use live value
             $hasSnapshotValue = array_key_exists($k, $out);
