@@ -177,8 +177,8 @@ class Kernel
     private function createPipeline(array $middlewareStack, array $pathParams, ?Route $route): callable
     {
         $pipeline = fn(Request $request): Response =>
-            // This should never be reached
-            new Response(500, [], 'Pipeline exhausted');
+        // This should never be reached
+        new Response(500, [], 'Pipeline exhausted');
 
         // Build pipeline in reverse order
         for ($i = count($middlewareStack) - 1; $i >= 0; $i--) {
@@ -186,12 +186,15 @@ class Kernel
             $next = $pipeline;
             $isController = ($i === count($middlewareStack) - 1);
 
-            $pipeline = function(Request $request) use ($middlewareClass, $next, $pathParams, $isController, $route) {
+            $pipeline = function (Request $request) use ($middlewareClass, $next, $pathParams, $isController, $route) {
                 // Add route info to request for middleware use
                 if ($route instanceof Route) {
                     $request->routePattern = $route->path();
                     $request->routeMethod = $route->method();
                 }
+
+                // Make path parameters available to middleware
+                $request->pathParams = $pathParams;
 
                 // Check if this is the controller (last in pipeline)
                 if ($isController) {
