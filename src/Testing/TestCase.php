@@ -20,7 +20,9 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 abstract class TestCase extends PHPUnitTestCase
 {
     protected static bool $appBooted = false;
-    
+
+    protected ?array $authenticatedUser = null;
+
     /**
      * Boot the application before tests
      */
@@ -28,24 +30,24 @@ abstract class TestCase extends PHPUnitTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         if (!self::$appBooted) {
             $this->bootApplication();
             self::$appBooted = true;
         }
     }
-    
+
     /**
      * Boot the BaseAPI application
      */
     protected function bootApplication(): void
     {
         $basePath = $this->getBasePath();
-        
+
         // App::boot() handles already-booted state internally
         App::boot($basePath);
     }
-    
+
     /**
      * Get the base path for the application
      */
@@ -53,7 +55,7 @@ abstract class TestCase extends PHPUnitTestCase
     {
         // Try to find base path by looking for public/index.php
         $currentDir = getcwd();
-        
+
         // Common paths to check
         $paths = [
             $currentDir,
@@ -61,16 +63,16 @@ abstract class TestCase extends PHPUnitTestCase
             dirname(__DIR__, 4), // From vendor/baseapi/framework/src/Testing
             dirname(__DIR__, 2), // From baseapi/src/Testing
         ];
-        
+
         foreach ($paths as $path) {
             if (file_exists($path . '/public/index.php')) {
                 return $path;
             }
         }
-        
+
         return $currentDir;
     }
-    
+
     /**
      * Make a GET request
      */
@@ -78,7 +80,7 @@ abstract class TestCase extends PHPUnitTestCase
     {
         return $this->makeRequest('GET', $path, $query, [], $headers);
     }
-    
+
     /**
      * Make a POST request
      */
@@ -86,7 +88,7 @@ abstract class TestCase extends PHPUnitTestCase
     {
         return $this->makeRequest('POST', $path, [], $data, $headers);
     }
-    
+
     /**
      * Make a PUT request
      */
@@ -94,7 +96,7 @@ abstract class TestCase extends PHPUnitTestCase
     {
         return $this->makeRequest('PUT', $path, [], $data, $headers);
     }
-    
+
     /**
      * Make a PATCH request
      */
@@ -102,7 +104,7 @@ abstract class TestCase extends PHPUnitTestCase
     {
         return $this->makeRequest('PATCH', $path, [], $data, $headers);
     }
-    
+
     /**
      * Make a DELETE request
      */
@@ -110,7 +112,7 @@ abstract class TestCase extends PHPUnitTestCase
     {
         return $this->makeRequest('DELETE', $path, [], $data, $headers);
     }
-    
+
     /**
      * Make a JSON request
      */
@@ -119,7 +121,7 @@ abstract class TestCase extends PHPUnitTestCase
         $headers['Content-Type'] = 'application/json';
         return $this->makeRequest($method, $path, [], $data, $headers);
     }
-    
+
     /**
      * Make a request to the application
      */
@@ -134,7 +136,7 @@ abstract class TestCase extends PHPUnitTestCase
         if (!isset($headers['Content-Type'])) {
             $headers['Content-Type'] = 'application/json';
         }
-        
+
         // Create request
         $request = new Request(
             $method,
@@ -148,58 +150,65 @@ abstract class TestCase extends PHPUnitTestCase
             [],
             'test-' . uniqid()
         );
-        
+
+        if ($this->authenticatedUser !== null) {
+            $request->user = $this->authenticatedUser;
+        }
+
         // Find and execute the route
         $router = App::router();
-        
+
         // Load routes if not already loaded
         $this->loadRoutes();
-        
+
         // Dispatch the request
         $matchResult = $router->match($method, $path);
-        
+
         if (!$matchResult) {
             // Return 404 response
             return new TestResponse(JsonResponse::notFound('Route not found'));
         }
-        
+
         [$route, $pathParams] = $matchResult;
-        
+
         // Set path parameters
         $request->pathParams = $pathParams;
-        
+
         // Instantiate controller
         $controllerClass = $route->controllerClass();
         $controller = new $controllerClass();
-        
+
         if (!$controller instanceof Controller) {
             throw new RuntimeException("Controller must extend BaseApi\\Controllers\\Controller");
         }
-        
+
+        // Ensure request is set on controller
+        $controller->request = $request;
+
         // Inject request data into controller properties
         $this->injectRequestData($controller, $request, $pathParams);
-        
+
         // Get the handler method
         $handlerMethod = strtolower($method);
-        
+
         if (!method_exists($controller, $handlerMethod)) {
             return new TestResponse(JsonResponse::error('Method not allowed', 405));
         }
-        
+
         // Execute the handler
         try {
             $response = $controller->$handlerMethod();
-            
+
             if (!$response instanceof JsonResponse) {
                 throw new RuntimeException("Controller method must return JsonResponse");
             }
-            
+
             return new TestResponse($response);
         } catch (Exception $exception) {
             return new TestResponse(JsonResponse::error('Internal server error: ' . $exception->getMessage(), 500));
         }
     }
-    
+
     /**
      * Inject request data into controller properties
      */
@@ -207,27 +216,27 @@ abstract class TestCase extends PHPUnitTestCase
     {
         $reflection = new ReflectionClass($controller);
         $properties = $reflection->getProperties(ReflectionProperty::IS_PUBLIC);
-        
+
         foreach ($properties as $property) {
             $propertyName = $property->getName();
-            
+
             // Skip if property is not writable
             if (!$property->isPublic()) {
                 continue;
             }
-            
+
             // Try path params first
             if (isset($pathParams[$propertyName])) {
                 $this->setPropertyValue($controller, $property, $pathParams[$propertyName]);
                 continue;
             }
-            
+
             // Try query params
             if (isset($request->query[$propertyName])) {
                 $this->setPropertyValue($controller, $property, $request->query[$propertyName]);
                 continue;
             }
-            
+
             // Try body params
             if (isset($request->body[$propertyName])) {
                 $this->setPropertyValue($controller, $property, $request->body[$propertyName]);
@@ -235,17 +244,17 @@ abstract class TestCase extends PHPUnitTestCase
             }
         }
     }
-    
+
     /**
      * Set property value with type coercion
      */
     private function setPropertyValue(Controller $controller, ReflectionProperty $property, mixed $value): void
     {
         $type = $property->getType();
-        
+
         if ($type instanceof ReflectionNamedType) {
             $typeName = $type->getName();
-            
+
             // Type coercion
             $value = match ($typeName) {
                 'int' => (int) $value,
@@ -256,29 +265,29 @@ abstract class TestCase extends PHPUnitTestCase
                 default => $value
             };
         }
-        
+
         $property->setValue($controller, $value);
     }
-    
+
     /**
      * Load application routes
      */
     protected function loadRoutes(): void
     {
         static $routesLoaded = false;
-        
+
         if ($routesLoaded) {
             return;
         }
-        
+
         $routesFile = App::basePath('routes/api.php');
-        
+
         if (file_exists($routesFile)) {
             require $routesFile;
             $routesLoaded = true;
         }
     }
-    
+
     /**
      * Assert that two arrays are equal, ignoring order
      */
@@ -288,14 +297,47 @@ abstract class TestCase extends PHPUnitTestCase
         sort($actual);
         $this->assertEquals($expected, $actual, $message);
     }
-    
+
     /**
-     * Create a mock user for testing
+     * Set the authenticated user for the request
      */
     protected function actingAs(array $user): self
     {
-        // This can be extended to set up authentication for tests
+        $this->authenticatedUser = $user;
         return $this;
     }
-}
 
+    /**
+     * Assert that a table has a specific record
+     */
+    protected function assertDatabaseHas(string $table, array $data): void
+    {
+        $db = App::db();
+        $qb = $db->qb()->table($table);
+
+        foreach ($data as $column => $value) {
+            $qb->where($column, '=', $value);
+        }
+
+        $count = $qb->count();
+
+        $this->assertGreaterThan(0, $count, sprintf('Failed asserting that table [%s] has record: ', $table) . json_encode($data));
+    }
+
+    /**
+     * Assert that a table does not have a specific record
+     */
+    protected function assertDatabaseMissing(string $table, array $data): void
+    {
+        $db = App::db();
+        $qb = $db->qb()->table($table);
+
+        foreach ($data as $column => $value) {
+            $qb->where($column, '=', $value);
+        }
+
+        $count = $qb->count();
+
+        $this->assertEquals(0, $count, sprintf('Failed asserting that table [%s] does not have record: ', $table) . json_encode($data));
+    }
+}
