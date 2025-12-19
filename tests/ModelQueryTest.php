@@ -435,6 +435,17 @@ class ModelQueryTest extends TestCase
         $this->assertTrue($enabledProperty->getValue($this->modelQuery));
     }
 
+    public function testExistsMethod(): void
+    {
+        $this->qbMock->expects($this->once())
+            ->method('exists')
+            ->willReturn(true);
+
+        $result = $this->modelQuery->exists();
+
+        $this->assertTrue($result);
+    }
+
     public function testNoCacheDisablesCaching(): void
     {
         $this->modelQuery->cache(300);

@@ -21,6 +21,9 @@ abstract class BaseModel implements \JsonSerializable
     /** @var array<string, callable(ModelQuery<static>): void> Global scopes applied to all queries */
     protected static array $globalScopes = [];
 
+    /** @var array<string, array> Column definitions for the model (types, generated, etc) */
+    protected static array $columns = [];
+
     /** @var array Original row data for change detection and FK extraction */
     protected array $__row = [];
 
@@ -591,7 +594,9 @@ abstract class BaseModel implements \JsonSerializable
 
             // For properties without snapshot (new models), use live value if non-empty
             if (!$hasSnapshotValue) {
-                $out[$k] = $v;
+                if ($v !== null) {
+                    $out[$k] = $v;
+                }
                 continue;
             }
 

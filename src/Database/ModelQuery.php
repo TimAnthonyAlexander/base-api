@@ -344,6 +344,14 @@ class ModelQuery
     }
 
     /**
+     * Check if any records match the query
+     */
+    public function exists(): bool
+    {
+        return $this->qb->exists();
+    }
+
+    /**
      * Find a single model by ID
      * @return T|null
      */

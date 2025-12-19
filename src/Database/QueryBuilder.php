@@ -614,6 +614,34 @@ class QueryBuilder
     }
 
     /**
+     * Check if any records match the query
+     */
+    public function exists(): bool
+    {
+        // Save original state
+        $origCols = $this->columns;
+        $origOrders = $this->orders;
+        $origLimit = $this->limitCount;
+        $origOffset = $this->offsetCount;
+
+        // Apply changes for existence check
+        $this->columns = ['1 as exists_flag'];
+        $this->orders = [];
+        $this->limit(1);
+        $this->offsetCount = null;
+
+        $result = $this->first();
+
+        // Restore original state
+        $this->columns = $origCols;
+        $this->orders = $origOrders;
+        $this->limitCount = $origLimit;
+        $this->offsetCount = $origOffset;
+
+        return $result !== null;
+    }
+
+    /**
      * Count distinct records (useful for joins that might produce duplicates)
      */
     public function countDistinct(string $column): int

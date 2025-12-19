@@ -500,6 +500,52 @@ class QueryBuilderTest extends TestCase
         $this->queryBuilder->delete();
     }
 
+    public function testExistsReturnsTrueWhenRecordExists(): void
+    {
+        $pdoMock = $this->createMock(PDO::class);
+        $stmtMock = $this->createMock(PDOStatement::class);
+        
+        $stmtMock->expects($this->once())
+                 ->method('execute')
+                 ->willReturn(true);
+        $stmtMock->expects($this->once())
+                 ->method('fetchAll')
+                 ->willReturn([['exists_flag' => 1]]);
+                 
+        $pdoMock->expects($this->once())
+                ->method('prepare')
+                ->willReturn($stmtMock);
+        
+        $this->connectionMock->method('pdo')->willReturn($pdoMock);
+        
+        $result = $this->queryBuilder->table('users')->where('id', '=', 1)->exists();
+        
+        $this->assertTrue($result);
+    }
+
+    public function testExistsReturnsFalseWhenNoRecordExists(): void
+    {
+        $pdoMock = $this->createMock(PDO::class);
+        $stmtMock = $this->createMock(PDOStatement::class);
+        
+        $stmtMock->expects($this->once())
+                 ->method('execute')
+                 ->willReturn(true);
+        $stmtMock->expects($this->once())
+                 ->method('fetchAll')
+                 ->willReturn([]);
+                 
+        $pdoMock->expects($this->once())
+                ->method('prepare')
+                ->willReturn($stmtMock);
+        
+        $this->connectionMock->method('pdo')->willReturn($pdoMock);
+        
+        $result = $this->queryBuilder->table('users')->where('id', '=', 1)->exists();
+        
+        $this->assertFalse($result);
+    }
+
     // Count method tests removed - these require actual database execution
     // and are better tested as integration tests
 
