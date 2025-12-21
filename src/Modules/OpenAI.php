@@ -41,9 +41,6 @@ final class OpenAI
     {
         $payload = $this->normalizePayload($input, $options, true);
 
-        // Log the request payload for debugging
-        error_log('[OpenAI] Stream request payload: ' . json_encode($payload, JSON_PRETTY_PRINT));
-
         $ch = $this->buildCurlHandle($payload, true);
 
         $sink = fopen('php://temp', 'w+');
