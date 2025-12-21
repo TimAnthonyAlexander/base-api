@@ -374,13 +374,34 @@ final class OpenAI
 
     public static function extractText(array $response): string
     {
+        // Check for top-level output_text (Responses API non-streaming)
+        if (isset($response['output_text']) && is_string($response['output_text'])) {
+            return trim($response['output_text']);
+        }
+
+        $texts = [];
+
+        // Check output items
         foreach ($response['output'] ?? [] as $item) {
-            if (($item['type'] ?? null) === 'output_text') {
-                return $item['text'] ?? $item['content'] ?? '';
+            $type = $item['type'] ?? null;
+
+            // Direct output_text item
+            if ($type === 'output_text' && isset($item['text']) && is_string($item['text'])) {
+                $texts[] = $item['text'];
+                continue;
+            }
+
+            // Message with content parts
+            if ($type === 'message') {
+                foreach (($item['content'] ?? []) as $part) {
+                    if (($part['type'] ?? null) === 'output_text' && isset($part['text']) && is_string($part['text'])) {
+                        $texts[] = $part['text'];
+                    }
+                }
             }
         }
 
-        return '';
+        return trim(implode('', $texts));
     }
 
     public static function extractToolCalls(array $response): array
