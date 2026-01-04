@@ -379,29 +379,32 @@ final class OpenAI
             return trim($response['output_text']);
         }
 
-        $texts = [];
-
         // Check output items
         foreach ($response['output'] ?? [] as $item) {
             $type = $item['type'] ?? null;
 
             // Direct output_text item
-            if ($type === 'output_text' && isset($item['text']) && is_string($item['text'])) {
-                $texts[] = $item['text'];
-                continue;
+            if ($type === 'output_text') {
+                $text = $item['text'] ?? $item['content'] ?? null;
+                if (is_string($text)) {
+                    return trim($text);
+                }
             }
 
             // Message with content parts
             if ($type === 'message') {
                 foreach (($item['content'] ?? []) as $part) {
-                    if (($part['type'] ?? null) === 'output_text' && isset($part['text']) && is_string($part['text'])) {
-                        $texts[] = $part['text'];
+                    if (($part['type'] ?? null) === 'output_text') {
+                        $text = $part['text'] ?? $part['content'] ?? null;
+                        if (is_string($text)) {
+                            return trim($text);
+                        }
                     }
                 }
             }
         }
 
-        return trim(implode('', $texts));
+        return '';
     }
 
     public static function extractToolCalls(array $response): array

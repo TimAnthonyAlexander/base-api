@@ -97,6 +97,15 @@ class ModelQuery
     }
 
     /**
+     * Add ORDER BY DESC clause
+     * @return ModelQuery<T>
+     */
+    public function orderByDesc(string $column): self
+    {
+        return $this->orderBy($column, 'desc');
+    }
+
+    /**
      * Set LIMIT
      */
     /**

@@ -185,6 +185,54 @@ abstract class BaseModel implements \JsonSerializable
         return static::query()->with($relations);
     }
 
+    /**
+     * @return ModelQuery<static>
+     */
+    public static function orderBy(string $column, string $direction = 'asc'): ModelQuery
+    {
+        return static::query()->orderBy($column, $direction);
+    }
+
+    /**
+     * @return ModelQuery<static>
+     */
+    public static function orderByDesc(string $column): ModelQuery
+    {
+        return static::query()->orderByDesc($column);
+    }
+
+    /**
+     * @return ModelQuery<static>
+     */
+    public static function latest(string $column = 'created_at'): ModelQuery
+    {
+        return static::query()->latest($column);
+    }
+
+    /**
+     * @return ModelQuery<static>
+     */
+    public static function oldest(string $column = 'created_at'): ModelQuery
+    {
+        return static::query()->oldest($column);
+    }
+
+    /**
+     * @return ModelQuery<static>
+     */
+    public static function limit(int $limit): ModelQuery
+    {
+        return static::query()->limit($limit);
+    }
+
+    /**
+     * @return ModelQuery<static>
+     */
+    public static function offset(int $offset): ModelQuery
+    {
+        return static::query()->offset($offset);
+    }
+
     public static function firstWhere(string $column, string $operator, mixed $value): ?static
     {
         return static::where($column, $operator, $value)->first();
