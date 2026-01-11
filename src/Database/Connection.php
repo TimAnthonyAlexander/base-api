@@ -48,6 +48,7 @@ class Connection
             'password' => App::config('database.password', ''),
             'charset' => App::config('database.charset', 'utf8mb4'),
             'persistent' => App::config('database.persistent', false),
+            'timeout' => App::config('database.timeout', $_ENV['DB_TIMEOUT'] ?? null),
         ];
 
         $this->pdo = $driver->createConnection($config);

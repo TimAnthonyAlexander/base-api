@@ -39,11 +39,22 @@ class MySqlDriver implements DatabaseDriverInterface
             PDO::ATTR_PERSISTENT => $persistent,
         ];
 
+        $timeout = $config['timeout'] ?? null;
+        if ($timeout !== null) {
+            $options[PDO::ATTR_TIMEOUT] = (int) $timeout;
+        }
+
         try {
             $pdo = new PDO($dsn, $username, $password, $options);
 
             // Set timezone to UTC
             $pdo->exec("SET time_zone = '+00:00'");
+
+            if ($timeout !== null) {
+                $timeout = (int) $timeout;
+                $pdo->exec("SET SESSION wait_timeout = {$timeout}");
+                $pdo->exec("SET SESSION interactive_timeout = {$timeout}");
+            }
 
             // Set names (charset)
             $pdo->exec('SET NAMES ' . $charset);
