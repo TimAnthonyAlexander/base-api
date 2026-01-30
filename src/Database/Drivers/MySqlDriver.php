@@ -52,8 +52,8 @@ class MySqlDriver implements DatabaseDriverInterface
 
             if ($timeout !== null) {
                 $timeout = (int) $timeout;
-                $pdo->exec("SET SESSION wait_timeout = {$timeout}");
-                $pdo->exec("SET SESSION interactive_timeout = {$timeout}");
+                $pdo->exec('SET SESSION wait_timeout = ' . $timeout);
+                $pdo->exec('SET SESSION interactive_timeout = ' . $timeout);
             }
 
             // Set names (charset)

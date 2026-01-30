@@ -281,6 +281,76 @@ class ModelQuery
     }
 
     /**
+     * Add a GROUP BY clause
+     * @return ModelQuery<T>
+     */
+    public function groupBy(string ...$columns): self
+    {
+        $this->qb->groupBy(...$columns);
+        return $this;
+    }
+
+    /**
+     * Add a raw GROUP BY expression
+     * @return ModelQuery<T>
+     */
+    public function groupByRaw(string $expression): self
+    {
+        $this->qb->groupByRaw($expression);
+        return $this;
+    }
+
+    /**
+     * Add a HAVING clause
+     * @return ModelQuery<T>
+     */
+    public function having(string $column, string $operator, mixed $value): self
+    {
+        $this->qb->having($column, $operator, $value);
+        return $this;
+    }
+
+    /**
+     * Add a raw HAVING clause
+     * @return ModelQuery<T>
+     */
+    public function havingRaw(string $expression): self
+    {
+        $this->qb->havingRaw($expression);
+        return $this;
+    }
+
+    /**
+     * Add a raw select expression
+     * @return ModelQuery<T>
+     */
+    public function selectRaw(string $expression, ?string $alias = null): self
+    {
+        $this->qb->selectRaw($expression, $alias);
+        return $this;
+    }
+
+    /**
+     * Add additional columns to the select
+     * @return ModelQuery<T>
+     */
+    public function addSelect(string|array $columns): self
+    {
+        $this->qb->addSelect($columns);
+        return $this;
+    }
+
+    /**
+     * Add a raw order by expression
+     * @return ModelQuery<T>
+     */
+    public function orderByRaw(string $expression): self
+    {
+        $this->qb->orderByRaw($expression);
+        return $this;
+    }
+
+    /**
      * Conditionally apply callback based on condition
      * @param callable(ModelQuery<T>): void $callback
      * @return ModelQuery<T>
@@ -358,6 +428,38 @@ class ModelQuery
     public function exists(): bool
     {
         return $this->qb->exists();
+    }
+
+    /**
+     * Sum values in a column
+     */
+    public function sum(string $column): float
+    {
+        return $this->qb->sum($column);
+    }
+
+    /**
+     * Average values in a column
+     */
+    public function avg(string $column): float
+    {
+        return $this->qb->avg($column);
+    }
+
+    /**
+     * Get minimum value in a column
+     */
+    public function min(string $column): mixed
+    {
+        return $this->qb->min($column);
+    }
+
+    /**
+     * Get maximum value in a column
+     */
+    public function max(string $column): mixed
+    {
+        return $this->qb->max($column);
     }
 
     /**

@@ -26,6 +26,10 @@ class QueryBuilder
 
     private bool $forUpdate = false;
 
+    private array $groups = [];
+
+    private array $havings = [];
+
     public function __construct(private Connection $connection)
     {
     }
@@ -42,6 +46,8 @@ class QueryBuilder
         $this->joins = [];
         $this->bindings = [];
         $this->forUpdate = false;
+        $this->groups = [];
+        $this->havings = [];
         return $this;
     }
 
@@ -52,6 +58,32 @@ class QueryBuilder
         } else {
             $this->columns = array_map([$this, 'sanitizeColumnName'], $columns);
         }
+
+        return $this;
+    }
+
+    /**
+     * Add additional columns to the select
+     */
+    public function addSelect(string|array $columns): self
+    {
+        if (is_string($columns)) {
+            $this->columns[] = $this->sanitizeColumnName($columns);
+        } else {
+            foreach ($columns as $column) {
+                $this->columns[] = $this->sanitizeColumnName($column);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a raw select expression
+     */
+    public function selectRaw(string $expression, ?string $alias = null): self
+    {
+        $this->columns[] = $alias !== null ? $expression . ' as ' . $this->sanitizeColumnName($alias) : $expression;
 
         return $this;
     }
@@ -325,6 +357,15 @@ class QueryBuilder
         return $this;
     }
 
+    /**
+     * Add a raw order by expression
+     */
+    public function orderByRaw(string $expression): self
+    {
+        $this->orders[] = $expression;
+        return $this;
+    }
+
     public function latest(string $column = 'created_at'): self
     {
         return $this->orderBy($column, 'desc');
@@ -338,6 +379,55 @@ class QueryBuilder
     public function inRandomOrder(): self
     {
         $this->orders[] = 'RANDOM()';
+        return $this;
+    }
+
+    /**
+     * Add a GROUP BY clause
+     */
+    public function groupBy(string ...$columns): self
+    {
+        foreach ($columns as $column) {
+            $this->groups[] = $this->sanitizeColumnName($column);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a raw GROUP BY expression
+     */
+    public function groupByRaw(string $expression): self
+    {
+        $this->groups[] = $expression;
+        return $this;
+    }
+
+    /**
+     * Add a HAVING clause
+     */
+    public function having(string $column, string $operator, mixed $value): self
+    {
+        $op = strtoupper(trim($operator));
+        $allowedOperators = ['=', '!=', '<', '<=', '>', '>=', 'LIKE', 'NOT LIKE'];
+
+        if (!in_array($op, $allowedOperators, true)) {
+            throw new DbException('Invalid having operator: ' . $operator);
+        }
+
+        $column = $this->sanitizeColumnName($column);
+        $placeholder = $this->addBinding($value);
+        $this->havings[] = sprintf('%s %s %s', $column, $op, $placeholder);
+
+        return $this;
+    }
+
+    /**
+     * Add a raw HAVING clause
+     */
+    public function havingRaw(string $expression): self
+    {
+        $this->havings[] = $expression;
         return $this;
     }
 
@@ -888,6 +978,14 @@ class QueryBuilder
 
         if ($this->wheres !== []) {
             $sql .= ' WHERE ' . $this->buildWhereClause();
+        }
+
+        if ($this->groups !== []) {
+            $sql .= ' GROUP BY ' . implode(', ', $this->groups);
+        }
+
+        if ($this->havings !== []) {
+            $sql .= ' HAVING ' . implode(' AND ', $this->havings);
         }
 
         if ($this->orders !== []) {

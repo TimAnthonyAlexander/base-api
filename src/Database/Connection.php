@@ -38,7 +38,7 @@ class Connection
     {
         $driver = $this->getDriver();
 
-        $defaultPort = $driver->getName() === 'mysql' ? 3306 : null;
+        $defaultPort = $driver->getName() === 'mysql' ? '3306' : null;
         
         $config = [
             'host' => App::config('database.host', '127.0.0.1'),
@@ -48,8 +48,13 @@ class Connection
             'password' => App::config('database.password', ''),
             'charset' => App::config('database.charset', 'utf8mb4'),
             'persistent' => App::config('database.persistent', false),
-            'timeout' => App::config('database.timeout', $_ENV['DB_TIMEOUT'] ?? null),
         ];
+
+        // Only add timeout if it's actually set
+        $timeout = App::config('database.timeout', $_ENV['DB_TIMEOUT'] ?? null);
+        if ($timeout !== null) {
+            $config['timeout'] = $timeout;
+        }
 
         $this->pdo = $driver->createConnection($config);
     }
