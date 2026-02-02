@@ -231,7 +231,7 @@ class Kernel
         return $pipeline;
     }
 
-    private function invokeController(string $controllerClass, Request $request, array $pathParams): Response
+    private function invokeController(string|array $controllerClass, Request $request, array $pathParams): Response
     {
         // Handle special internal handlers
         if ($controllerClass === 'OptionsHandler') {
@@ -242,6 +242,13 @@ class Kernel
 
         if ($controllerClass === 'NotFoundHandler') {
             return JsonResponse::notFound();
+        }
+
+        // Extract controller class and custom method if provided
+        $customMethod = null;
+        if (is_array($controllerClass)) {
+            $customMethod = $controllerClass[1] ?? null;
+            $controllerClass = $controllerClass[0];
         }
 
         try {
@@ -255,8 +262,8 @@ class Kernel
             // Bind request data to controller properties
             $this->getBinder()->bind($controller, $request, $pathParams);
 
-            // Invoke the controller method
-            return $this->getInvoker()->invoke($controller, $request);
+            // Invoke the controller method (with custom method if specified)
+            return $this->getInvoker()->invoke($controller, $request, $customMethod);
         } catch (ValidationException $validationException) {
             // Return 400 with validation errors
             return JsonResponse::badRequest('Validation failed.', $validationException->errors());

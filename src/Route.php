@@ -30,7 +30,26 @@ class Route
 
     public function controllerClass(): string
     {
-        return end($this->pipeline);
+        $controller = end($this->pipeline);
+
+        // If controller is an array [ClassName::class, 'methodName'], return the class
+        if (is_array($controller)) {
+            return $controller[0];
+        }
+
+        return $controller;
+    }
+
+    public function controllerMethod(): ?string
+    {
+        $controller = end($this->pipeline);
+
+        // If controller is an array [ClassName::class, 'methodName'], return the method
+        if (is_array($controller) && isset($controller[1])) {
+            return $controller[1];
+        }
+
+        return null;
     }
 
     public function match(string $path): ?array

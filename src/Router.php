@@ -503,6 +503,7 @@ class Router
     private function arrayToRoute(array $routeData): Route
     {
         // Reconstruct pipeline from route data
+        // Controller can be a string or array [class, method]
         $pipeline = array_merge($routeData['middlewares'], [$routeData['controller']]);
 
         return new Route($routeData['method'], $routeData['path'], $pipeline);

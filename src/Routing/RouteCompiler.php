@@ -185,6 +185,15 @@ final class RouteCompiler
             }
         }
 
+        // Store controller class and optional custom method
+        $controllerData = $route->controllerClass();
+        $customMethod = $route->controllerMethod();
+
+        // If custom method is provided, store as array [class, method]
+        if ($customMethod !== null) {
+            $controllerData = [$route->controllerClass(), $customMethod];
+        }
+
         return [
             'method' => $route->method(),
             'path' => $path,
@@ -195,7 +204,7 @@ final class RouteCompiler
             'paramMap' => $paramMap, // Position => name
             'constraintMap' => $constraintMap, // Position => [type, pattern]
             'middlewares' => $route->middlewares(),
-            'controller' => $route->controllerClass(),
+            'controller' => $controllerData,
             'isStatic' => $isStatic,
             'allowsHead' => false // Will be set for GET routes
         ];

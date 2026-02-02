@@ -6,8 +6,23 @@ use BaseApi\Logger;
 
 class ControllerInvoker
 {
-    public function invoke(object $controller, Request $req): Response
+    public function invoke(object $controller, Request $req, ?string $customMethod = null): Response
     {
+        // If a custom method is specified, use it directly
+        if ($customMethod !== null) {
+            if (!method_exists($controller, $customMethod)) {
+                // Custom method doesn't exist - return 500 Internal Server Error
+                return new Response(500, [
+                    'Content-Type' => 'application/json; charset=utf-8'
+                ], json_encode([
+                    'error' => 'Controller method not found',
+                    'requestId' => Logger::getRequestId()
+                ]));
+            }
+
+            return $controller->$customMethod();
+        }
+
         // Determine which method to call based on HTTP method
         $method = match ($req->method) {
             'GET' => 'get',
