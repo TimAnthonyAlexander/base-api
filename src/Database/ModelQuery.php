@@ -811,11 +811,9 @@ class ModelQuery
                 $row = $rowProperty->getValue($model);
 
                 $fkValue = $row[$fkColumn] ?? null;
-                // Set the relation property on the model
-                if ($fkValue && isset($relatedByID[$fkValue]) && $reflection->hasProperty($relation)) {
-                    $relationProperty = $reflection->getProperty($relation);
-                    $relationProperty->setAccessible(true);
-                    $relationProperty->setValue($model, $relatedByID[$fkValue]);
+                // Set the relation as a dynamic property (allowed by #[\AllowDynamicProperties])
+                if ($fkValue && isset($relatedByID[$fkValue])) {
+                    $model->$relation = $relatedByID[$fkValue];
                 }
             }
         }
@@ -856,13 +854,8 @@ class ModelQuery
         foreach ($models as $model) {
             $relatedArray = $relatedByFK[$model->id] ?? [];
 
-            // Set the relation property on the model
-            $reflection = new ReflectionClass($model);
-            if ($reflection->hasProperty($relation)) {
-                $relationProperty = $reflection->getProperty($relation);
-                $relationProperty->setAccessible(true);
-                $relationProperty->setValue($model, $relatedArray);
-            }
+            // Set the relation as a dynamic property (allowed by #[\AllowDynamicProperties])
+            $model->$relation = $relatedArray;
         }
     }
 }

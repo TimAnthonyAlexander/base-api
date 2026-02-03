@@ -287,7 +287,7 @@ class BaseModelTest extends TestCase
     public function testInferForeignKeyFromTypedPropertyThrowsOnInvalidProperty(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Property nonexistent not found');
+        $this->expectExceptionMessage('Cannot infer foreign key for property/method nonexistent');
 
         TestUserModel::inferForeignKeyFromTypedProperty('nonexistent');
     }
@@ -300,7 +300,7 @@ class BaseModelTest extends TestCase
         };
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('must have a typed hint');
+        $this->expectExceptionMessage('Cannot infer foreign key for property/method untypedProperty');
 
         $model::inferForeignKeyFromTypedProperty('untypedProperty');
     }
@@ -316,7 +316,7 @@ class BaseModelTest extends TestCase
     public function testInferHasManyThrowsOnInvalidProperty(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Property nonexistent not found');
+        $this->expectExceptionMessage('Cannot infer hasMany relation for property/method nonexistent');
 
         TestUserModel::inferHasMany('nonexistent');
     }
@@ -329,7 +329,7 @@ class BaseModelTest extends TestCase
         };
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('must have @var ClassName[] docblock');
+        $this->expectExceptionMessage('Cannot infer hasMany relation for property/method items');
 
         $model::inferHasMany('items');
     }
@@ -343,7 +343,7 @@ class BaseModelTest extends TestCase
     public function testGetRelationTypeThrowsOnInvalidProperty(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Property invalid not found');
+        $this->expectExceptionMessage('Cannot determine relation type for property/method invalid');
 
         TestUserModel::getRelationType('invalid');
     }

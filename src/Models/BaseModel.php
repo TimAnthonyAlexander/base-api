@@ -494,97 +494,141 @@ abstract class BaseModel implements \JsonSerializable
 
     /**
      * Get the type of relation for a given property name
+     * Supports both property-based relations (old pattern) and method-based relations (current pattern)
      */
     public static function getRelationType(string $property): string
     {
         $reflection = new \ReflectionClass(static::class);
 
-        if (!$reflection->hasProperty($property)) {
-            throw new \InvalidArgumentException("Property {$property} not found on " . static::class);
-        }
+        // First try property-based relations (old pattern - for backward compatibility)
+        if ($reflection->hasProperty($property)) {
+            $prop = $reflection->getProperty($property);
+            $type = $prop->getType();
 
-        $prop = $reflection->getProperty($property);
-        $type = $prop->getType();
+            if ($type instanceof \ReflectionNamedType) {
+                $typeName = $type->getName();
+                if (is_subclass_of($typeName, BaseModel::class)) {
+                    return 'belongsTo';
+                }
+            }
 
-        if ($type instanceof \ReflectionNamedType) {
-            $typeName = $type->getName();
-            if (is_subclass_of($typeName, BaseModel::class)) {
-                return 'belongsTo';
+            // Check for array type hint in docblock
+            $docComment = $prop->getDocComment();
+            if ($docComment && preg_match('/@var\s+([^\s]+)\[\]/', $docComment, $matches)) {
+                $elementType = $matches[1];
+                if (class_exists($elementType) && is_subclass_of($elementType, BaseModel::class)) {
+                    return 'hasMany';
+                }
             }
         }
 
-        // Check for array type hint in docblock
-        $docComment = $prop->getDocComment();
-        if ($docComment && preg_match('/@var\s+([^\s]+)\[\]/', $docComment, $matches)) {
-            $elementType = $matches[1];
-            if (class_exists($elementType) && is_subclass_of($elementType, BaseModel::class)) {
-                return 'hasMany';
+        // Try method-based relations (current pattern)
+        if ($reflection->hasMethod($property)) {
+            $method = $reflection->getMethod($property);
+            $returnType = $method->getReturnType();
+
+            if ($returnType instanceof \ReflectionNamedType) {
+                $returnTypeName = $returnType->getName();
+                if ($returnTypeName === 'BaseApi\\Database\\Relations\\BelongsTo' || (class_exists($returnTypeName) && is_subclass_of($returnTypeName, 'BaseApi\\Database\\Relations\\BelongsTo'))) {
+                    return 'belongsTo';
+                }
+                if ($returnTypeName === 'BaseApi\\Database\\Relations\\HasMany' || (class_exists($returnTypeName) && is_subclass_of($returnTypeName, 'BaseApi\\Database\\Relations\\HasMany'))) {
+                    return 'hasMany';
+                }
             }
         }
 
-        throw new \InvalidArgumentException("Cannot determine relation type for property {$property}");
+        throw new \InvalidArgumentException("Cannot determine relation type for property/method {$property} on " . static::class);
     }
 
     /**
-     * Infer foreign key info from typed property for belongsTo relations
+     * Infer foreign key info for belongsTo relations
+     * Supports both typed properties (old pattern) and relationship methods (current pattern)
      * Returns [fkColumn, relatedTable, relatedClass]
      */
     public static function inferForeignKeyFromTypedProperty(string $prop): array
     {
         $reflection = new \ReflectionClass(static::class);
 
-        if (!$reflection->hasProperty($prop)) {
-            throw new \InvalidArgumentException("Property {$prop} not found on " . static::class);
+        // Try property-based pattern first (for backward compatibility)
+        if ($reflection->hasProperty($prop)) {
+            $property = $reflection->getProperty($prop);
+            $type = $property->getType();
+
+            if ($type instanceof \ReflectionNamedType) {
+                $relatedClass = $type->getName();
+                if (is_subclass_of($relatedClass, BaseModel::class)) {
+                    $fkColumn = $prop . '_id';
+                    $relatedTable = $relatedClass::table();
+                    return [$fkColumn, $relatedTable, $relatedClass];
+                }
+            }
         }
 
-        $property = $reflection->getProperty($prop);
-        $type = $property->getType();
+        // Try method-based pattern (current pattern)
+        if ($reflection->hasMethod($prop)) {
+            $instance = static::createInstance();
+            $relationObj = $instance->$prop();
 
-        if (!$type instanceof \ReflectionNamedType) {
-            throw new \InvalidArgumentException("Property {$prop} must have a typed hint");
+            if ($relationObj instanceof BelongsTo) {
+                $relatedClass = $relationObj->getRelatedClass();
+                $relatedTable = $relatedClass::table();
+                // Use the relation's getForeignKey method via reflection
+                $relMethod = new \ReflectionMethod($relationObj, 'getForeignKey');
+                $relMethod->setAccessible(true);
+                $fkColumn = $relMethod->invoke($relationObj);
+
+                return [$fkColumn, $relatedTable, $relatedClass];
+            }
         }
 
-        $relatedClass = $type->getName();
-        if (!is_subclass_of($relatedClass, BaseModel::class)) {
-            throw new \InvalidArgumentException("Property {$prop} must be a BaseModel subclass");
-        }
-
-        $fkColumn = $prop . '_id';
-        $relatedTable = $relatedClass::table();
-
-        return [$fkColumn, $relatedTable, $relatedClass];
+        throw new \InvalidArgumentException("Cannot infer foreign key for property/method {$prop} on " . static::class);
     }
 
     /**
-     * Infer hasMany relation info from property name and docblock
+     * Infer hasMany relation info from property name/docblock or relationship method
+     * Supports both property-based (old pattern) and method-based (current pattern)
      * Returns [fkColumn, relatedClass]
      */
     public static function inferHasMany(string $prop): array
     {
         $reflection = new \ReflectionClass(static::class);
 
-        if (!$reflection->hasProperty($prop)) {
-            throw new \InvalidArgumentException("Property {$prop} not found on " . static::class);
+        // Try property-based pattern first (for backward compatibility)
+        if ($reflection->hasProperty($prop)) {
+            $property = $reflection->getProperty($prop);
+            $docComment = $property->getDocComment();
+
+            if ($docComment && preg_match('/@var\s+([^\s]+)\[\]/', $docComment, $matches)) {
+                $relatedClass = $matches[1];
+                if (class_exists($relatedClass) && is_subclass_of($relatedClass, BaseModel::class)) {
+                    // Generate FK column: singular of current table + _id
+                    $currentTable = static::table();
+                    $singularTable = static::singularize($currentTable);
+                    $fkColumn = $singularTable . '_id';
+
+                    return [$fkColumn, $relatedClass];
+                }
+            }
         }
 
-        $property = $reflection->getProperty($prop);
-        $docComment = $property->getDocComment();
+        // Try method-based pattern (current pattern)
+        if ($reflection->hasMethod($prop)) {
+            $instance = static::createInstance();
+            $relationObj = $instance->$prop();
 
-        if (!$docComment || !preg_match('/@var\s+([^\s]+)\[\]/', $docComment, $matches)) {
-            throw new \InvalidArgumentException("Property {$prop} must have @var ClassName[] docblock for hasMany");
+            if ($relationObj instanceof HasMany) {
+                $relatedClass = $relationObj->getRelatedClass();
+                // Use the relation's getForeignKey method via reflection
+                $relMethod = new \ReflectionMethod($relationObj, 'getForeignKey');
+                $relMethod->setAccessible(true);
+                $fkColumn = $relMethod->invoke($relationObj);
+
+                return [$fkColumn, $relatedClass];
+            }
         }
 
-        $relatedClass = $matches[1];
-        if (!class_exists($relatedClass) || !is_subclass_of($relatedClass, BaseModel::class)) {
-            throw new \InvalidArgumentException("Related class {$relatedClass} must be a BaseModel subclass");
-        }
-
-        // Generate FK column: singular of current table + _id
-        $currentTable = static::table();
-        $singularTable = static::singularize($currentTable);
-        $fkColumn = $singularTable . '_id';
-
-        return [$fkColumn, $relatedClass];
+        throw new \InvalidArgumentException("Cannot infer hasMany relation for property/method {$prop} on " . static::class);
     }
 
     /**
