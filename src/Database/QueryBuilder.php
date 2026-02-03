@@ -338,6 +338,28 @@ class QueryBuilder
         return $this;
     }
 
+    public function orWhereIn(string $column, array $values): self
+    {
+        if ($values === []) {
+            // Handle empty array - add impossible condition with OR
+            $connector = $this->wheres === [] ? '' : 'OR ';
+            $this->wheres[] = $connector . '1 = 0';
+            return $this;
+        }
+
+        $column = $this->sanitizeColumnName($column);
+        $placeholders = [];
+
+        foreach ($values as $value) {
+            $placeholders[] = $this->addBinding($value);
+        }
+
+        $connector = $this->wheres === [] ? '' : 'OR ';
+        $this->wheres[] = $connector . ($column . ' IN (' . implode(', ', $placeholders) . ")");
+
+        return $this;
+    }
+
     /**
      * Add a raw where condition
      */

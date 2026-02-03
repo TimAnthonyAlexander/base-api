@@ -111,6 +111,19 @@ class QueryBuilderTest extends TestCase
         $this->assertEquals([1, 2, 3, 4], $sqlArray['bindings']);
     }
 
+    public function testOrWhereInCondition(): void
+    {
+        $this->queryBuilder
+            ->table('users')
+            ->where('status', '=', 'active')
+            ->orWhereIn('role', ['admin', 'moderator', 'editor']);
+
+        $sqlArray = $this->queryBuilder->toSql();
+
+        $this->assertStringContainsString('WHERE `status` = ? OR `role` IN (?, ?, ?)', $sqlArray['sql']);
+        $this->assertEquals(['active', 'admin', 'moderator', 'editor'], $sqlArray['bindings']);
+    }
+
     public function testWhereInWithEmptyArrayThrowsException(): void
     {
         $this->expectException(DbException::class);

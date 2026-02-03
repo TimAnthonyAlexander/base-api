@@ -51,6 +51,16 @@ class ModelQuery
     }
 
     /**
+     * Add OR WHERE IN clause
+     * @return ModelQuery<T>
+     */
+    public function orWhereIn(string $column, array $values): self
+    {
+        $this->qb->orWhereIn($column, $values);
+        return $this;
+    }
+
+    /**
      * Add OR WHERE clause
      * @return ModelQuery<T>
      */
