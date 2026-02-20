@@ -14,9 +14,7 @@ use BaseApi\Cache\Stores\StoreInterface;
  */
 class Repository implements CacheInterface
 {
-    public function __construct(private readonly StoreInterface $store, private readonly string $prefix = '')
-    {
-    }
+    public function __construct(private readonly StoreInterface $store, private readonly string $prefix = '') {}
 
     #[Override]
     public function get(string $key, mixed $default = null): mixed
@@ -52,7 +50,7 @@ class Repository implements CacheInterface
     public function remember(string $key, int $ttl, callable $callback): mixed
     {
         $value = $this->get($key);
-        
+
         if ($value !== null) {
             return $value;
         }
@@ -117,7 +115,7 @@ class Repository implements CacheInterface
     public function many(array $keys): array
     {
         $values = [];
-        
+
         foreach ($keys as $key) {
             $values[$key] = $this->get($key);
         }
@@ -131,7 +129,7 @@ class Repository implements CacheInterface
     public function putMany(array $values, ?int $ttl = null): bool
     {
         $success = true;
-        
+
         foreach ($values as $key => $value) {
             if (!$this->put($key, $value, $ttl)) {
                 $success = false;
@@ -184,37 +182,29 @@ class Repository implements CacheInterface
     }
 
     /**
-     * Get cache statistics if supported by the store.
+     * Get cache statistics.
      */
     public function getStats(): array
     {
-        if (method_exists($this->store, 'getStats')) {
-            return $this->store->getStats();
-        }
-
-        return [];
+        return $this->store->getStats();
     }
 
     /**
-     * Clean up expired entries if supported by the store.
+     * Clean up expired cache entries.
      */
     public function cleanup(): int
     {
-        if (method_exists($this->store, 'cleanup')) {
-            return $this->store->cleanup();
-        }
-
-        return 0;
+        return $this->store->cleanup();
     }
 
     private function prefixedKey(string $key): string
     {
-        // Use store's prefix if available, otherwise use repository prefix
-        $storePrefix = $this->store->getPrefix();
-        if ($storePrefix !== '' && $storePrefix !== '0') {
-            return $storePrefix . ':' . $key;
+        // If the store has its own prefix, let it handle prefixing — don't add it here
+        // too, or every key gets double-prefixed (store adds prefix in its own methods).
+        if ($this->store->getPrefix() !== '' && $this->store->getPrefix() !== '0') {
+            return $key;
         }
-        
+
         return $this->prefix !== '' && $this->prefix !== '0' ? $this->prefix . ':' . $key : $key;
     }
 }

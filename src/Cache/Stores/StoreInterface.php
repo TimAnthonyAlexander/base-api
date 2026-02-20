@@ -53,4 +53,18 @@ interface StoreInterface
      * Check if a key exists and is not expired.
      */
     public function has(string $key): bool;
+
+    /**
+     * Get cache statistics.
+     *
+     * @return array<string, mixed>
+     */
+    public function getStats(): array;
+
+    /**
+     * Clean up expired cache entries.
+     *
+     * @return int Number of entries removed
+     */
+    public function cleanup(): int;
 }
