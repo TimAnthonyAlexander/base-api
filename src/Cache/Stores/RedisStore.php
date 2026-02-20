@@ -206,6 +206,13 @@ class RedisStore implements StoreInterface
         }
     }
 
+    #[Override]
+    public function cleanup(): int
+    {
+        // Redis handles expiration natively; no manual cleanup needed.
+        return 0;
+    }
+
     /**
      * Test Redis connection.
      */
