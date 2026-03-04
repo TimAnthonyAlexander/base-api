@@ -185,6 +185,7 @@ class RedisStore implements StoreInterface
     /**
      * Get Redis connection statistics.
      */
+    #[Override]
     public function getStats(): array
     {
         $redis = $this->getRedis();

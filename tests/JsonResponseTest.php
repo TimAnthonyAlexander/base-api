@@ -5,6 +5,7 @@ namespace BaseApi\Tests;
 use Override;
 use ReflectionClass;
 use PHPUnit\Framework\TestCase;
+use BaseApi\App;
 use BaseApi\Http\JsonResponse;
 use BaseApi\Http\Response;
 use BaseApi\Database\PaginatedResult;
@@ -418,5 +419,191 @@ class JsonResponseTest extends TestCase
         $decodedBody = json_decode((string) $response->body, true);
 
         $this->assertNull($decodedBody['requestId']);
+    }
+
+    // ==========================================
+    // Unwrapped mode tests (wrap_data = false)
+    // ==========================================
+
+    private function withUnwrappedMode(callable $fn): void
+    {
+        $reflection = new ReflectionClass(App::class);
+        $configProp = $reflection->getProperty('config');
+        $configProp->setAccessible(true);
+
+        $config = $configProp->getValue();
+        $originalValue = $config?->get('response.wrap_data');
+
+        // Set wrap_data to false
+        $config?->set('response.wrap_data', false);
+
+        try {
+            $fn();
+        } finally {
+            // Restore original value
+            $config?->set('response.wrap_data', $originalValue ?? true);
+        }
+    }
+
+    public function testOkMethodUnwrapped(): void
+    {
+        $this->withUnwrappedMode(function (): void {
+            $payload = ['id' => 1, 'name' => 'Test'];
+            $response = JsonResponse::ok($payload);
+
+            $this->assertEquals(200, $response->status);
+            $decodedBody = json_decode((string) $response->body, true);
+
+            // Payload should be at root level, no 'data' wrapper
+            $this->assertEquals(1, $decodedBody['id']);
+            $this->assertEquals('Test', $decodedBody['name']);
+            $this->assertArrayNotHasKey('data', $decodedBody);
+        });
+    }
+
+    public function testCreatedMethodUnwrapped(): void
+    {
+        $this->withUnwrappedMode(function (): void {
+            $payload = ['id' => 1, 'name' => 'Test'];
+            $response = JsonResponse::created($payload);
+
+            $this->assertEquals(201, $response->status);
+            $decodedBody = json_decode((string) $response->body, true);
+
+            $this->assertEquals(1, $decodedBody['id']);
+            $this->assertArrayNotHasKey('data', $decodedBody);
+        });
+    }
+
+    public function testSuccessMethodUnwrapped(): void
+    {
+        $this->withUnwrappedMode(function (): void {
+            $data = ['id' => 1, 'name' => 'Test'];
+            $response = JsonResponse::success($data);
+
+            $this->assertEquals(200, $response->status);
+            $decodedBody = json_decode((string) $response->body, true);
+
+            // Payload fields should be at root level
+            $this->assertEquals(1, $decodedBody['id']);
+            $this->assertEquals('Test', $decodedBody['name']);
+            $this->assertArrayNotHasKey('data', $decodedBody);
+            $this->assertArrayNotHasKey('success', $decodedBody);
+
+            // Meta should still be present
+            $this->assertArrayHasKey('meta', $decodedBody);
+            $this->assertArrayHasKey('timestamp', $decodedBody['meta']);
+        });
+    }
+
+    public function testPaginatedMethodUnwrapped(): void
+    {
+        $this->withUnwrappedMode(function (): void {
+            $data = [['id' => 1], ['id' => 2]];
+            $paginatedResult = new PaginatedResult($data, 1, 10, 20);
+
+            $response = JsonResponse::paginated($paginatedResult);
+
+            $this->assertEquals(200, $response->status);
+            $decodedBody = json_decode((string) $response->body, true);
+
+            // Should use 'items' instead of 'data'
+            $this->assertEquals($data, $decodedBody['items']);
+            $this->assertArrayNotHasKey('data', $decodedBody);
+            $this->assertArrayNotHasKey('success', $decodedBody);
+
+            // Pagination and meta should still be present
+            $this->assertEquals(1, $decodedBody['pagination']['page']);
+            $this->assertEquals(10, $decodedBody['pagination']['per_page']);
+            $this->assertArrayHasKey('meta', $decodedBody);
+        });
+    }
+
+    public function testAcceptedMethodUnwrapped(): void
+    {
+        $this->withUnwrappedMode(function (): void {
+            $data = ['id' => 1, 'status' => 'processing'];
+            $response = JsonResponse::accepted($data);
+
+            $this->assertEquals(202, $response->status);
+            $decodedBody = json_decode((string) $response->body, true);
+
+            $this->assertEquals(1, $decodedBody['id']);
+            $this->assertEquals('processing', $decodedBody['status']);
+            $this->assertArrayNotHasKey('data', $decodedBody);
+        });
+    }
+
+    // ==========================================
+    // Runtime override tests (wrap parameter)
+    // ==========================================
+
+    public function testOkRuntimeOverrideUnwrap(): void
+    {
+        // Config defaults to wrap=true, but pass wrap:false at call site
+        $payload = ['id' => 1, 'name' => 'Test'];
+        $response = JsonResponse::ok($payload, 200, wrap: false);
+
+        $decodedBody = json_decode((string) $response->body, true);
+        $this->assertEquals(1, $decodedBody['id']);
+        $this->assertArrayNotHasKey('data', $decodedBody);
+    }
+
+    public function testOkRuntimeOverrideWrapInUnwrappedMode(): void
+    {
+        $this->withUnwrappedMode(function (): void {
+            // Config says unwrap, but pass wrap:true at call site
+            $payload = ['id' => 1, 'name' => 'Test'];
+            $response = JsonResponse::ok($payload, 200, wrap: true);
+
+            $decodedBody = json_decode((string) $response->body, true);
+            $this->assertEquals($payload, $decodedBody['data']);
+        });
+    }
+
+    public function testCreatedRuntimeOverrideUnwrap(): void
+    {
+        $payload = ['id' => 1];
+        $response = JsonResponse::created($payload, wrap: false);
+
+        $decodedBody = json_decode((string) $response->body, true);
+        $this->assertEquals(1, $decodedBody['id']);
+        $this->assertArrayNotHasKey('data', $decodedBody);
+    }
+
+    public function testSuccessRuntimeOverrideUnwrap(): void
+    {
+        $data = ['id' => 1, 'name' => 'Test'];
+        $response = JsonResponse::success($data, 200, [], wrap: false);
+
+        $decodedBody = json_decode((string) $response->body, true);
+        $this->assertEquals(1, $decodedBody['id']);
+        $this->assertArrayNotHasKey('data', $decodedBody);
+        $this->assertArrayNotHasKey('success', $decodedBody);
+        $this->assertArrayHasKey('meta', $decodedBody);
+    }
+
+    public function testPaginatedRuntimeOverrideUnwrap(): void
+    {
+        $data = [['id' => 1], ['id' => 2]];
+        $paginatedResult = new PaginatedResult($data, 1, 10, 20);
+
+        $response = JsonResponse::paginated($paginatedResult, [], wrap: false);
+
+        $decodedBody = json_decode((string) $response->body, true);
+        $this->assertEquals($data, $decodedBody['items']);
+        $this->assertArrayNotHasKey('data', $decodedBody);
+        $this->assertArrayNotHasKey('success', $decodedBody);
+        $this->assertArrayHasKey('pagination', $decodedBody);
+    }
+
+    public function testAcceptedRuntimeOverrideUnwrap(): void
+    {
+        $data = ['id' => 1];
+        $response = JsonResponse::accepted($data, wrap: false);
+
+        $decodedBody = json_decode((string) $response->body, true);
+        $this->assertEquals(1, $decodedBody['id']);
+        $this->assertArrayNotHasKey('data', $decodedBody);
     }
 }

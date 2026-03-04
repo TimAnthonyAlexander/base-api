@@ -65,6 +65,14 @@ class Config
     }
 
     /**
+     * Set a configuration value at runtime using dot notation.
+     */
+    public function set(string $key, mixed $value): void
+    {
+        $this->env[$key] = $value;
+    }
+
+    /**
      * Get all configuration as array
      */
     public function all(): array

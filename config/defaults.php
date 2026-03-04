@@ -33,6 +33,10 @@ return [
         'allowed_mime' => ['image/jpeg', 'image/png', 'application/pdf'],
     ],
 
+    'response' => [
+        'wrap_data' => true,
+    ],
+
     'rate_limit' => [
         'dir' => 'storage/ratelimits',
         'trust_proxy' => false,
