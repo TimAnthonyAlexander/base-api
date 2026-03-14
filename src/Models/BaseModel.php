@@ -78,7 +78,8 @@ abstract class BaseModel implements \JsonSerializable
         $className = (new \ReflectionClass(static::class))->getShortName();
 
         // Convert PascalCase to snake_case (no pluralization)
-        $tableName = strtolower(preg_replace('/([a-z])([A-Z])/', '$1_$2', $className));
+        // Must match ModelScanner::classNameToTableName() to avoid table name mismatches
+        $tableName = strtolower((string) preg_replace('/([A-Z])/', '_$1', lcfirst($className)));
 
         return $tableName;
     }
