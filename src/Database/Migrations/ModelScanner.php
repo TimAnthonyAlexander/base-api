@@ -417,14 +417,14 @@ class ModelScanner
                     'fulltext' => 'ft_',
                     default => 'idx_'
                 };
-                $indexName = $prefix . $table->name . '_' . $key;
+                $indexName = $this->truncateIdentifier($prefix . $table->name . '_' . $key);
                 $table->indexes[$indexName] = new IndexDef($indexName, $key, $value);
             } elseif (is_array($value)) {
                 // Composite index: numeric key with array value
                 // Extract type if specified, otherwise default to 'index'
                 $type = 'index';
                 $columns = [];
-                
+
                 foreach ($value as $k => $v) {
                     if ($k === 'type') {
                         $type = $v;
@@ -432,7 +432,7 @@ class ModelScanner
                         $columns[] = $v;
                     }
                 }
-                
+
                 if ($columns !== []) {
                     $columnSuffix = implode('_', $columns);
                     $prefix = match ($type) {
@@ -440,11 +440,26 @@ class ModelScanner
                         'fulltext' => 'ft_',
                         default => 'idx_'
                     };
-                    $indexName = $prefix . $table->name . '_' . $columnSuffix;
+                    $indexName = $this->truncateIdentifier($prefix . $table->name . '_' . $columnSuffix);
                     $table->indexes[$indexName] = new IndexDef($indexName, $columns, $type);
                 }
             }
         }
+    }
+
+    /**
+     * Truncate an identifier to fit within MySQL's 64-character limit.
+     * When truncation is needed, append an 8-char hash of the full name to preserve uniqueness.
+     */
+    private function truncateIdentifier(string $name, int $maxLength = 64): string
+    {
+        if (strlen($name) <= $maxLength) {
+            return $name;
+        }
+
+        $hash = substr(md5($name), 0, 8);
+        $prefixLength = $maxLength - strlen($hash) - 1; // reserve space for '_' + hash
+        return substr($name, 0, $prefixLength) . '_' . $hash;
     }
 
     /**

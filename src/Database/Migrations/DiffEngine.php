@@ -258,10 +258,10 @@ class DiffEngine
                 // Drop and recreate the foreign key
                 $plan->addOperation('drop_fk', [
                     'table' => $modelTable->name,
-                    'fk' => $fkName,
+                    'fk_name' => $fkName,
                     'destructive' => false
                 ]);
-                
+
                 $plan->addOperation('add_fk', [
                     'table' => $modelTable->name,
                     'fk' => $modelFk->toArray(),
@@ -269,12 +269,12 @@ class DiffEngine
                 ]);
             }
         }
-        
+
         // Drop removed foreign keys
         foreach ($fksToDrop as $fkName) {
             $plan->addOperation('drop_fk', [
                 'table' => $modelTable->name,
-                'fk' => $fkName,
+                'fk_name' => $fkName,
                 'destructive' => false
             ]);
         }
