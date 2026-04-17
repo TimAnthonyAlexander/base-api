@@ -37,6 +37,7 @@ class MySqlDriver implements DatabaseDriverInterface
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_PERSISTENT => $persistent,
+            PDO::MYSQL_ATTR_FOUND_ROWS => true,
         ];
 
         $timeout = $config['timeout'] ?? null;
