@@ -18,7 +18,7 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         return 'mysql';
     }
-    
+
     #[Override]
     public function createConnection(array $config): PDO
     {
@@ -59,20 +59,20 @@ class MySqlDriver implements DatabaseDriverInterface
 
             // Set names (charset)
             $pdo->exec('SET NAMES ' . $charset);
-            
+
             return $pdo;
         } catch (PDOException $pdoException) {
             throw new DbException("Database connection failed: " . $pdoException->getMessage(), $pdoException);
         }
     }
-    
+
     #[Override]
     public function getDatabaseName(PDO $pdo): string
     {
         $stmt = $pdo->query('SELECT DATABASE()');
         return $stmt->fetchColumn();
     }
-    
+
     #[Override]
     public function getTables(PDO $pdo, string $dbName): array
     {
@@ -85,7 +85,7 @@ class MySqlDriver implements DatabaseDriverInterface
         $stmt->execute([$dbName]);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
-    
+
     #[Override]
     public function getColumns(PDO $pdo, string $dbName, string $tableName): array
     {
@@ -103,13 +103,13 @@ class MySqlDriver implements DatabaseDriverInterface
             ORDER BY ORDINAL_POSITION
         ");
         $stmt->execute([$dbName, $tableName]);
-        
+
         $columns = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $isStored = str_contains($row['EXTRA'] ?? '', 'STORED GENERATED');
             $isVirtual = str_contains($row['EXTRA'] ?? '', 'VIRTUAL GENERATED');
             $generated = ($isStored || $isVirtual) ? $row['GENERATION_EXPRESSION'] : null;
-            
+
             $columns[$row['COLUMN_NAME']] = new ColumnDef(
                 name: $row['COLUMN_NAME'],
                 type: $this->normalizeFullColumnType($row['COLUMN_TYPE']),
@@ -120,10 +120,10 @@ class MySqlDriver implements DatabaseDriverInterface
                 stored: $isStored
             );
         }
-        
+
         return $columns;
     }
-    
+
     #[Override]
     public function getIndexes(PDO $pdo, string $dbName, string $tableName): array
     {
@@ -171,7 +171,7 @@ class MySqlDriver implements DatabaseDriverInterface
                 } elseif (!$row['NON_UNIQUE']) {
                     $type = 'unique';
                 }
-                
+
                 $indexData[$indexName] = [
                     'columns' => [],
                     'type' => $type
@@ -196,7 +196,7 @@ class MySqlDriver implements DatabaseDriverInterface
 
         return $indexes;
     }
-    
+
     #[Override]
     public function getForeignKeys(PDO $pdo, string $dbName, string $tableName): array
     {
@@ -216,7 +216,7 @@ class MySqlDriver implements DatabaseDriverInterface
             AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
         ");
         $stmt->execute([$dbName, $tableName]);
-        
+
         $fks = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $fks[$row['CONSTRAINT_NAME']] = new ForeignKeyDef(
@@ -228,15 +228,15 @@ class MySqlDriver implements DatabaseDriverInterface
                 on_update: $row['UPDATE_RULE']
             );
         }
-        
+
         return $fks;
     }
-    
+
     #[Override]
     public function generateSql(MigrationPlan $plan): array
     {
         $statements = [];
-        
+
         // Group operations by type for proper ordering
         $createTables = [];
         $addColumns = [];
@@ -247,7 +247,7 @@ class MySqlDriver implements DatabaseDriverInterface
         $dropIndexes = [];
         $dropColumns = [];
         $dropTables = [];
-        
+
         foreach ($plan->operations as $op) {
             match ($op['op']) {
                 'create_table' => $createTables[] = $op,
@@ -262,109 +262,109 @@ class MySqlDriver implements DatabaseDriverInterface
                 default => null
             };
         }
-        
+
         // Execute in proper order: creates → adds → drops
         foreach ($createTables as $op) {
             $statements[] = $this->generateCreateTable($op);
         }
-        
+
         foreach ($addColumns as $op) {
             $statements[] = $this->generateAddColumn($op);
         }
-        
+
         foreach ($modifyColumns as $op) {
             $statements[] = $this->generateModifyColumn($op);
         }
-        
+
         foreach ($addIndexes as $op) {
             $statements[] = $this->generateAddIndex($op);
         }
-        
+
         foreach ($addFks as $op) {
             $statements[] = $this->generateAddForeignKey($op);
         }
-        
+
         // Drops happen last
         foreach ($dropFks as $op) {
             $statements[] = $this->generateDropForeignKey($op);
         }
-        
+
         foreach ($dropIndexes as $op) {
             $statements[] = $this->generateDropIndex($op);
         }
-        
+
         foreach ($dropColumns as $op) {
             $statements[] = $this->generateDropColumn($op);
         }
-        
+
         foreach ($dropTables as $op) {
             $statements[] = $this->generateDropTable($op);
         }
-        
+
         return array_filter($statements);
     }
-    
+
     private function generateCreateTable(array $op): array
     {
         $tableName = $op['table'];
         $columns = $op['columns'];
-        
+
         $columnDefs = [];
         $primaryKey = null;
-        
+
         foreach ($columns as $columnData) {
             $column = ColumnDef::fromArray($columnData);
             $columnDefs[] = $this->generateColumnDefinition($column);
-            
+
             if ($column->is_pk) {
                 $primaryKey = $column->name;
             }
         }
-        
+
         $sql = "CREATE TABLE `{$tableName}` (\n";
         $sql .= "  " . implode(",\n  ", $columnDefs);
-        
+
         if ($primaryKey) {
             $sql .= ",\n  PRIMARY KEY (`{$primaryKey}`)";
         }
-        
+
         $sql .= "\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-        
+
         return [
             'sql' => $sql,
             'description' => 'Create table ' . $tableName,
             'destructive' => false
         ];
     }
-    
+
     private function generateAddColumn(array $op): array
     {
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
-        
+
         $sql = sprintf('ALTER TABLE `%s` ADD COLUMN ', $tableName) . $this->generateColumnDefinition($column);
-        
+
         return [
             'sql' => $sql,
             'description' => sprintf('Add column %s to %s', $column->name, $tableName),
             'destructive' => false
         ];
     }
-    
+
     private function generateModifyColumn(array $op): array
     {
         $tableName = $op['table'];
         $column = ColumnDef::fromArray($op['column']);
-        
+
         $sql = sprintf('ALTER TABLE `%s` MODIFY COLUMN ', $tableName) . $this->generateColumnDefinition($column);
-        
+
         return [
             'sql' => $sql,
             'description' => sprintf('Modify column %s in %s', $column->name, $tableName),
             'destructive' => $op['destructive'] ?? false
         ];
     }
-    
+
     private function generateAddIndex(array $op): array
     {
         $tableName = $op['table'];
@@ -388,8 +388,12 @@ class MySqlDriver implements DatabaseDriverInterface
 
         // Handle FULLTEXT
         if ($index->type === 'fulltext') {
-            $sql = sprintf('ALTER TABLE `%s` ADD FULLTEXT INDEX `%s` (%s)', 
-                          $tableName, $index->name, $columnSpec);
+            $sql = sprintf(
+                'ALTER TABLE `%s` ADD FULLTEXT INDEX `%s` (%s)',
+                $tableName,
+                $index->name,
+                $columnSpec
+            );
         } elseif ($index->type === 'unique') {
             $sql = sprintf('ALTER TABLE `%s` ADD UNIQUE KEY `%s` (%s)', $tableName, $index->name, $columnSpec);
         } else {
@@ -402,44 +406,44 @@ class MySqlDriver implements DatabaseDriverInterface
             'destructive' => false
         ];
     }
-    
+
     private function generateAddForeignKey(array $op): array
     {
         $tableName = $op['table'];
         $fk = ForeignKeyDef::fromArray($op['fk']);
-        
+
         $sql = sprintf('ALTER TABLE `%s` ADD CONSTRAINT `%s` ', $tableName, $fk->name) .
-               sprintf('FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) ', $fk->column, $fk->ref_table, $fk->ref_column) .
-               sprintf('ON DELETE %s ON UPDATE %s', $fk->on_delete, $fk->on_update);
-        
+            sprintf('FOREIGN KEY (`%s`) REFERENCES `%s` (`%s`) ', $fk->column, $fk->ref_table, $fk->ref_column) .
+            sprintf('ON DELETE %s ON UPDATE %s', $fk->on_delete, $fk->on_update);
+
         return [
             'sql' => $sql,
             'description' => sprintf('Add foreign key %s to %s', $fk->name, $tableName),
             'destructive' => false
         ];
     }
-    
+
     private function generateDropForeignKey(array $op): array
     {
         $tableName = $op['table'];
         $fkName = $op['fk_name'];
-        
+
         $sql = sprintf('ALTER TABLE `%s` DROP FOREIGN KEY `%s`', $tableName, $fkName);
-        
+
         return [
             'sql' => $sql,
             'description' => sprintf('Drop foreign key %s from %s', $fkName, $tableName),
             'destructive' => true
         ];
     }
-    
+
     private function generateDropIndex(array $op): array
     {
         $tableName = $op['table'];
         $indexName = $op['index'];
-        
+
         $sql = sprintf('ALTER TABLE `%s` DROP INDEX `%s`', $tableName, $indexName);
-        
+
         return [
             'sql' => $sql,
             'description' => sprintf('Drop index %s from %s', $indexName, $tableName),
@@ -447,27 +451,27 @@ class MySqlDriver implements DatabaseDriverInterface
             'table' => $tableName
         ];
     }
-    
+
     private function generateDropColumn(array $op): array
     {
         $tableName = $op['table'];
         $columnName = $op['column'];
-        
+
         $sql = sprintf('ALTER TABLE `%s` DROP COLUMN `%s`', $tableName, $columnName);
-        
+
         return [
             'sql' => $sql,
             'description' => sprintf('Drop column %s from %s', $columnName, $tableName),
             'destructive' => true
         ];
     }
-    
+
     private function generateDropTable(array $op): array
     {
         $tableName = $op['table'];
-        
+
         $sql = sprintf('DROP TABLE IF EXISTS `%s`', $tableName);
-        
+
         return [
             'sql' => $sql,
             'description' => 'Drop table ' . $tableName,
@@ -475,7 +479,7 @@ class MySqlDriver implements DatabaseDriverInterface
             'table' => $tableName
         ];
     }
-    
+
     /**
      * Get the column specification for index creation, including key length for TEXT/BLOB columns
      */
@@ -484,45 +488,62 @@ class MySqlDriver implements DatabaseDriverInterface
         if ($columnType === null) {
             return sprintf('`%s`', $columnName);
         }
-        
+
         $typeUpper = strtoupper($columnType);
-        
+
         // MySQL requires a key length for TEXT and BLOB columns
         // Use 255 for most cases (191 for utf8mb4 to stay under 767 byte limit for older MySQL)
-        $textBlobTypes = ['TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 
-                         'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB'];
-        
+        $textBlobTypes = [
+            'TEXT',
+            'TINYTEXT',
+            'MEDIUMTEXT',
+            'LONGTEXT',
+            'BLOB',
+            'TINYBLOB',
+            'MEDIUMBLOB',
+            'LONGBLOB'
+        ];
+
         foreach ($textBlobTypes as $type) {
             if (str_starts_with($typeUpper, $type)) {
                 // Use 191 to be safe with utf8mb4 (191 * 4 bytes = 764 bytes < 767)
                 return sprintf('`%s`(191)', $columnName);
             }
         }
-        
+
         return sprintf('`%s`', $columnName);
     }
-    
+
     private function generateColumnDefinition(ColumnDef $column): string
     {
         $sql = sprintf('`%s` %s', $column->name, $column->type);
-        
+
         // Handle generated columns
         if ($column->generated !== null) {
             $storedKeyword = $column->stored ? 'STORED' : 'VIRTUAL';
             return $sql . sprintf(' GENERATED ALWAYS AS (%s) %s', $column->generated, $storedKeyword); // Generated columns can't have NULL/DEFAULT clauses
         }
-        
+
         if (!$column->nullable) {
             $sql .= ' NOT NULL';
         }
-        
+
         // MySQL doesn't allow default values for TEXT, BLOB, GEOMETRY, or JSON columns
         // (except NULL which is handled by the nullable flag)
         $typeUpper = strtoupper($column->type);
-        $noDefaultTypes = ['TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 
-                          'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB',
-                          'GEOMETRY', 'JSON'];
-        
+        $noDefaultTypes = [
+            'TEXT',
+            'TINYTEXT',
+            'MEDIUMTEXT',
+            'LONGTEXT',
+            'BLOB',
+            'TINYBLOB',
+            'MEDIUMBLOB',
+            'LONGBLOB',
+            'GEOMETRY',
+            'JSON'
+        ];
+
         $isNoDefaultType = false;
         foreach ($noDefaultTypes as $noDefaultType) {
             if (str_starts_with($typeUpper, $noDefaultType)) {
@@ -530,7 +551,7 @@ class MySqlDriver implements DatabaseDriverInterface
                 break;
             }
         }
-        
+
         if ($column->default !== null && !$isNoDefaultType) {
             if ($column->default === 'CURRENT_TIMESTAMP') {
                 $sql .= ' DEFAULT CURRENT_TIMESTAMP';
@@ -546,10 +567,10 @@ class MySqlDriver implements DatabaseDriverInterface
                 }
             }
         }
-        
+
         return $sql;
     }
-    
+
     /**
      * Normalize full column type from MySQL COLUMN_TYPE field (e.g., "varchar(255)", "int(11)", "tinyint(1)")
      * This preserves the length/precision information needed for accurate comparisons
@@ -558,31 +579,39 @@ class MySqlDriver implements DatabaseDriverInterface
     {
         // Convert to uppercase for consistency with our generated SQL
         $normalized = strtoupper($columnType);
-        
+
         // MySQL returns "int(11)" but we generate "INT" - normalize by removing display width for integers
         // except for TINYINT(1) which represents boolean
         if (preg_match('/^(SMALLINT|MEDIUMINT|BIGINT)\(\d+\)$/i', $normalized)) {
             return strtoupper((string) preg_replace('/\(\d+\)$/', '', $normalized));
         }
-        
+
         // INT(11) -> INT, but preserve other INT widths that are explicitly set
         if (preg_match('/^INT\(11\)$/i', $normalized)) {
             return 'INT';
         }
-        
-        // Special handling for TEXT types without length
-        if (preg_match('/^(TINY|MEDIUM|LONG)?TEXT$/i', $normalized)) {
+
+        // Normalize TEXT variants: TINYTEXT/MEDIUMTEXT -> TEXT, but preserve LONGTEXT
+        if (preg_match('/^(TINYTEXT|MEDIUMTEXT|TEXT)$/i', $normalized)) {
             return 'TEXT';
         }
-        
-        // Special handling for BLOB types without length
-        if (preg_match('/^(TINY|MEDIUM|LONG)?BLOB$/i', $normalized)) {
+
+        if (strtoupper($normalized) === 'LONGTEXT') {
+            return 'LONGTEXT';
+        }
+
+        // Normalize BLOB variants: TINYBLOB/MEDIUMBLOB -> BLOB, but preserve LONGBLOB
+        if (preg_match('/^(TINYBLOB|MEDIUMBLOB|BLOB)$/i', $normalized)) {
             return 'BLOB';
         }
-        
+
+        if (strtoupper($normalized) === 'LONGBLOB') {
+            return 'LONGBLOB';
+        }
+
         return $normalized;
     }
-    
+
     #[Override]
     public function normalizeColumnType(string $columnType): string
     {
@@ -610,14 +639,14 @@ class MySqlDriver implements DatabaseDriverInterface
             default => $columnType
         };
     }
-    
+
     #[Override]
     public function normalizeDefault(?string $default, string $extra): ?string
     {
         if ($default === null) {
             return null;
         }
-        
+
         // Handle special MySQL defaults
         if ($default === 'CURRENT_TIMESTAMP' || str_contains($extra, 'DEFAULT_GENERATED')) {
             // Check if there's also an ON UPDATE clause in the EXTRA column
@@ -627,11 +656,11 @@ class MySqlDriver implements DatabaseDriverInterface
 
             return 'CURRENT_TIMESTAMP';
         }
-        
+
         // Remove quotes from string defaults
         return trim($default, "'\"");
     }
-    
+
     #[Override]
     public function phpTypeToSqlType(string $phpType, string $propertyName = ''): string
     {
