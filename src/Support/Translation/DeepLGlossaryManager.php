@@ -107,20 +107,22 @@ class DeepLGlossaryManager
      * if it does — without touching the glossary's other dictionaries or
      * recreating the glossary itself.
      *
+     * Note the shape: this endpoint takes ONE dictionary object directly and
+     * answers to PUT. It is not the `{"dictionaries": [...]}` envelope used
+     * when creating a whole glossary, and PATCH here returns HTTP 405.
+     *
      * @param array<string, string> $entries
      */
     public function upsertDictionary(string $glossaryId, string $sourceLang, string $targetLang, array $entries): array
     {
-        $payload = [
-            'dictionaries' => [$this->serializeDictionary([
-                'source_lang' => $sourceLang,
-                'target_lang' => $targetLang,
-                'entries' => $entries,
-            ])],
-        ];
+        $payload = $this->serializeDictionary([
+            'source_lang' => $sourceLang,
+            'target_lang' => $targetLang,
+            'entries' => $entries,
+        ]);
 
         $body = $this->executeDeepLRequest(
-            'PATCH',
+            'PUT',
             $this->host . '/v3/glossaries/' . rawurlencode($glossaryId) . '/dictionaries',
             $this->apiKey,
             $payload,
