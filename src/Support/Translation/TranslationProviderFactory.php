@@ -31,12 +31,26 @@ class TranslationProviderFactory
         self::$instance = match (strtolower((string) $provider)) {
             'deepl' => new DeepLProvider(),
             'openai' => new OpenAIProvider(),
-            default => throw new TranslationException('Unknown translation provider: ' . $provider),
+            default => self::createFromClassName($provider),
         };
         
         return self::$instance;
     }
-    
+
+    /**
+     * Instantiate a custom provider given as a fully-qualified class name.
+     * Falls through to the "unknown provider" exception for anything that
+     * isn't an existing class implementing TranslationProvider.
+     */
+    private static function createFromClassName(string $provider): TranslationProvider
+    {
+        if (class_exists($provider) && is_a($provider, TranslationProvider::class, true)) {
+            return new $provider();
+        }
+
+        throw new TranslationException('Unknown translation provider: ' . $provider);
+    }
+
     /**
      * Reset the singleton instance (useful for testing)
      */

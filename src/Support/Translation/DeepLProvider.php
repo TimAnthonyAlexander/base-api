@@ -5,16 +5,32 @@ namespace BaseApi\Support\Translation;
 use CurlHandle;
 use Override;
 use BaseApi\App;
+use BaseApi\Support\Translation\Concerns\DeepLHttpClient;
 
 class DeepLProvider implements TranslationProvider
 {
+    use DeepLHttpClient;
+
     private readonly string $apiKey;
 
     private readonly string $formality;
 
-    private string $baseUrl = 'https://api-free.deepl.com/v2';
+    /**
+     * Target-language-code => glossary_id map, e.g. ['en' => 'abc-123'].
+     * Only useful for accounts holding multiple single-pair glossaries.
+     */
+    private readonly array $glossaries;
 
-     // Use https://api.deepl.com/v2 for pro
+    /**
+     * A single glossary_id applied to every target language. This is the
+     * realistic setup on the DeepL Free tier, which allows exactly one
+     * glossary per account — see DeepLGlossaryManager, which builds one
+     * multilingual (v3) glossary covering every language pair needed.
+     */
+    private readonly ?string $glossaryId;
+
+    private string $baseUrl;
+
     private int $maxRetries = 6;
 
     private int $maxDelay = 30;
@@ -39,10 +55,14 @@ class DeepLProvider implements TranslationProvider
 
         $this->apiKey = $config['api_key'] ?? '';
         $this->formality = $config['formality'] ?? 'default';
+        $this->glossaries = $config['glossaries'] ?? [];
+        $this->glossaryId = $config['glossary_id'] ?? null;
 
         if (empty($this->apiKey)) {
             throw new TranslationException('DeepL API key is required');
         }
+
+        $this->baseUrl = $this->resolveDeepLHost($this->apiKey, $config) . '/v2';
     }
 
     #[Override]
@@ -68,7 +88,7 @@ class DeepLProvider implements TranslationProvider
         }
 
         // Use concurrency control to prevent API bursts
-        return $this->withConcurrencyControl(function() use ($texts, $sourceLanguage, $targetLanguage): array {
+        return $this->withConcurrencyControl(function() use ($texts, $sourceLanguage, $targetLanguage, $hints): array {
             // Prepare request data
             $data = [
                 'text' => $texts,
@@ -83,6 +103,11 @@ class DeepLProvider implements TranslationProvider
             // Add formality if target language supports it
             if (in_array($targetLanguage, ['de', 'fr', 'it', 'es', 'nl', 'pl', 'pt', 'ru'])) {
                 $data['formality'] = $this->formality;
+            }
+
+            $glossaryId = $this->resolveGlossaryId($targetLanguage, $sourceLanguage, $hints);
+            if ($glossaryId !== null) {
+                $data['glossary_id'] = $glossaryId;
             }
 
             // Make API request
@@ -122,6 +147,30 @@ class DeepLProvider implements TranslationProvider
     public function getSupportedLanguages(): array
     {
         return $this->supportedLanguages;
+    }
+
+    /**
+     * Resolve the glossary_id to attach to a /translate request, if any.
+     *
+     * Precedence: an explicit `$hints['glossary_id']` wins over a per-target
+     * entry in the configured `glossaries` map, which in turn wins over the
+     * single account-wide `glossary_id` (the realistic Free-tier setup: one
+     * multilingual glossary whose dictionaries cover every target
+     * language). DeepL requires an explicit source_lang whenever glossary_id
+     * is sent, so when the source language is 'auto' the glossary is
+     * silently skipped rather than producing an invalid request.
+     */
+    private function resolveGlossaryId(string $targetLanguage, string $sourceLanguage, array $hints): ?string
+    {
+        $glossaryId = $hints['glossary_id']
+            ?? ($this->glossaries[$targetLanguage] ?? null)
+            ?? $this->glossaryId;
+
+        if (empty($glossaryId) || $sourceLanguage === 'auto') {
+            return null;
+        }
+
+        return (string) $glossaryId;
     }
 
     /**
