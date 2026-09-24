@@ -7,12 +7,14 @@ use Exception;
 use BaseApi\Console\Application;
 use BaseApi\Console\Command;
 use BaseApi\Console\ColorHelper;
-use BaseApi\Auth\UserProvider;
 use BaseApi\Permissions\PermissionsService;
 use BaseApi\App;
+use BaseApi\Console\Concerns\ResolvesUserIdentifier;
 
 class PermTraceCommand implements Command
 {
+    use ResolvesUserIdentifier;
+
     #[Override]
     public function name(): string
     {
@@ -130,33 +132,6 @@ class PermTraceCommand implements Command
             echo ColorHelper::error("❌ Error: " . $exception->getMessage()) . "\n";
             return 1;
         }
-    }
-
-    private function resolveUserId(string $identifier): ?string
-    {
-        // Try direct lookup by ID
-        $userProvider = App::container()->make(UserProvider::class);
-        $user = $userProvider->byId($identifier);
-        
-        if ($user !== null) {
-            return $identifier;
-        }
-
-        // Try lookup by email (if it looks like an email)
-        if (str_contains($identifier, '@')) {
-            try {
-                $db = App::db();
-                $result = $db->raw("SELECT id FROM users WHERE email = ?", [$identifier]);
-                
-                if ($result !== []) {
-                    return $result[0]['id'];
-                }
-            } catch (Exception) {
-                // Ignore DB errors
-            }
-        }
-
-        return null;
     }
 }
 
