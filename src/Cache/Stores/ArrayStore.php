@@ -111,6 +111,7 @@ class ArrayStore implements StoreInterface
     /**
      * Get memory usage statistics for debugging.
      */
+    #[Override]
     public function getStats(): array
     {
         $totalItems = count($this->storage);
@@ -137,6 +138,7 @@ class ArrayStore implements StoreInterface
     /**
      * Clean up expired entries.
      */
+    #[Override]
     public function cleanup(): int
     {
         $removed = 0;

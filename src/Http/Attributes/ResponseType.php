@@ -15,6 +15,9 @@ use Attribute;
  * #[ResponseType(['message' => 'string'], status: 201)]       // 201 { data: { message: string } }
  * #[ResponseType]                                              // Auto-infer from return statements
  * #[ResponseType(status: 201)]                                 // Auto-infer with custom status
+ *
+ * The { data: ... } wrapper in these examples applies when `response.wrap_data`
+ * is on (or the handler has #[Enveloped(true)]); otherwise the shape is at the root.
  */
 #[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 class ResponseType

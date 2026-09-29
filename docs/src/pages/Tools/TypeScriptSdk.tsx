@@ -137,6 +137,17 @@ export interface CreateUserRequestBody {
 
 export type CreateUserResponse = Envelope<User>;`} />
 
+            <Callout type="info" title="The Envelope Follows response.wrap_data">
+                The generator wraps success types in <code>Envelope&lt;T&gt;</code> only when your API does:
+                it reads the same <code>response.wrap_data</code> setting (<code>RESPONSE_WRAP_DATA</code> in the
+                app's <code>.env</code>) that <code>JsonResponse::ok()</code> uses. The examples on this page assume it is on.
+                With it off (the starter template's default), <code>GetUserByIdResponse</code> is plain <code>User</code> and
+                you read <code>response.name</code> instead of <code>response.data.name</code>.
+                Add <code>#[Enveloped(true)]</code> or <code>#[Enveloped(false)]</code> to a controller class or method
+                to override the setting for those types, and pass the matching <code>wrap:</code> argument
+                to <code>JsonResponse::ok()</code> so the runtime agrees.
+            </Callout>
+
             <Typography variant="h3" gutterBottom sx={{ mt: 3 }}>
                 routes.ts - Route Constants
             </Typography>

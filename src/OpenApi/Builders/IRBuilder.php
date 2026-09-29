@@ -11,6 +11,7 @@ use BaseApi\Http\Attributes\Query;
 use BaseApi\Http\Attributes\Body;
 use BaseApi\Http\Attributes\Rules;
 use BaseApi\Http\Attributes\Enveloped;
+use BaseApi\Http\JsonResponse;
 use BaseApi\OpenApi\IR\ApiIR;
 use BaseApi\OpenApi\IR\ModelIR;
 use BaseApi\OpenApi\IR\OperationIR;
@@ -229,7 +230,7 @@ class IRBuilder
         // Generate operation ID
         $operationId = $this->generateOperationId($controllerClass, $route['method'], $route['path']);
 
-        // Detect envelope from attributes or default to true
+        // Detect envelope from attributes, else follow the runtime's response.wrap_data
         $envelope = $this->shouldEnvelope($reflection, $methodReflection)
             ? ['type' => 'Envelope', 'dataRef' => 'T']
             : null;
@@ -538,7 +539,7 @@ class IRBuilder
             return $classAttrs[0]->newInstance()->enabled;
         }
 
-        // Default: envelope enabled
-        return true;
+        // Default: whatever JsonResponse does at runtime without an explicit $wrap
+        return JsonResponse::shouldWrapData();
     }
 }

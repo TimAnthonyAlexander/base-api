@@ -382,6 +382,12 @@ dredd openapi.json http://localhost:7879`} />
                         secondary="Groups endpoints by category in the generated documentation"
                     />
                 </ListItem>
+                <ListItem>
+                    <ListItemText
+                        primary="#[Enveloped]"
+                        secondary="Marks a controller class or method as wrapping (true) or not wrapping (false) success responses in { data: ... }. Without it, the generator follows the response.wrap_data config (RESPONSE_WRAP_DATA), the same setting JsonResponse::ok() uses at runtime."
+                    />
+                </ListItem>
             </List>
             
             <Typography>

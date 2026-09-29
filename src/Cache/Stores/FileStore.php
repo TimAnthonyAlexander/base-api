@@ -157,6 +157,7 @@ class FileStore implements StoreInterface
     /**
      * Clean up expired cache files.
      */
+    #[Override]
     public function cleanup(): int
     {
         $pattern = $this->directory . '/' . $this->getCachePrefix() . '*';
@@ -196,6 +197,7 @@ class FileStore implements StoreInterface
     /**
      * Get cache directory statistics.
      */
+    #[Override]
     public function getStats(): array
     {
         $pattern = $this->directory . '/' . $this->getCachePrefix() . '*';

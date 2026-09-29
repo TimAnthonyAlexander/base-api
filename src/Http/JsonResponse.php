@@ -200,7 +200,15 @@ class JsonResponse extends Response
         return $new;
     }
 
-    private static function shouldWrapData(): bool
+    /**
+     * Whether success payloads are wrapped in { data: ... } when the call site
+     * does not pass $wrap. Driven by the `response.wrap_data` config
+     * (RESPONSE_WRAP_DATA in the app's .env).
+     *
+     * The OpenAPI/TypeScript generator calls this too, so generated types
+     * always match what the runtime sends.
+     */
+    public static function shouldWrapData(): bool
     {
         return (bool) App::config('response.wrap_data', true);
     }
