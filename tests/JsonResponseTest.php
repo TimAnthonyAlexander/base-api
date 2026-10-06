@@ -54,7 +54,7 @@ class JsonResponseTest extends TestCase
     public function testOkMethod(): void
     {
         $payload = ['id' => 1, 'name' => 'Test'];
-        $response = JsonResponse::ok($payload);
+        $response = JsonResponse::ok($payload, wrap: true);
 
         $this->assertEquals(200, $response->status);
         $this->assertEquals('application/json; charset=utf-8', $response->headers['Content-Type']);
@@ -66,7 +66,7 @@ class JsonResponseTest extends TestCase
     public function testOkMethodWithCustomStatus(): void
     {
         $payload = ['id' => 1, 'name' => 'Test'];
-        $response = JsonResponse::ok($payload, 201);
+        $response = JsonResponse::ok($payload, 201, wrap: true);
 
         $this->assertEquals(201, $response->status);
         $decodedBody = json_decode((string) $response->body, true);
@@ -76,7 +76,7 @@ class JsonResponseTest extends TestCase
     public function testCreatedMethod(): void
     {
         $payload = ['id' => 1, 'name' => 'Test'];
-        $response = JsonResponse::created($payload);
+        $response = JsonResponse::created($payload, wrap: true);
 
         $this->assertEquals(201, $response->status);
         $decodedBody = json_decode((string) $response->body, true);
@@ -189,7 +189,7 @@ class JsonResponseTest extends TestCase
     public function testSuccessMethod(): void
     {
         $data = ['id' => 1, 'name' => 'Test'];
-        $response = JsonResponse::success($data);
+        $response = JsonResponse::success($data, wrap: true);
 
         $this->assertEquals(200, $response->status);
 
@@ -205,7 +205,7 @@ class JsonResponseTest extends TestCase
     {
         $data = ['id' => 1, 'name' => 'Test'];
         $meta = ['custom' => 'value'];
-        $response = JsonResponse::success($data, 201, $meta);
+        $response = JsonResponse::success($data, 201, $meta, wrap: true);
 
         $this->assertEquals(201, $response->status);
 
@@ -219,7 +219,7 @@ class JsonResponseTest extends TestCase
     public function testAcceptedMethod(): void
     {
         $data = ['id' => 1, 'name' => 'Test'];
-        $response = JsonResponse::accepted($data);
+        $response = JsonResponse::accepted($data, wrap: true);
 
         $this->assertEquals(202, $response->status);
 
@@ -309,7 +309,7 @@ class JsonResponseTest extends TestCase
         $data = [['id' => 1], ['id' => 2]];
         $paginatedResult = new PaginatedResult($data, 1, 10, 20);
 
-        $response = JsonResponse::paginated($paginatedResult);
+        $response = JsonResponse::paginated($paginatedResult, wrap: true);
 
         $this->assertEquals(200, $response->status);
 
@@ -441,7 +441,28 @@ class JsonResponseTest extends TestCase
             $fn();
         } finally {
             // Restore original value
-            $config?->set('response.wrap_data', $originalValue ?? true);
+            $config?->set('response.wrap_data', $originalValue ?? false);
+        }
+    }
+
+    public function testFrameworkDefaultIsUnwrapped(): void
+    {
+        $saved = $_ENV['RESPONSE_WRAP_DATA'] ?? null;
+        unset($_ENV['RESPONSE_WRAP_DATA']);
+
+        try {
+            $defaults = require __DIR__ . '/../config/defaults.php';
+            $this->assertFalse($defaults['response']['wrap_data']);
+
+            $_ENV['RESPONSE_WRAP_DATA'] = 'true';
+            $defaults = require __DIR__ . '/../config/defaults.php';
+            $this->assertTrue($defaults['response']['wrap_data']);
+        } finally {
+            if ($saved === null) {
+                unset($_ENV['RESPONSE_WRAP_DATA']);
+            } else {
+                $_ENV['RESPONSE_WRAP_DATA'] = $saved;
+            }
         }
     }
 

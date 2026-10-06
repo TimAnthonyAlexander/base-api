@@ -34,7 +34,8 @@ return [
     ],
 
     'response' => [
-        'wrap_data' => true,
+        // Off unless RESPONSE_WRAP_DATA=true, the same default the template's config/app.php sets
+        'wrap_data' => filter_var($_ENV['RESPONSE_WRAP_DATA'] ?? false, FILTER_VALIDATE_BOOLEAN),
     ],
 
     'rate_limit' => [

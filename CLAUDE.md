@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-BaseAPI is a KISS-first PHP 8.4+ framework for building JSON-first REST APIs. It's a Composer library (`timanthonyalexander/base-api`) with namespace `BaseApi\` under `src/`. The CLI tool is called **Mason** (`./mason`).
+BaseAPI is a KISS-first PHP 8.4+ framework for building JSON-first REST APIs. It's a Composer library, `baseapi/baseapi` on Packagist (GitHub repo: `timanthonyalexander/base-api`), with namespace `BaseApi\` under `src/`. The CLI tool is called **Mason** (`./mason`).
 
 ## Commands
 
@@ -94,7 +94,30 @@ Implements `Middleware` interface (`src/Http/Middleware.php`): `handle(Request $
 
 ### Responses
 
-`JsonResponse` provides static factory methods: `::ok()`, `::created()`, `::badRequest()`, `::unauthorized()`, `::notFound()`, `::noContent()`. Also supports `StreamedResponse` and `BinaryResponse`.
+`JsonResponse` provides static factory methods: `::ok()`, `::created()`, `::badRequest()`, `::unauthorized()`, `::notFound()`, `::error()`, `::noContent()`, plus `::success()`, `::paginated()`, `::forbidden()`, `::unprocessable()`, `::validationError()`. Also supports `StreamedResponse` and `BinaryResponse`.
+
+#### The `{ data }` wrapper is a setting, and it is OFF by default
+
+Whether success payloads are wrapped in `{ "data": ... }` is decided by `response.wrap_data`, read through `JsonResponse::shouldWrapData()`. The OpenAPI/TypeScript generator reads the same setting, so generated types match the runtime.
+
+- **Default: NO wrapper.** `config/defaults.php` sets `'wrap_data' => filter_var($_ENV['RESPONSE_WRAP_DATA'] ?? false, FILTER_VALIDATE_BOOLEAN)` and `shouldWrapData()` falls back to `false` (since v1.9.10; before that the framework fallback was `true` and only the template's `config/app.php` turned it off). With `RESPONSE_WRAP_DATA` unset or `false`, the payload goes out at the top level.
+- **`RESPONSE_WRAP_DATA=true` in an app's `.env` turns the wrapper on for every endpoint** that does not pass `$wrap` explicitly. Some projects run this way; check the app's `.env` and `config/app.php` (an app can also hardcode `response.wrap_data`) before assuming a response shape.
+- A call site can force either way: `ok($payload, 200, true|false)`, `created($payload, true|false)`, `success(..., $wrap)`, `paginated(..., $wrap)`. `#[Enveloped]` does the same for the generator.
+
+Shapes (`wrap_data` off → on):
+
+| Helper | Wrapper off (default) | Wrapper on |
+|---|---|---|
+| `ok()` / `created()` | the payload itself | `{ "data": payload }` |
+| `success($data, $status, $meta)` | `$data` merged at the top level + `"meta"` (a list ends up under numeric keys `"0"`, `"1"`, …) | `{ "success": true, "data", "meta" }` |
+| `paginated()` | `{ "items", "pagination", "meta" }` | `{ "success": true, "data", "pagination", "meta" }` |
+
+Errors ignore the setting and look the same in both modes:
+
+- `badRequest()` (400), `unauthorized()` (401), `notFound()` (404), `error()` (500 or any status): `{ "error": "...", "requestId": "..." }`, plus `"errors"` from `badRequest($msg, $errors)`. A failed `$this->validate()` is a 400 with `{ "error": "Validation failed.", "requestId", "errors": { field: message } }`.
+- `forbidden()` (403), `unprocessable()` (422), `validationError()` (422): `{ "success": false, "error", "meta": { "timestamp", "request_id" } }`, plus `"details"` / `"errors"`.
+
+There is no `"success": true` on `ok()`/`created()` responses in either mode.
 
 ### Other Subsystems
 
