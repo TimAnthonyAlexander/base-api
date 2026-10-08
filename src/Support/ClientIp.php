@@ -8,6 +8,18 @@ class ClientIp
 {
     public static function from(Request $request, bool $trustProxy): string
     {
+        // CF-Connecting-IP is only believed when the connection itself comes
+        // from a Cloudflare edge; anyone reaching the origin directly could
+        // otherwise pick their own IP with it.
+        $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $cfIp = trim((string) ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? ''));
+        if ($cfIp !== ''
+            && filter_var($cfIp, FILTER_VALIDATE_IP) !== false
+            && CloudflareIps::contains($remote)
+        ) {
+            return $cfIp;
+        }
+
         if ($trustProxy && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $forwarded = explode(',', (string) $_SERVER['HTTP_X_FORWARDED_FOR']);
             
